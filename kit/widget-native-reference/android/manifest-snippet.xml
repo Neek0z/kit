@@ -1,0 +1,14 @@
+<!-- À ajouter dans android/app/src/main/AndroidManifest.xml, à l'intérieur de <application> -->
+
+<!-- String : ajouter dans res/values/strings.xml : <string name="widget_description">Contacts à relancer aujourd\'hui</string> -->
+
+<receiver
+    android:name=".widget.KitWidget"
+    android:exported="true">
+    <intent-filter>
+        <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+    </intent-filter>
+    <meta-data
+        android:name="android.appwidget.provider"
+        android:resource="@xml/kit_widget_info" />
+</receiver>

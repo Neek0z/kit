@@ -1,0 +1,131 @@
+import { useState, useEffect, useCallback } from "react";
+import { supabase } from "../lib/supabase";
+import { updateWidgetData } from "../lib/widgetData";
+import { Contact } from "../types";
+import { useAuthContext } from "../lib/AuthContext";
+
+interface UseContactsReturn {
+  contacts: Contact[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+  createContact: (data: CreateContactInput) => Promise<Contact | null>;
+  updateContact: (
+    id: string,
+    data: Partial<CreateContactInput>
+  ) => Promise<{ ok: boolean; errorMessage?: string }>;
+  deleteContact: (id: string) => Promise<boolean>;
+}
+
+export interface CreateContactInput {
+  full_name: string;
+  phone?: string;
+  email?: string;
+  notes?: string;
+  status?: string;
+  next_follow_up?: string | null;
+  follow_up_recurrence?: string | null;
+  notification_id?: string | null;
+  tags?: string[];
+}
+
+export function useContacts(): UseContactsReturn {
+  const { user } = useAuthContext();
+  const [contacts, setContacts] = useState<Contact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchContacts = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+
+    const { data, err } = await supabase
+      .from("contacts")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("full_name", { ascending: true });
+
+    if (err) {
+      setError(err.message);
+    } else {
+      setContacts((data ?? []) as Contact[]);
+    }
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    fetchContacts();
+  }, [fetchContacts]);
+
+  useEffect(() => {
+    if (!user || loading) return;
+    updateWidgetData(contacts);
+  }, [contacts, user, loading]);
+
+  const createContact = async (
+    data: CreateContactInput
+  ): Promise<Contact | null> => {
+    if (!user) return null;
+
+    const { data: contact, error: err } = await supabase
+      .from("contacts")
+      .insert({ ...data, user_id: user.id })
+      .select()
+      .single();
+
+    if (err) {
+      setError(err.message);
+      return null;
+    }
+
+    setContacts((prev) =>
+      [...prev, contact as Contact].sort((a, b) =>
+        a.full_name.localeCompare(b.full_name)
+      )
+    );
+    return contact as Contact;
+  };
+
+  const updateContact = async (
+    id: string,
+    data: Partial<CreateContactInput>
+  ): Promise<{ ok: boolean; errorMessage?: string }> => {
+    const { error: err } = await supabase
+      .from("contacts")
+      .update(data)
+      .eq("id", id);
+
+    if (err) {
+      setError(err.message);
+      return { ok: false, errorMessage: err.message };
+    }
+
+    setContacts((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ...data } : c))
+    );
+    return { ok: true };
+  };
+
+  const deleteContact = async (id: string): Promise<boolean> => {
+    const { error: err } = await supabase.from("contacts").delete().eq("id", id);
+
+    if (err) {
+      setError(err.message);
+      return false;
+    }
+
+    setContacts((prev) => prev.filter((c) => c.id !== id));
+    return true;
+  };
+
+  return {
+    contacts,
+    loading,
+    error,
+    refetch: fetchContacts,
+    createContact,
+    updateContact,
+    deleteContact,
+  };
+}

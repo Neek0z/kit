@@ -1,0 +1,64 @@
+{
+  "expo": {
+    "name": "KIT — Keep in Touch",
+    "slug": "kit",
+    "version": "1.0.0",
+    "scheme": "kit",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f172a"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.tonnom.kit",
+      "buildNumber": "1"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f172a"
+      },
+      "package": "com.tonnom.kit",
+      "versionCode": 1,
+      "predictiveBackGestureEnabled": false,
+      "useNextNotificationsApi": true
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "plugins": [
+      "expo-secure-store",
+      "expo-router",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#6ee7b7",
+          "sounds": []
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "KIT accède à ta galerie pour changer ta photo de profil.",
+          "cameraPermission": "KIT accède à ta caméra pour prendre une photo de profil."
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "KIT accède à tes contacts pour les importer facilement."
+        }
+      ],
+      "@react-native-community/datetimepicker"
+    ]
+  }
+}

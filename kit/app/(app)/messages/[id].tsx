@@ -1,0 +1,126 @@
+import { useRef, useEffect } from "react";
+import { useLocalSearchParams } from "expo-router";
+import {
+  View,
+  FlatList,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableOpacity,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
+import { Feather } from "@expo/vector-icons";
+import { useAuthContext } from "../../../lib/AuthContext";
+import { Header } from "../../../components/layout";
+import { Text } from "../../../components/ui";
+import { MessageBubble, MessageInput } from "../../../components/messages";
+import { useMessages } from "../../../hooks/useMessages";
+import { useConversationDetails } from "../../../hooks/useConversationDetails";
+import { useContacts } from "../../../hooks/useContacts";
+import { useInteractions } from "../../../hooks/useInteractions";
+import { useToast } from "../../../lib/ToastContext";
+
+export default function ConversationScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { user } = useAuthContext();
+  const listRef = useRef<FlatList>(null);
+  const { otherParticipant, loading: detailsLoading } = useConversationDetails(id ?? null);
+  const { messages, loading: messagesLoading, sending, sendMessage } = useMessages(id ?? null);
+  const { contacts } = useContacts();
+  const contactMatch = otherParticipant?.email
+    ? contacts.find(
+        (c) =>
+          c.email?.toLowerCase() === otherParticipant.email?.toLowerCase()
+      )
+    : null;
+  const { addInteraction } = useInteractions(contactMatch?.id ?? "");
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      listRef.current?.scrollToEnd({ animated: true });
+    }
+  }, [messages.length]);
+
+  const displayName = otherParticipant?.full_name || otherParticipant?.email || "Conversation";
+
+  if (detailsLoading && !otherParticipant) {
+    return (
+      <SafeAreaView className="flex-1 bg-background dark:bg-background-dark items-center justify-center">
+        <ActivityIndicator color="#6ee7b7" />
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+      <Header
+        title={displayName}
+        showBack
+        subtitle={otherParticipant?.email}
+        rightAction={
+          contactMatch
+            ? {
+                icon: "user",
+                onPress: () =>
+                  router.push(`/(app)/contacts/${contactMatch.id}`),
+              }
+            : undefined
+        }
+      />
+      {contactMatch && (
+        <TouchableOpacity
+          onPress={async () => {
+            const ok = await addInteraction(contactMatch.id, "message", "Conversation KIT");
+            if (ok) {
+              showToast("Interaction ajoutée");
+              router.push(`/(app)/contacts/${contactMatch.id}`);
+            }
+          }}
+          className="mx-5 py-2.5 flex-row items-center gap-2 border-b border-border dark:border-border-dark"
+        >
+          <Feather name="check-circle" size={16} color="#6ee7b7" />
+          <Text className="text-primary text-sm font-medium">
+            Enregistrer comme interaction
+          </Text>
+        </TouchableOpacity>
+      )}
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={0}
+      >
+        {messagesLoading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator color="#6ee7b7" />
+          </View>
+        ) : messages.length === 0 ? (
+          <View className="flex-1 items-center justify-center px-8">
+            <Text variant="muted" className="text-center">
+              Aucun message. Envoie le premier.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            ref={listRef}
+            data={messages}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <View className="px-4 py-1">
+                <MessageBubble
+                  message={item}
+                  isOwn={item.sender_id === user?.id}
+                />
+              </View>
+            )}
+            contentContainerStyle={{
+              paddingVertical: 12,
+              paddingBottom: 8,
+            }}
+          />
+        )}
+        <MessageInput onSend={sendMessage} sending={sending} />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
