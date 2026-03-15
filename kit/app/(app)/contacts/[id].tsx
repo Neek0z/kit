@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { View, ScrollView, Alert, TouchableOpacity, Linking } from "react-native";
+import {
+  View,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+  Linking,
+  Text,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import {
-  Text,
-  Avatar,
-  Badge,
-  Card,
-  Button,
-  Divider,
-} from "../../../components/ui";
+import { Text as KitText, Avatar, Card, Button, Divider, StatusPill } from "../../../components/ui";
 import { Header } from "../../../components/layout";
 import { AddInteractionSheet, FollowUpPicker, TagsEditor, PipelineArc, WorkflowTimeline } from "../../../components/contacts";
 import { AppointmentSheet } from "../../../components/calendar/AppointmentSheet";
@@ -35,6 +35,10 @@ import {
   FollowUpRecurrence,
   FOLLOW_UP_RECURRENCE_LABELS,
 } from "../../../types";
+import { useTheme, STATUS_COLORS, StatusKey } from "../../../lib/theme";
+import { useContactGroups } from "../../../hooks/useContactGroups";
+import { GroupBadge } from "../../../components/groups/GroupBadge";
+import { GroupPicker } from "../../../components/groups/GroupPicker";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
@@ -52,6 +56,7 @@ const STATUS_VARIANTS: Record<
 
 export default function ContactDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const theme = useTheme();
   const { contacts, deleteContact, updateContact } = useContacts();
   const { conversations } = useConversations();
   const { interactions, addInteraction } = useInteractions(id ?? "");
@@ -66,6 +71,8 @@ export default function ContactDetailScreen() {
   const [appointmentSheetVisible, setAppointmentSheetVisible] = useState(false);
   const [appointmentSheetMode, setAppointmentSheetMode] = useState<"create" | "edit">("create");
   const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
+  const { groups: contactGroups, addToGroup, removeFromGroup } = useContactGroups(id ?? "");
+  const [showGroupPicker, setShowGroupPicker] = useState(false);
 
   const contact = contacts.find((c) => c.id === id);
   const conversationWithContact = contact?.email
@@ -212,11 +219,15 @@ export default function ContactDetailScreen() {
     showToast("Marqué comme relancé");
   };
 
+  const statusColors =
+    STATUS_COLORS[contact.status as StatusKey] ?? STATUS_COLORS.inactive;
+
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
       <Header
         title={contact.full_name}
         showBack
+        onBack={() => router.push("/(app)/contacts")}
         rightAction={{
           icon: "edit-2",
           onPress: () => router.push(`/(app)/contacts/${id}/edit`),
@@ -224,93 +235,145 @@ export default function ContactDetailScreen() {
       />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="items-center py-6 gap-3">
-          <Avatar name={contact.full_name} size="lg" />
-          <Badge
-            label={
-              PIPELINE_LABELS[contact.status as PipelineStatus] ?? contact.status
-            }
-            variant={
-              STATUS_VARIANTS[contact.status as PipelineStatus] ?? "neutral"
-            }
+        {/* Ligne décorative */}
+        <View
+          style={{
+            height: 1,
+            marginHorizontal: 32,
+            backgroundColor: theme.isDark
+              ? "rgba(110,231,183,0.3)"
+              : "rgba(5,150,105,0.25)",
+          }}
+        />
+
+        {/* Hero section */}
+        <View
+          style={{
+            alignItems: "center",
+            paddingVertical: 24,
+            paddingHorizontal: 20,
+          }}
+        >
+          <Avatar
+            name={contact.full_name}
+            status={contact.status}
+            size="lg"
+          />
+          <Text
+            style={{
+              fontSize: 22,
+              fontWeight: "800",
+              color: theme.textPrimary,
+              marginTop: 12,
+              letterSpacing: -0.5,
+            }}
+          >
+            {contact.full_name}
+          </Text>
+          <StatusPill
+            status={contact.status}
+            size="md"
+            style={{ marginTop: 10, alignSelf: "center" }}
           />
         </View>
 
+        {/* Workflow client */}
         {contact.status === "client" && (
           <View className="px-5 mb-4">
             <WorkflowTimeline contactId={contact.id} />
           </View>
         )}
 
-        <View className="flex-row justify-center gap-4 px-5 mb-6">
-          {contact.phone && (
-            <TouchableOpacity
-              onPress={handleCall}
-              className="items-center gap-1"
-            >
-              <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center">
-                <Feather name="phone" size={20} color="#6ee7b7" />
-              </View>
-              <Text variant="muted" className="text-xs">
-                Appeler
-              </Text>
-            </TouchableOpacity>
-          )}
-          {contact.phone && (
-            <TouchableOpacity
-              onPress={handleWhatsApp}
-              className="items-center gap-1"
-            >
-              <View className="w-12 h-12 rounded-full bg-green-500/10 items-center justify-center">
-                <Feather name="message-circle" size={20} color="#22c55e" />
-              </View>
-              <Text variant="muted" className="text-xs">
-                WhatsApp
-              </Text>
-            </TouchableOpacity>
-          )}
-          {contact.email && (
-            <TouchableOpacity
-              onPress={handleEmail}
-              className="items-center gap-1"
-            >
-              <View className="w-12 h-12 rounded-full bg-secondary/10 items-center justify-center">
-                <Feather name="mail" size={20} color="#818cf8" />
-              </View>
-              <Text variant="muted" className="text-xs">
-                Email
-              </Text>
-            </TouchableOpacity>
-          )}
-          {contact.email && (
-            <TouchableOpacity
-              onPress={() =>
-                conversationWithContact
+        {/* Actions rapides */}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "center",
+            gap: 12,
+            paddingHorizontal: 20,
+            marginBottom: 20,
+          }}
+        >
+          {[
+            {
+              icon: "phone",
+              label: "Appeler",
+              color: theme.primary,
+              onPress: handleCall,
+              visible: !!contact.phone,
+            },
+            {
+              icon: "message-circle",
+              label: "WhatsApp",
+              color: "#22c55e",
+              onPress: handleWhatsApp,
+              visible: !!contact.phone,
+            },
+            {
+              icon: "mail",
+              label: "Email",
+              color: "#818cf8",
+              onPress: handleEmail,
+              visible: !!contact.email,
+            },
+            {
+              icon: "message-square",
+              label: "KIT",
+              color: theme.primary,
+              onPress: () =>
+                contact.email &&
+                (conversationWithContact
                   ? router.push(`/(app)/messages/${conversationWithContact.id}`)
                   : router.push(
-                      `/(app)/messages/new?email=${encodeURIComponent(contact.email!)}`
-                    )
-              }
-              className="items-center gap-1"
-            >
-              <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center">
-                <Feather name="message-circle" size={20} color="#6ee7b7" />
-              </View>
-              <Text variant="muted" className="text-xs">
-                {conversationWithContact ? "Ouvrir la conversation" : "Message KIT"}
-              </Text>
-            </TouchableOpacity>
-          )}
+                      `/(app)/messages/new?email=${encodeURIComponent(
+                        contact.email!
+                      )}`
+                    )),
+              visible: !!contact.email,
+            },
+          ]
+            .filter((a) => a.visible)
+            .map((action) => (
+              <TouchableOpacity
+                key={action.label}
+                onPress={action.onPress}
+                style={{ alignItems: "center", gap: 5 }}
+              >
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 14,
+                    backgroundColor: theme.surface,
+                    borderWidth: 1,
+                    borderColor: `${action.color}25`,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather
+                    name={action.icon as FeatherName}
+                    size={17}
+                    color={action.color}
+                  />
+                </View>
+                <Text
+                  style={{ fontSize: 10, color: theme.textMuted }}
+                >
+                  {action.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
         </View>
 
         <View className="px-5 gap-3 pb-8">
           <Card>
-            <Text
+            <KitText
               variant="muted"
               className="text-xs mb-3 uppercase tracking-wider"
             >
               Pipeline
-            </Text>
+            </KitText>
             <PipelineArc
               status={contact.status as PipelineStatus}
               onChange={async (newStatus) => {
@@ -347,15 +410,65 @@ export default function ContactDetailScreen() {
             />
           </Card>
 
+          {/* Groupes */}
+          <Card>
+            <View className="flex-row items-center justify-between mb-2">
+              <KitText
+                variant="muted"
+                className="text-xs uppercase tracking-wider"
+              >
+                Groupes
+              </KitText>
+              <TouchableOpacity onPress={() => setShowGroupPicker(true)}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: theme.primary,
+                    fontWeight: "500",
+                  }}
+                >
+                  + Ajouter
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {contactGroups.length === 0 ? (
+              <TouchableOpacity onPress={() => setShowGroupPicker(true)}>
+                <Text
+                  style={{ fontSize: 13, color: theme.textMuted }}
+                >
+                  Aucun groupe — tap pour ajouter
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <View
+                style={{
+                  flexDirection: "row",
+                  flexWrap: "wrap",
+                  gap: 6,
+                }}
+              >
+                {contactGroups.map((group) => (
+                  <GroupBadge
+                    key={group.id}
+                    group={group}
+                    onRemove={() => removeFromGroup(group.id)}
+                  />
+                ))}
+              </View>
+            )}
+          </Card>
+
           {contact.notes && (
             <Card>
-              <Text
+              <KitText
                 variant="muted"
                 className="text-xs mb-2 uppercase tracking-wider"
               >
                 Notes
+              </KitText>
+              <Text className="text-sm leading-relaxed">
+                {contact.notes}
               </Text>
-              <Text className="text-sm leading-relaxed">{contact.notes}</Text>
             </Card>
           )}
 
@@ -365,9 +478,9 @@ export default function ContactDetailScreen() {
               onChange={handleFollowUpChange}
             />
             <View className="mt-3">
-              <Text variant="muted" className="text-sm font-medium mb-2">
+              <KitText variant="muted" className="text-sm font-medium mb-2">
                 Répéter
-              </Text>
+              </KitText>
               <View className="flex-row flex-wrap gap-2">
                 {(
                   ["none", "weekly", "biweekly", "monthly"] as FollowUpRecurrence[]
@@ -597,6 +710,14 @@ export default function ContactDetailScreen() {
           />
         </View>
       </ScrollView>
+
+      <GroupPicker
+        visible={showGroupPicker}
+        selectedGroups={contactGroups}
+        onAdd={addToGroup}
+        onRemove={removeFromGroup}
+        onClose={() => setShowGroupPicker(false)}
+      />
     </SafeAreaView>
   );
 }

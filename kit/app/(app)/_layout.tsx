@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Tabs, router, usePathname } from "expo-router";
 import { View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { PushTokenSync } from "../../components/PushTokenSync";
@@ -25,29 +25,32 @@ function TabIcon({ name, color, focused }: TabIconProps) {
 
 export default function AppLayout() {
   const { isDark } = useTheme();
-  const tabBarBg = isDark ? "#13131a" : "#f1f5f9";
-  const tabBarBorder = isDark ? "#1e1e2e" : "#cbd5e1";
-  const tabBarInactive = isDark ? "#475569" : "#64748b";
+  const tabBarBg = isDark ? "#080c12" : "#ffffff";
+  const tabBarBorder = isDark
+    ? "rgba(255,255,255,0.06)"
+    : "rgba(0,0,0,0.06)";
+  const tabBarInactive = isDark ? "#334155" : "#cbd5e1";
+  const pathname = usePathname();
 
   return (
     <>
       <PushTokenSync />
       <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: tabBarBg,
-          borderTopColor: tabBarBorder,
-          borderTopWidth: 1,
-          paddingTop: 8,
-          paddingBottom: 8,
-          height: 64,
-        },
-        tabBarActiveTintColor: "#6ee7b7",
-        tabBarInactiveTintColor: tabBarInactive,
-        tabBarShowLabel: false,
-      }}
-    >
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: {
+            backgroundColor: tabBarBg,
+            borderTopWidth: 1,
+            borderTopColor: tabBarBorder,
+            paddingTop: 8,
+            paddingBottom: 8,
+            height: 64,
+          },
+          tabBarActiveTintColor: isDark ? "#6ee7b7" : "#059669",
+          tabBarInactiveTintColor: tabBarInactive,
+          tabBarShowLabel: false,
+        }}
+      >
       <Tabs.Screen
         name="index"
         options={{
@@ -62,6 +65,17 @@ export default function AppLayout() {
           tabBarIcon: ({ color, focused }) => (
             <TabIcon name="users" color={color} focused={focused} />
           ),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            // Si on est déjà sur la page principale Contacts, ne rien faire
+            if (pathname === "/(app)/contacts") {
+              return;
+            }
+            // Sinon, empêcher la navigation par défaut et forcer la page principale Contacts
+            e.preventDefault();
+            router.replace("/(app)/contacts");
+          },
         }}
       />
       <Tabs.Screen

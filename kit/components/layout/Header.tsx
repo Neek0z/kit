@@ -7,6 +7,7 @@ interface HeaderProps {
   title: string;
   subtitle?: string;
   showBack?: boolean;
+  onBack?: () => void;
   rightAction?: {
     icon: React.ComponentProps<typeof Feather>["name"];
     onPress: () => void;
@@ -18,13 +19,17 @@ export function Header({
   title,
   subtitle,
   showBack = false,
+  onBack,
   rightAction,
 }: HeaderProps) {
   return (
     <View className="flex-row items-center justify-between px-5 pt-4 pb-3">
       <View className="flex-row items-center gap-3 flex-1">
         {showBack && (
-          <TouchableOpacity onPress={() => router.back()} className="mr-1">
+          <TouchableOpacity
+            onPress={onBack ?? (() => router.back())}
+            className="mr-1"
+          >
             <Feather name="arrow-left" size={22} color="#f1f5f9" />
           </TouchableOpacity>
         )}

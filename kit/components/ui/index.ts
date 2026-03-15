@@ -6,3 +6,4 @@ export { Badge } from "./Badge";
 export { Avatar } from "./Avatar";
 export { Divider } from "./Divider";
 export { EmptyState } from "./EmptyState";
+export { StatusPill } from "./StatusPill";

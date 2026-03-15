@@ -1,27 +1,38 @@
 import { View, ViewProps } from "react-native";
+import { useTheme } from "../../lib/theme";
 
 interface CardProps extends ViewProps {
   padding?: "sm" | "md" | "lg";
+  accent?: boolean;
 }
 
-const paddings = {
-  sm: "p-3",
-  md: "p-4",
-  lg: "p-6",
-};
+const PADDINGS = { sm: 10, md: 14, lg: 20 };
 
 export function Card({
   padding = "md",
-  className = "",
+  accent = false,
+  style,
   children,
   ...props
-}: CardProps & { className?: string }) {
+}: CardProps) {
+  const theme = useTheme();
+
   return (
     <View
-      className={`bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-2xl ${paddings[padding]} ${className}`}
+      style={[
+        {
+          backgroundColor: theme.surface,
+          borderWidth: 1,
+          borderColor: accent ? theme.borderAccent : theme.border,
+          borderRadius: 18,
+          padding: PADDINGS[padding],
+        },
+        style,
+      ]}
       {...props}
     >
       {children}
     </View>
   );
 }
+

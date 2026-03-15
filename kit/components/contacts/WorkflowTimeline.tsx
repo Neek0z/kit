@@ -15,15 +15,37 @@ export function WorkflowTimeline({ contactId }: WorkflowTimelineProps) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase
-      .from("workflow_tasks")
-      .select("*")
-      .eq("contact_id", contactId)
-      .order("due_date", { ascending: true })
-      .then(({ data }) => {
-        setTasks((data ?? []) as WorkflowTask[]);
-        setLoading(false);
-      });
+    let cancelled = false;
+    let retryTimeout: ReturnType<typeof setTimeout> | undefined;
+
+    const load = async (isRetry: boolean) => {
+      const { data } = await supabase
+        .from("workflow_tasks")
+        .select("*")
+        .eq("contact_id", contactId)
+        .order("due_date", { ascending: true });
+
+      if (cancelled) return;
+
+      const list = (data ?? []) as WorkflowTask[];
+      setTasks(list);
+      setLoading(false);
+
+      // Cas particulier : le workflow vient d'être créé, la première requête
+      // peut arriver avant l'insertion. On refait un fetch unique après 800ms.
+      if (!isRetry && list.length === 0) {
+        retryTimeout = setTimeout(() => {
+          load(true);
+        }, 800);
+      }
+    };
+
+    load(false);
+
+    return () => {
+      cancelled = true;
+      if (retryTimeout) clearTimeout(retryTimeout);
+    };
   }, [contactId]);
 
   const handleComplete = (task: WorkflowTask) => {

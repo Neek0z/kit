@@ -1,24 +1,18 @@
-import {
-  View,
-  ScrollView,
-  TouchableOpacity,
-  ActivityIndicator,
-  RefreshControl,
-} from "react-native";
+import { View, ScrollView, TouchableOpacity, Text } from "react-native";
+import { useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import { Text, Card, EmptyState } from "../../components/ui";
-import { ContactCard } from "../../components/contacts";
-import { PipelineBar } from "../../components/dashboard";
+import { useTheme, STATUS_COLORS, StatusKey } from "../../lib/theme";
 import { useDashboard } from "../../hooks/useDashboard";
-import { useActivityStats } from "../../hooks/useActivityStats";
-import { useSubscription } from "../../hooks/useSubscription";
 import { useAuthContext } from "../../lib/AuthContext";
+import { Card, StatusPill, Avatar } from "../../components/ui";
+import { PipelineBar } from "../../components/dashboard";
+import type { Contact } from "../../types";
 
 export default function DashboardScreen() {
+  const theme = useTheme();
   const { user } = useAuthContext();
-  const { isPro } = useSubscription();
   const {
     totalContacts,
     toFollowUp,
@@ -28,194 +22,311 @@ export default function DashboardScreen() {
     loading,
     refetch,
   } = useDashboard();
-  const {
-    countLast7Days,
-    countLast30Days,
-    contactsContactedThisMonth,
-    loading: statsLoading,
-  } = useActivityStats();
 
   const firstName = user?.user_metadata?.full_name?.split(" ")[0] ?? "toi";
 
-  const showFullScreenLoading = loading && totalContacts === 0;
-
-  if (showFullScreenLoading) {
-    return (
-      <SafeAreaView className="flex-1 bg-background dark:bg-background-dark items-center justify-center">
-        <ActivityIndicator color="#6ee7b7" />
-      </SafeAreaView>
-    );
-  }
+  // Rafraîchir les stats dashboard à chaque retour sur l'écran
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
-      <ScrollView
-        className="flex-1 px-5"
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={loading}
-            onRefresh={refetch}
-            colors={["#6ee7b7"]}
-            tintColor="#6ee7b7"
-          />
-        }
-      >
-        <View className="pt-6 pb-5 flex-row items-start justify-between">
-          <View>
-            <Text variant="muted">Bonjour {firstName} 👋</Text>
-            <Text variant="h1" className="mt-1">
-              Dashboard
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => router.push("/(app)/contacts/new")}
-            className="bg-primary w-10 h-10 rounded-full items-center justify-center mt-1"
-            accessibilityLabel="Ajouter un contact"
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Ligne décorative haut d'écran */}
+        <View
+          style={{
+            height: 1,
+            marginHorizontal: 24,
+            backgroundColor: theme.primary,
+            opacity: 0.25,
+          }}
+        />
+
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 20,
+            paddingBottom: 8,
+          }}
+        >
+          {/* Header */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              marginBottom: 20,
+            }}
           >
-            <Feather name="plus" size={20} color="#0f172a" />
-          </TouchableOpacity>
-        </View>
-
-        {overdueFollowUps.length > 0 && (
-          <TouchableOpacity
-            onPress={() => router.push("/(app)/contacts")}
-            className="bg-danger/10 border border-danger/30 rounded-2xl p-4 mb-4 flex-row items-center gap-3"
-          >
-            <Feather name="alert-circle" size={18} color="#f87171" />
-            <Text className="text-danger text-sm font-semibold flex-1">
-              {overdueFollowUps.length} relance
-              {overdueFollowUps.length > 1 ? "s" : ""} en retard
-            </Text>
-            <Feather name="chevron-right" size={16} color="#f87171" />
-          </TouchableOpacity>
-        )}
-
-        <View className="flex-row gap-3 mb-4">
-          <Card className="flex-1">
-            <Text variant="muted" className="text-xs mb-1">
-              Contacts
-            </Text>
-            <Text variant="h2" className="text-primary">
-              {totalContacts}
-            </Text>
-          </Card>
-          <Card className="flex-1">
-            <Text variant="muted" className="text-xs mb-1">
-              À relancer
-            </Text>
-            <Text
-              variant="h2"
-              className={
-                toFollowUp.length > 0 ? "text-yellow-400" : "text-textMain dark:text-textMain-dark"
-              }
-            >
-              {toFollowUp.length}
-            </Text>
-          </Card>
-          <Card className="flex-1">
-            <Text variant="muted" className="text-xs mb-1">
-              Clients
-            </Text>
-            <Text variant="h2" className="text-primary">
-              {byStatus.client ?? 0}
-            </Text>
-          </Card>
-        </View>
-
-        {!statsLoading && (countLast7Days > 0 || countLast30Days > 0 || contactsContactedThisMonth > 0) && (
-          <Card className="mb-4">
-            <Text variant="muted" className="text-xs mb-3 uppercase tracking-wider">
-              Activité
-            </Text>
-            <View className="flex-row gap-4">
-              <View className="flex-1">
-                <Text variant="h2" className="text-primary">{countLast7Days}</Text>
-                <Text variant="muted" className="text-xs">Interactions (7 j)</Text>
-              </View>
-              <View className="flex-1">
-                <Text variant="h2" className="text-primary">{countLast30Days}</Text>
-                <Text variant="muted" className="text-xs">Interactions (30 j)</Text>
-              </View>
-              <View className="flex-1">
-                <Text variant="h2" className="text-primary">{contactsContactedThisMonth}</Text>
-                <Text variant="muted" className="text-xs">Contactés ce mois</Text>
-              </View>
+            <View>
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: theme.textMuted,
+                  marginBottom: 3,
+                }}
+              >
+                Bonjour {firstName} 👋
+              </Text>
+              <Text
+                style={{
+                  fontSize: 28,
+                  fontWeight: "800",
+                  color: theme.textPrimary,
+                  letterSpacing: -1,
+                  lineHeight: 32,
+                }}
+              >
+                Dashboard
+              </Text>
             </View>
-          </Card>
-        )}
-
-        {!isPro && totalContacts >= 20 && (
-          <TouchableOpacity
-            onPress={() => router.push("/(app)/subscription")}
-            className="bg-secondary/10 border border-secondary/30 rounded-2xl p-4 mb-4 flex-row items-center gap-3"
-          >
-            <Feather name="zap" size={16} color="#818cf8" />
-            <Text className="text-secondary text-sm flex-1">
-              {totalContacts}/25 contacts utilisés · Passe à Pro
-            </Text>
-            <Feather name="chevron-right" size={14} color="#818cf8" />
-          </TouchableOpacity>
-        )}
-
-        {totalContacts > 0 && (
-          <Card className="mb-4">
-            <Text
-              variant="muted"
-              className="text-xs mb-3 uppercase tracking-wider"
+            <TouchableOpacity
+              onPress={() => router.push("/(app)/contacts/new")}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: theme.primaryBg,
+                borderWidth: 1,
+                borderColor: theme.primaryBorder,
+                alignItems: "center",
+                justifyContent: "center",
+                marginTop: 4,
+              }}
+              accessibilityLabel="Ajouter un contact"
             >
-              Pipeline
-            </Text>
-            <PipelineBar byStatus={byStatus} total={totalContacts} />
-          </Card>
-        )}
+              <Feather name="plus" size={18} color={theme.primary} />
+            </TouchableOpacity>
+          </View>
 
-        {toFollowUp.length > 0 && (
-          <View className="mb-4">
-            <Text variant="h3" className="mb-3">
-              À relancer
-            </Text>
-            <Card padding="sm">
-              {toFollowUp.slice(0, 5).map((contact) => (
-                <ContactCard key={contact.id} contact={contact} />
-              ))}
-              {toFollowUp.length > 5 && (
-                <TouchableOpacity
-                  onPress={() => router.push("/(app)/contacts")}
-                  className="py-3 items-center"
+          {/* Alerte relances en retard */}
+          {overdueFollowUps.length > 0 && (
+            <TouchableOpacity
+              onPress={() => router.push("/(app)/contacts")}
+              style={{
+                backgroundColor: "rgba(248,113,113,0.08)",
+                borderWidth: 1,
+                borderColor: "rgba(248,113,113,0.2)",
+                borderRadius: 14,
+                padding: 12,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                marginBottom: 14,
+              }}
+            >
+              <Feather name="alert-circle" size={16} color="#f87171" />
+              <Text
+                style={{
+                  flex: 1,
+                  color: "#f87171",
+                  fontSize: 13,
+                  fontWeight: "600",
+                }}
+              >
+                {overdueFollowUps.length} relance
+                {overdueFollowUps.length > 1 ? "s" : ""} en retard
+              </Text>
+              <Feather name="chevron-right" size={14} color="#f87171" />
+            </TouchableOpacity>
+          )}
+
+          {/* Stats — gros chiffres */}
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 8,
+              marginBottom: 14,
+            }}
+          >
+            {[
+              { label: "Contacts", value: totalContacts, accent: false },
+              {
+                label: "À relancer",
+                value: toFollowUp.length,
+                accent: toFollowUp.length > 0,
+              },
+              {
+                label: "Clients",
+                value: byStatus.client ?? 0,
+                accent: true,
+              },
+            ].map((stat) => (
+              <View
+                key={stat.label}
+                style={{
+                  flex: 1,
+                  backgroundColor: theme.surface,
+                  borderWidth: 1,
+                  borderColor: stat.accent
+                    ? theme.borderAccent
+                    : theme.border,
+                  borderRadius: 14,
+                  padding: 12,
+                  alignItems: "center",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: theme.textMuted,
+                    marginBottom: 4,
+                  }}
                 >
-                  <Text className="text-primary text-sm">
-                    Voir les {toFollowUp.length - 5} autres →
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </Card>
+                  {stat.label}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 26,
+                    fontWeight: "800",
+                    color: stat.accent ? theme.primary : theme.textPrimary,
+                    lineHeight: 28,
+                  }}
+                >
+                  {stat.value}
+                </Text>
+              </View>
+            ))}
           </View>
-        )}
 
-        {recentContacts.length > 0 && (
-          <View className="mb-8">
-            <Text variant="h3" className="mb-3">
-              Récents
-            </Text>
-            <Card padding="sm">
-              {recentContacts.map((contact) => (
-                <ContactCard key={contact.id} contact={contact} />
-              ))}
+          {/* Pipeline */}
+          {totalContacts > 0 && (
+            <Card style={{ marginBottom: 14 }}>
+              <Text
+                style={{
+                  fontSize: 10,
+                  letterSpacing: 0.8,
+                  color: theme.textHint,
+                  textTransform: "uppercase",
+                  marginBottom: 10,
+                  fontWeight: "600",
+                }}
+              >
+                Pipeline
+              </Text>
+              <PipelineBar byStatus={byStatus} total={totalContacts} />
             </Card>
-          </View>
-        )}
+          )}
 
-        {totalContacts === 0 && (
-          <EmptyState
-            icon="🤝"
-            title="Commence par ajouter un contact"
-            description="KIT t'aide à ne plus jamais oublier de relancer quelqu'un."
-            actionLabel="Ajouter un contact"
-            onAction={() => router.push("/(app)/contacts/new")}
-          />
-        )}
+          {/* À relancer */}
+          {toFollowUp.length > 0 && (
+            <View style={{ marginBottom: 14 }}>
+              <Text
+                style={{
+                  fontSize: 17,
+                  fontWeight: "700",
+                  color: theme.textPrimary,
+                  marginBottom: 10,
+                  letterSpacing: -0.3,
+                }}
+              >
+                À relancer
+              </Text>
+              <Card padding="sm">
+                {toFollowUp.slice(0, 5).map((contact, i) => (
+                  <ContactRow
+                    key={contact.id}
+                    contact={contact}
+                    showDivider={i < toFollowUp.length - 1 && i < 4}
+                    theme={theme}
+                  />
+                ))}
+              </Card>
+            </View>
+          )}
+
+          {/* Récents */}
+          {recentContacts.length > 0 && (
+            <View style={{ marginBottom: 24 }}>
+              <Text
+                style={{
+                  fontSize: 17,
+                  fontWeight: "700",
+                  color: theme.textPrimary,
+                  marginBottom: 10,
+                  letterSpacing: -0.3,
+                }}
+              >
+                Récents
+              </Text>
+              <Card padding="sm">
+                {recentContacts.map((contact, i) => (
+                  <ContactRow
+                    key={contact.id}
+                    contact={contact}
+                    showDivider={i < recentContacts.length - 1}
+                    theme={theme}
+                  />
+                ))}
+              </Card>
+            </View>
+          )}
+        </View>
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function ContactRow({
+  contact,
+  showDivider,
+  theme,
+}: {
+  contact: Contact;
+  showDivider: boolean;
+  theme: ReturnType<typeof useTheme>;
+}) {
+  const statusColors =
+    STATUS_COLORS[contact.status as StatusKey] ?? STATUS_COLORS.inactive;
+
+  return (
+    <>
+      <TouchableOpacity
+        onPress={() => router.push(`/(app)/contacts/${contact.id}`)}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 12,
+          paddingVertical: 10,
+          paddingHorizontal: 4,
+          backgroundColor:
+            contact.status === "client"
+              ? statusColors.bg
+              : "transparent",
+        }}
+        activeOpacity={0.7}
+      >
+        <Avatar
+          name={contact.full_name}
+          status={contact.status}
+          size="md"
+        />
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{
+              fontSize: 14,
+              fontWeight: "600",
+              color: theme.textPrimary,
+            }}
+          >
+            {contact.full_name}
+          </Text>
+        </View>
+        <StatusPill status={contact.status} size="sm" />
+        <Feather name="chevron-right" size={14} color={theme.textHint} />
+      </TouchableOpacity>
+      {showDivider && (
+        <View
+          style={{
+            height: 1,
+            backgroundColor: theme.border,
+            marginHorizontal: 4,
+          }}
+        />
+      )}
+    </>
   );
 }

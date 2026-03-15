@@ -106,6 +106,62 @@ export interface WorkflowTask {
   created_at: string;
 }
 
+export type GroupType = "contact" | "message";
+
+export interface Group {
+  id: string;
+  owner_id: string;
+  name: string;
+  description?: string;
+  color: string;
+  emoji: string;
+  type: GroupType;
+  created_at: string;
+  updated_at: string;
+  member_count?: number;
+}
+
+export interface ContactGroupMember {
+  id: string;
+  group_id: string;
+  contact_id: string;
+  added_at: string;
+}
+
+export interface MessageGroupMember {
+  id: string;
+  group_id: string;
+  user_id: string;
+  joined_at: string;
+}
+
+export const MLM_GROUP_PRESETS = [
+  {
+    name: "Mon équipe",
+    emoji: "🤝",
+    color: "#6ee7b7",
+    description: "Mes filleuls directs",
+  },
+  {
+    name: "Prospects chauds",
+    emoji: "🔥",
+    color: "#fbbf24",
+    description: "Très intéressés",
+  },
+  {
+    name: "Clients VIP",
+    emoji: "⭐",
+    color: "#818cf8",
+    description: "Meilleurs clients",
+  },
+  {
+    name: "À former",
+    emoji: "📚",
+    color: "#f87171",
+    description: "Nouveaux à accompagner",
+  },
+] as const;
+
 export interface Contact {
   id: ContactId;
   user_id: UserId;

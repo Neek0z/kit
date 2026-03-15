@@ -109,10 +109,24 @@ export function useContacts(): UseContactsReturn {
       prev.map((c) => (c.id === id ? { ...c, ...data } : c))
     );
 
+    // Passage vers Client → proposer de créer le workflow d'accompagnement
     if (data.status === "client" && currentContact?.status !== "client" && user) {
-      await triggerClientWorkflow(user.id, id, currentContact?.full_name ?? "");
+      Alert.alert(
+        "Activer le workflow Client ?",
+        "En passant ce contact en Client, KIT peut créer automatiquement une série de relances planifiées avec notifications. Veux-tu activer ce workflow pour ce contact ?",
+        [
+          { text: "Non", style: "cancel" },
+          {
+            text: "Oui",
+            onPress: () => {
+              triggerClientWorkflow(user.id, id, currentContact?.full_name ?? "");
+            },
+          },
+        ]
+      );
     }
 
+    // Sortie du statut Client → proposer d'annuler le workflow existant
     if (
       data.status &&
       data.status !== "client" &&
@@ -120,7 +134,7 @@ export function useContacts(): UseContactsReturn {
     ) {
       Alert.alert(
         "Retirer le statut Client ?",
-        "Le workflow d'accompagnement en cours sera annulé.",
+        "Le workflow d'accompagnement en cours pour ce contact sera annulé.",
         [
           { text: "Annuler", style: "cancel" },
           {

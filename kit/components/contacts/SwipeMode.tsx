@@ -23,7 +23,12 @@ const FILTERS: { label: string; value: PipelineStatus | "all" | "overdue" }[] = 
   { label: "Nouveaux", value: "new" },
 ];
 
-export function SwipeMode({ onClose }: { onClose: () => void }) {
+interface SwipeModeProps {
+  onClose: () => void;
+  onChanged?: () => void;
+}
+
+export function SwipeMode({ onClose, onChanged }: SwipeModeProps) {
   const { contacts, updateContact } = useContacts();
   const [activeFilter, setActiveFilter] = useState<PipelineStatus | "all" | "overdue">("all");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -54,6 +59,7 @@ export function SwipeMode({ onClose }: { onClose: () => void }) {
     }
     const next = Math.min(STEPS.length - 1, currentStep + 1);
     await updateContact(contact.id, { status: STEPS[next] });
+    onChanged?.();
     setLastAction(`${contact.full_name} → ${PIPELINE_LABELS[STEPS[next]]}`);
     setCurrentIndex((i) => i + 1);
   }, [currentIndex, queue, updateContact]);
@@ -71,6 +77,7 @@ export function SwipeMode({ onClose }: { onClose: () => void }) {
     }
     const prev = Math.max(0, currentStep - 1);
     await updateContact(contact.id, { status: STEPS[prev] });
+    onChanged?.();
     setLastAction(`${contact.full_name} → ${PIPELINE_LABELS[STEPS[prev]]}`);
     setCurrentIndex((i) => i + 1);
   }, [currentIndex, queue, updateContact]);
@@ -79,6 +86,7 @@ export function SwipeMode({ onClose }: { onClose: () => void }) {
     const contact = queue[currentIndex];
     if (!contact) return;
     setLastAction(`${contact.full_name} ignoré`);
+    onChanged?.();
     setCurrentIndex((i) => i + 1);
   }, [currentIndex, queue]);
 

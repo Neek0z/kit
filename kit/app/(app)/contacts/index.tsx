@@ -6,16 +6,17 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  Text,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import { Text, EmptyState } from "../../../components/ui";
-import { ContactCard, SwipeMode } from "../../../components/contacts";
+import { Text as KitText, EmptyState, Card, StatusPill, Avatar } from "../../../components/ui";
+import { SwipeMode } from "../../../components/contacts";
 import { useContacts } from "../../../hooks/useContacts";
 import { useSubscription } from "../../../hooks/useSubscription";
-import { PipelineStatus, PIPELINE_LABELS } from "../../../types";
+import { PipelineStatus } from "../../../types";
+import { useTheme } from "../../../lib/theme";
 
 const FILTERS: { label: string; value: PipelineStatus | "all" | "overdue" }[] = [
   { label: "Tous", value: "all" },
@@ -36,6 +37,7 @@ export default function ContactsListScreen() {
   >("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [swipeMode, setSwipeMode] = useState(false);
+  const theme = useTheme();
 
   useFocusEffect(
     useCallback(() => {
@@ -71,77 +73,152 @@ export default function ContactsListScreen() {
   }, [contacts, search, activeFilter, selectedTag]);
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
-      <View className="flex-row items-center justify-between px-5 pt-4 pb-3">
-        <Text variant="h1">Contacts</Text>
-        <View className="flex-row items-center gap-2">
-          <TouchableOpacity
-            onPress={() => setSwipeMode(!swipeMode)}
-            className={`px-3 py-1.5 rounded-full border ${
-              swipeMode
-                ? "bg-primary/10 border-primary dark:border-primary"
-                : "bg-surface dark:bg-surface-dark border-border dark:border-border-dark"
-            }`}
-          >
-            <Text
-              className={`text-xs font-semibold ${
-                swipeMode ? "text-primary" : "text-textMuted dark:text-textMuted-dark"
-              }`}
-            >
-              {swipeMode ? "Mode swipe" : "Mode liste"}
-            </Text>
-          </TouchableOpacity>
-          {!swipeMode && (
-            <>
-              <TouchableOpacity
-                onPress={() => router.push("/(app)/contacts/import")}
-                className="bg-surface dark:bg-surface-dark w-9 h-9 rounded-full items-center justify-center border border-border dark:border-border-dark"
-                accessibilityLabel="Importer des contacts"
-              >
-                <Feather name="download" size={18} color="#6ee7b7" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  if (!canAddContact) {
-                    router.push("/(app)/subscription");
-                    return;
-                  }
-                  router.push("/(app)/contacts/new");
-                }}
-                className="bg-primary w-9 h-9 rounded-full items-center justify-center"
-                accessibilityLabel="Ajouter un contact"
-              >
-                <Feather name="plus" size={20} color="#0f172a" />
-              </TouchableOpacity>
-            </>
-          )}
-        </View>
-      </View>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* Ligne décorative */}
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: theme.isDark
+            ? "rgba(110,231,183,0.3)"
+            : "rgba(5,150,105,0.25)",
+        }}
+      />
 
       {swipeMode ? (
-        <SwipeMode onClose={() => setSwipeMode(false)} />
+        <SwipeMode
+          onClose={() => {
+            setSwipeMode(false);
+            refetch();
+          }}
+          onChanged={refetch}
+        />
       ) : (
         <>
-      <View className="px-5 mb-3">
-        <View className="flex-row items-center bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-4 gap-2">
-          <Feather name="search" size={16} color="#475569" />
-          <TextInput
-            className="flex-1 py-3 text-textMain dark:text-textMain-dark text-base"
-            placeholder="Rechercher..."
-            placeholderTextColor="#475569"
-            value={search}
-            onChangeText={setSearch}
-            autoCapitalize="none"
-          />
-          {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch("")}>
-              <Feather name="x" size={16} color="#475569" />
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
+          {/* Header */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              paddingHorizontal: 20,
+              paddingTop: 16,
+              paddingBottom: 12,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 28,
+                fontWeight: "800",
+                color: theme.textPrimary,
+                letterSpacing: -1,
+              }}
+            >
+              Contacts
+            </Text>
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 8,
+                alignItems: "center",
+              }}
+            >
+              <TouchableOpacity
+                onPress={() => {
+                  const next = !swipeMode;
+                  setSwipeMode(next);
+                  if (!next) {
+                    refetch();
+                  }
+                }}
+                style={{
+                  paddingHorizontal: 12,
+                  paddingVertical: 6,
+                  borderRadius: 100,
+                  backgroundColor: swipeMode
+                    ? theme.primaryBg
+                    : theme.surface,
+                  borderWidth: 1,
+                  borderColor: swipeMode
+                    ? theme.primaryBorder
+                    : theme.border,
+                }}
+              >
+          <Text
+            style={{
+              fontSize: 11,
+              fontWeight: "600",
+              color: swipeMode ? theme.primary : theme.textMuted,
+            }}
+          >
+            {swipeMode ? "Mode swipe" : "Mode liste"}
+          </Text>
+              </TouchableOpacity>
+              {!swipeMode && (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (!canAddContact) {
+                      router.push("/(app)/subscription");
+                      return;
+                    }
+                    router.push("/(app)/contacts/new");
+                  }}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: theme.primaryBg,
+                    borderWidth: 1,
+                    borderColor: theme.primaryBorder,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  accessibilityLabel="Ajouter un contact"
+                >
+                  <Feather name="plus" size={16} color={theme.primary} />
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
 
-      <View className="mb-2">
+          {/* Barre de recherche */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+              backgroundColor: theme.surface,
+              borderWidth: 1,
+              borderColor: theme.border,
+              borderRadius: 14,
+              paddingHorizontal: 14,
+              marginHorizontal: 20,
+              marginBottom: 10,
+            }}
+          >
+            <Feather name="search" size={15} color={theme.textHint} />
+            <TextInput
+              style={{
+                flex: 1,
+                paddingVertical: 11,
+                fontSize: 14,
+                color: theme.textPrimary,
+              }}
+              placeholder="Rechercher..."
+              placeholderTextColor={theme.textHint}
+              value={search}
+              onChangeText={setSearch}
+              autoCapitalize="none"
+            />
+            {search.length > 0 && (
+              <TouchableOpacity onPress={() => setSearch("")}>
+                <Feather name="x" size={15} color={theme.textHint} />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Filtres pipeline */}
+          <View className="mb-2">
         <FlatList
           horizontal
           data={FILTERS}
@@ -169,10 +246,12 @@ export default function ContactsListScreen() {
             </TouchableOpacity>
           )}
         />
-      </View>
-      {uniqueTags.length > 0 && (
+          </View>
+
+          {/* Tags */}
+          {uniqueTags.length > 0 && (
         <View className="mb-2 px-5">
-          <Text variant="muted" className="text-xs mb-1.5">Tag</Text>
+        <KitText variant="muted" className="text-xs mb-1.5">Tag</KitText>
           <View className="flex-row flex-wrap gap-2">
             <TouchableOpacity
               onPress={() => setSelectedTag(null)}
@@ -215,48 +294,103 @@ export default function ContactsListScreen() {
             ))}
           </View>
         </View>
-      )}
+          )}
 
-      {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#6ee7b7" />
-        </View>
-      ) : (
-        <FlatList
-          data={filtered}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ContactCard contact={item} />}
-          refreshControl={
-            <RefreshControl
-              refreshing={loading}
-              onRefresh={refetch}
-              colors={["#6ee7b7"]}
-              tintColor="#6ee7b7"
-            />
-          }
-          ListEmptyComponent={
-            <EmptyState
-              icon="👥"
-              title={search ? "Aucun résultat" : "Aucun contact"}
-              description={
-                search
-                  ? "Essaie un autre terme de recherche."
-                  : "Ajoute ton premier contact pour commencer."
+          {/* Liste */}
+          {loading ? (
+            <View
+              style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+            >
+              <ActivityIndicator color={theme.primary} />
+            </View>
+          ) : (
+            <FlatList
+              data={filtered}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => router.push(`/(app)/contacts/${item.id}`)}
+                  activeOpacity={0.7}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                    paddingVertical: 11,
+                    paddingHorizontal: 20,
+                    backgroundColor:
+                      item.status === "client"
+                        ? "rgba(110,231,183,0.03)"
+                        : "transparent",
+                    borderBottomWidth: 1,
+                    borderBottomColor: theme.border,
+                  }}
+                >
+                  <Avatar
+                    name={item.full_name}
+                    status={item.status}
+                    size="md"
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontSize: 15,
+                        fontWeight: "600",
+                        color: theme.textPrimary,
+                      }}
+                    >
+                      {item.full_name}
+                    </Text>
+                    {item.phone && (
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: theme.textMuted,
+                          marginTop: 1,
+                        }}
+                      >
+                        {item.phone}
+                      </Text>
+                    )}
+                  </View>
+                  <StatusPill status={item.status} size="sm" />
+                  <Feather
+                    name="chevron-right"
+                    size={14}
+                    color={theme.textHint}
+                  />
+                </TouchableOpacity>
+              )}
+              refreshControl={
+                <RefreshControl
+                  refreshing={loading}
+                  onRefresh={refetch}
+                  colors={[theme.primary]}
+                  tintColor={theme.primary}
+                />
               }
-              actionLabel={search ? undefined : "Ajouter un contact"}
-              onAction={
-                search
-                  ? undefined
-                  : () =>
-                      canAddContact
-                        ? router.push("/(app)/contacts/new")
-                        : router.push("/(app)/subscription")
+              ListEmptyComponent={
+                <EmptyState
+                  icon="👥"
+                  title={search ? "Aucun résultat" : "Aucun contact"}
+                  description={
+                    search
+                      ? "Essaie un autre terme de recherche."
+                      : "Ajoute ton premier contact pour commencer."
+                  }
+                  actionLabel={search ? undefined : "Ajouter un contact"}
+                  onAction={
+                    search
+                      ? undefined
+                      : () =>
+                          canAddContact
+                            ? router.push("/(app)/contacts/new")
+                            : router.push("/(app)/subscription")
+                  }
+                />
               }
+              showsVerticalScrollIndicator={false}
             />
-          }
-          showsVerticalScrollIndicator={false}
-        />
-      )}
+          )}
         </>
       )}
     </SafeAreaView>

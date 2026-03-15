@@ -108,6 +108,7 @@ export function PipelineArc({ status, onChange }: PipelineArcProps) {
             height: TRACK_HEIGHT,
             borderRadius: TRACK_HEIGHT / 2,
             backgroundColor: "#334155",
+            // on garde la largeur réelle, mais on enlève le décalage visuel
             marginHorizontal: THUMB_SIZE / 2,
             marginTop: (THUMB_SIZE - TRACK_HEIGHT) / 2,
           }}
