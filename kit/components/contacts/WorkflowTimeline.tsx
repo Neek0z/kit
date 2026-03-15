@@ -1,0 +1,240 @@
+import { useState, useEffect } from "react";
+import { View, TouchableOpacity, Alert } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { supabase } from "../../lib/supabase";
+import { completeWorkflowTask } from "../../lib/workflowService";
+import { Text, Card } from "../ui";
+import { WorkflowTask, INTERACTION_ICONS, InteractionType } from "../../types";
+
+interface WorkflowTimelineProps {
+  contactId: string;
+}
+
+export function WorkflowTimeline({ contactId }: WorkflowTimelineProps) {
+  const [tasks, setTasks] = useState<WorkflowTask[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    supabase
+      .from("workflow_tasks")
+      .select("*")
+      .eq("contact_id", contactId)
+      .order("due_date", { ascending: true })
+      .then(({ data }) => {
+        setTasks((data ?? []) as WorkflowTask[]);
+        setLoading(false);
+      });
+  }, [contactId]);
+
+  const handleComplete = (task: WorkflowTask) => {
+    Alert.alert("Marquer comme fait", `Valider "${task.title}" ?`, [
+      { text: "Annuler", style: "cancel" },
+      {
+        text: "Valider",
+        onPress: async () => {
+          await completeWorkflowTask(task.id);
+          setTasks((prev) =>
+            prev.map((t) =>
+              t.id === task.id
+                ? { ...t, completed_at: new Date().toISOString() }
+                : t
+            )
+          );
+        },
+      },
+    ]);
+  };
+
+  if (loading || tasks.length === 0) return null;
+
+  const completed = tasks.filter((t) => t.completed_at);
+  const pending = tasks.filter((t) => !t.completed_at);
+  const progress = Math.round((completed.length / tasks.length) * 100);
+
+  return (
+    <Card>
+      <View className="flex-row items-center justify-between mb-3">
+        <Text
+          variant="muted"
+          style={{
+            fontSize: 11,
+            textTransform: "uppercase",
+            letterSpacing: 1,
+          }}
+        >
+          Workflow client
+        </Text>
+        <View className="flex-row items-center">
+          <Text style={{ fontSize: 12, color: "#6ee7b7", fontWeight: "500" }}>
+            {completed.length}/{tasks.length}
+          </Text>
+        </View>
+      </View>
+
+      <View
+        style={{
+          height: 4,
+          backgroundColor: "#1e293b",
+          borderRadius: 2,
+          marginBottom: 16,
+        }}
+      >
+        <View
+          style={{
+            height: 4,
+            backgroundColor: "#6ee7b7",
+            borderRadius: 2,
+            width: `${progress}%`,
+          }}
+        />
+      </View>
+
+      <View style={{ gap: 12 }}>
+        {tasks.map((task, index) => {
+          const isCompleted = !!task.completed_at;
+          const isOverdue =
+            !isCompleted && new Date(task.due_date) < new Date();
+          const dueDate = new Date(task.due_date);
+
+          return (
+            <View
+              key={task.id}
+              style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}
+            >
+              <View style={{ alignItems: "center", width: 24 }}>
+                <View
+                  style={{
+                    width: 24,
+                    height: 24,
+                    borderRadius: 12,
+                    backgroundColor: isCompleted
+                      ? "#6ee7b7"
+                      : isOverdue
+                      ? "#f8717122"
+                      : "#1e293b",
+                    borderWidth: 1.5,
+                    borderColor: isCompleted
+                      ? "#6ee7b7"
+                      : isOverdue
+                      ? "#f87171"
+                      : "#334155",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {isCompleted ? (
+                    <Feather name="check" size={12} color="#0f172a" />
+                  ) : (
+                    <Feather
+                      name={
+                        INTERACTION_ICONS[
+                          task.interaction_type as InteractionType
+                        ] as any
+                      }
+                      size={11}
+                      color={isOverdue ? "#f87171" : "#64748b"}
+                    />
+                  )}
+                </View>
+                {index < tasks.length - 1 && (
+                  <View
+                    style={{
+                      width: 1,
+                      flex: 1,
+                      minHeight: 12,
+                      backgroundColor: "#1e293b",
+                      marginTop: 4,
+                    }}
+                  />
+                )}
+              </View>
+
+              <View
+                style={{
+                  flex: 1,
+                  paddingBottom: index < tasks.length - 1 ? 8 : 0,
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "500",
+                      color: isCompleted ? "#475569" : "#f1f5f9",
+                      textDecorationLine: isCompleted
+                        ? "line-through"
+                        : "none",
+                    }}
+                  >
+                    {task.title}
+                  </Text>
+                  {!isCompleted && (
+                    <TouchableOpacity
+                      onPress={() => handleComplete(task)}
+                      style={{ padding: 4 }}
+                    >
+                      <Feather
+                        name="check-circle"
+                        size={16}
+                        color="#475569"
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                <Text
+                  style={{
+                    fontSize: 11,
+                    color: isOverdue ? "#f87171" : "#64748b",
+                    marginTop: 2,
+                  }}
+                >
+                  {isCompleted
+                    ? `Fait le ${new Date(
+                        task.completed_at!
+                      ).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "short",
+                      })}`
+                    : isOverdue
+                    ? `En retard — prévu le ${dueDate.toLocaleDateString(
+                        "fr-FR",
+                        { day: "numeric", month: "short" }
+                      )}`
+                    : dueDate.toLocaleDateString("fr-FR", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                      })}
+                </Text>
+
+                {task.description && !isCompleted && (
+                  <Text
+                    style={{ fontSize: 11, color: "#475569", marginTop: 2 }}
+                  >
+                    {task.description}
+                  </Text>
+                )}
+              </View>
+            </View>
+          );
+        })}
+      </View>
+
+      {pending.length === 0 && (
+        <View style={{ marginTop: 12, alignItems: "center" }}>
+          <Text style={{ fontSize: 12, color: "#6ee7b7" }}>
+            🎉 Workflow complété !
+          </Text>
+        </View>
+      )}
+    </Card>
+  );
+}
+

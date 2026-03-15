@@ -80,6 +80,32 @@ export interface Appointment {
   updated_at: string;
 }
 
+export interface WorkflowStep {
+  id: string;
+  user_id: string;
+  name: string;
+  description?: string;
+  delay_days: number;
+  interaction_type: InteractionType;
+  is_active: boolean;
+  sort_order: number;
+  created_at: string;
+}
+
+export interface WorkflowTask {
+  id: string;
+  user_id: string;
+  contact_id: string;
+  step_id?: string;
+  title: string;
+  description?: string;
+  interaction_type: InteractionType;
+  due_date: string;
+  completed_at?: string;
+  notification_id?: string;
+  created_at: string;
+}
+
 export interface Contact {
   id: ContactId;
   user_id: UserId;

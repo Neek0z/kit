@@ -12,7 +12,7 @@ import {
   Divider,
 } from "../../../components/ui";
 import { Header } from "../../../components/layout";
-import { AddInteractionSheet, FollowUpPicker, TagsEditor } from "../../../components/contacts";
+import { AddInteractionSheet, FollowUpPicker, TagsEditor, PipelineArc, WorkflowTimeline } from "../../../components/contacts";
 import { AppointmentSheet } from "../../../components/calendar/AppointmentSheet";
 import { useContacts } from "../../../hooks/useContacts";
 import { useConversations } from "../../../hooks/useConversations";
@@ -236,6 +236,12 @@ export default function ContactDetailScreen() {
           />
         </View>
 
+        {contact.status === "client" && (
+          <View className="px-5 mb-4">
+            <WorkflowTimeline contactId={contact.id} />
+          </View>
+        )}
+
         <View className="flex-row justify-center gap-4 px-5 mb-6">
           {contact.phone && (
             <TouchableOpacity
@@ -298,6 +304,21 @@ export default function ContactDetailScreen() {
         </View>
 
         <View className="px-5 gap-3 pb-8">
+          <Card>
+            <Text
+              variant="muted"
+              className="text-xs mb-3 uppercase tracking-wider"
+            >
+              Pipeline
+            </Text>
+            <PipelineArc
+              status={contact.status as PipelineStatus}
+              onChange={async (newStatus) => {
+                await updateContact(contact.id, { status: newStatus });
+              }}
+            />
+          </Card>
+
           <Card>
             {contact.phone && (
               <>

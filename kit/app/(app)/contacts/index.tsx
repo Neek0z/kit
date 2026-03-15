@@ -12,7 +12,7 @@ import { router } from "expo-router";
 import { useFocusEffect } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { Text, EmptyState } from "../../../components/ui";
-import { ContactCard } from "../../../components/contacts";
+import { ContactCard, SwipeMode } from "../../../components/contacts";
 import { useContacts } from "../../../hooks/useContacts";
 import { useSubscription } from "../../../hooks/useSubscription";
 import { PipelineStatus, PIPELINE_LABELS } from "../../../types";
@@ -35,6 +35,7 @@ export default function ContactsListScreen() {
     PipelineStatus | "all" | "overdue"
   >("all");
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [swipeMode, setSwipeMode] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -75,28 +76,52 @@ export default function ContactsListScreen() {
         <Text variant="h1">Contacts</Text>
         <View className="flex-row items-center gap-2">
           <TouchableOpacity
-            onPress={() => router.push("/(app)/contacts/import")}
-            className="bg-surface dark:bg-surface-dark w-9 h-9 rounded-full items-center justify-center border border-border dark:border-border-dark"
-            accessibilityLabel="Importer des contacts"
+            onPress={() => setSwipeMode(!swipeMode)}
+            className={`px-3 py-1.5 rounded-full border ${
+              swipeMode
+                ? "bg-primary/10 border-primary dark:border-primary"
+                : "bg-surface dark:bg-surface-dark border-border dark:border-border-dark"
+            }`}
           >
-            <Feather name="download" size={18} color="#6ee7b7" />
+            <Text
+              className={`text-xs font-semibold ${
+                swipeMode ? "text-primary" : "text-textMuted dark:text-textMuted-dark"
+              }`}
+            >
+              {swipeMode ? "Mode swipe" : "Mode liste"}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => {
-              if (!canAddContact) {
-                router.push("/(app)/subscription");
-                return;
-              }
-              router.push("/(app)/contacts/new");
-            }}
-            className="bg-primary w-9 h-9 rounded-full items-center justify-center"
-            accessibilityLabel="Ajouter un contact"
-          >
-            <Feather name="plus" size={20} color="#0f172a" />
-          </TouchableOpacity>
+          {!swipeMode && (
+            <>
+              <TouchableOpacity
+                onPress={() => router.push("/(app)/contacts/import")}
+                className="bg-surface dark:bg-surface-dark w-9 h-9 rounded-full items-center justify-center border border-border dark:border-border-dark"
+                accessibilityLabel="Importer des contacts"
+              >
+                <Feather name="download" size={18} color="#6ee7b7" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  if (!canAddContact) {
+                    router.push("/(app)/subscription");
+                    return;
+                  }
+                  router.push("/(app)/contacts/new");
+                }}
+                className="bg-primary w-9 h-9 rounded-full items-center justify-center"
+                accessibilityLabel="Ajouter un contact"
+              >
+                <Feather name="plus" size={20} color="#0f172a" />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </View>
 
+      {swipeMode ? (
+        <SwipeMode onClose={() => setSwipeMode(false)} />
+      ) : (
+        <>
       <View className="px-5 mb-3">
         <View className="flex-row items-center bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-4 gap-2">
           <Feather name="search" size={16} color="#475569" />
@@ -231,6 +256,8 @@ export default function ContactsListScreen() {
           }
           showsVerticalScrollIndicator={false}
         />
+      )}
+        </>
       )}
     </SafeAreaView>
   );

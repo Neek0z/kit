@@ -3,6 +3,8 @@ import { supabase } from "../lib/supabase";
 import { updateWidgetData } from "../lib/widgetData";
 import { Contact } from "../types";
 import { useAuthContext } from "../lib/AuthContext";
+import { triggerClientWorkflow, cancelClientWorkflow } from "../lib/workflowService";
+import { Alert } from "react-native";
 
 interface UseContactsReturn {
   contacts: Contact[];
@@ -91,6 +93,8 @@ export function useContacts(): UseContactsReturn {
     id: string,
     data: Partial<CreateContactInput>
   ): Promise<{ ok: boolean; errorMessage?: string }> => {
+    const currentContact = contacts.find((c) => c.id === id);
+
     const { error: err } = await supabase
       .from("contacts")
       .update(data)
@@ -104,6 +108,32 @@ export function useContacts(): UseContactsReturn {
     setContacts((prev) =>
       prev.map((c) => (c.id === id ? { ...c, ...data } : c))
     );
+
+    if (data.status === "client" && currentContact?.status !== "client" && user) {
+      await triggerClientWorkflow(user.id, id, currentContact?.full_name ?? "");
+    }
+
+    if (
+      data.status &&
+      data.status !== "client" &&
+      currentContact?.status === "client"
+    ) {
+      Alert.alert(
+        "Retirer le statut Client ?",
+        "Le workflow d'accompagnement en cours sera annulé.",
+        [
+          { text: "Annuler", style: "cancel" },
+          {
+            text: "Confirmer",
+            style: "destructive",
+            onPress: () => {
+              cancelClientWorkflow(id);
+            },
+          },
+        ]
+      );
+    }
+
     return { ok: true };
   };
 

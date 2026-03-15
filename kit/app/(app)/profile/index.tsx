@@ -240,7 +240,7 @@ export default function ProfileScreen() {
               variant="muted"
               className="text-xs uppercase tracking-wider px-1 py-2"
             >
-              Notifications
+              Notifications & workflow
             </Text>
             <Divider />
             <TouchableOpacity
@@ -250,6 +250,19 @@ export default function ProfileScreen() {
               <View className="flex-row items-center gap-3">
                 <Feather name="bell" size={18} color="#475569" />
                 <Text className="text-sm">Paramètres de rappels</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#475569" />
+            </TouchableOpacity>
+
+            <Divider />
+
+            <TouchableOpacity
+              onPress={() => router.push("/(app)/profile/workflow")}
+              className="flex-row items-center justify-between py-3 px-1"
+            >
+              <View className="flex-row items-center gap-3">
+                <Feather name="git-branch" size={18} color="#475569" />
+                <Text className="text-sm">Workflow client</Text>
               </View>
               <Feather name="chevron-right" size={16} color="#475569" />
             </TouchableOpacity>
