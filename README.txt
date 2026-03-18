@@ -36,7 +36,7 @@ Si un contact a un email qui correspond à un utilisateur KIT, afficher un lien 
 Photo / avatar contact
 Optionnel : champ avatar_url ou photo stockée (Supabase Storage) pour reconnaître les contacts plus vite (à aligner avec la vérification « photos de profils » du README).
 
-3. Activité et historique — FAIT
+FAIT - 3. Activité et historique — FAIT
 Activité (filtres + lien fiche), stats dashboard (7j/30j/ce mois).
 L’écran Activité liste les interactions. Améliorations possibles :
 
@@ -45,7 +45,7 @@ Lien cliquable vers la fiche contact depuis chaque ligne.
 Statistiques simples
 Sur le dashboard ou un onglet dédié : nombre d’interactions sur les 7 / 30 derniers jours, ou « contacts contactés ce mois-ci » pour voir l’usage.
 
-4. Messages in‑app
+FAIT - 4. Messages in‑app
 Notifications push
 Vérifier que les push sont bien envoyées à la réception d’un message (Supabase + Expo push), et que le badge / compteur de conversations non lues est cohérent.
 
@@ -55,7 +55,7 @@ Quand on envoie ou reçoit un message avec un utilisateur qui est aussi un conta
 Recherche de conversation
 Si le nombre de conversations grandit : barre de recherche par nom/email pour retrouver une conversation rapidement.
 
-5. Notifications et paramètres
+FAIT - 5. Notifications et paramètres
 Heure du récap matinal
 Remplacer une heure fixe (9h) par un choix utilisateur (heure, voire fuseau) stocké en préférences et utilisé pour la notif ou le cron.
 
@@ -97,13 +97,13 @@ Garder des textes courts et des CTA clairs (comme aujourd’hui) ; éventuelleme
 Accessibilité
 Labels pour les boutons (ex. « Ajouter un contact »), contraste suffisant en mode sombre (déjà bien avancé avec le thème).
 
-Priorisation suggérée
-Priorité	Amélioration	Raison
-Haute	Récap matinal (vraie notif ou cron)	Promesse déjà affichée dans les réglages
-Haute	Stripe / abonnement bout-en-bout	Déjà en place, à sécuriser pour la monétisation
-Haute	Filtre « En retard » + lien activité → contact	Utilisation quotidienne des relances
-Moyenne	Import CSV / carnet	Réduit la friction à l’onboarding
-Moyenne	Tags visibles + filtre par tag	Utilise déjà le champ en base
-Moyenne	Lien contact ↔ conversation	Rapproche réseau et messages
-Basse	Heure configurable (récap / rappel)	Confort et différenciation
 
+
+Améliorations persos : 
+- stats
+- FAIT - quand passage en client : incrémentation auto d'un workflow d'accompagnement
+- possibilité de partager des fichiers/docs dans le chat (et aussi via les workflow d'accompagnement)
+- FAIT(à améliorer) - possibilité de faire des groupes (par exemple équipe mlm et aussi pour les messages)
+- cloche pour notif
+- recherche dans l'app (à différents endroits ?)
+- sync calendrier (prompt déjà dans les md)
