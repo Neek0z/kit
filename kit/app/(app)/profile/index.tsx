@@ -14,6 +14,7 @@ import { Feather } from "@expo/vector-icons";
 import { Text, Avatar, Card, Divider } from "../../../components/ui";
 import { useAuthContext } from "../../../lib/AuthContext";
 import { useTheme } from "../../../lib/ThemeContext";
+import { useTheme as useDesignTheme } from "../../../lib/theme";
 import { useProfile } from "../../../hooks/useProfile";
 import { useSubscription } from "../../../hooks/useSubscription";
 
@@ -34,6 +35,7 @@ function avatarDisplayUrl(
 export default function ProfileScreen() {
   const { user, signOut } = useAuthContext();
   const { isDark, setPreference } = useTheme();
+  const designTheme = useDesignTheme();
   const { profile, fetchProfile, updateProfile, uploadAvatar, loading: profileLoading } = useProfile();
   const { isPro } = useSubscription();
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -124,14 +126,30 @@ export default function ProfileScreen() {
 
   if (profileLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-background dark:bg-background-dark items-center justify-center">
-        <ActivityIndicator color="#6ee7b7" />
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: designTheme.bg,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator color={designTheme.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: designTheme.bg }}>
+      {/* Ligne décorative */}
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: designTheme.primary,
+          opacity: 0.25,
+        }}
+      />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="items-center pt-8 pb-6 px-5">
           <TouchableOpacity onPress={handlePickAvatar} className="relative mb-4">
@@ -144,7 +162,7 @@ export default function ProfileScreen() {
               <Feather
                 name={(uploadingAvatar ? "loader" : "camera") as FeatherName}
                 size={13}
-                color="#0f172a"
+                color={designTheme.textPrimary}
               />
             </View>
           </TouchableOpacity>
@@ -163,7 +181,7 @@ export default function ProfileScreen() {
             <Feather
               name="zap"
               size={12}
-              color={isPro ? "#6ee7b7" : "#475569"}
+              color={isPro ? designTheme.primary : designTheme.textHint}
             />
             <Text
               className={`text-xs font-semibold ${isPro ? "text-primary" : "text-textMuted dark:text-textMuted-dark"}`}
@@ -174,7 +192,7 @@ export default function ProfileScreen() {
         </View>
 
         <View className="px-5 gap-4 pb-8">
-          <Card padding="sm">
+          <Card>
             <TouchableOpacity
               onPress={() => router.push("/(app)/profile/edit")}
               className="flex-row items-center justify-between py-3 px-1"
@@ -211,7 +229,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </Card>
 
-          <Card padding="sm">
+          <Card>
             <Text
               variant="muted"
               className="text-xs uppercase tracking-wider px-1 py-2"
@@ -229,13 +247,13 @@ export default function ProfileScreen() {
               <Switch
                 value={isDark}
                 onValueChange={(v) => setPreference(v ? "dark" : "light")}
-                trackColor={{ true: "#6ee7b7", false: "#334155" }}
+                trackColor={{ true: designTheme.primary, false: designTheme.border }}
                 thumbColor="#fff"
               />
             </View>
           </Card>
 
-          <Card padding="sm">
+          <Card>
             <Text
               variant="muted"
               className="text-xs uppercase tracking-wider px-1 py-2"
@@ -268,7 +286,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </Card>
 
-          <Card padding="sm">
+          <Card>
             <Text
               variant="muted"
               className="text-xs uppercase tracking-wider px-1 py-2"
@@ -295,7 +313,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </Card>
 
-          <Card padding="sm">
+          <Card>
             <Text
               variant="muted"
               className="text-xs uppercase tracking-wider px-1 py-2"
@@ -327,7 +345,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </Card>
 
-          <Card padding="sm">
+          <Card>
             <TouchableOpacity
               onPress={handleSignOut}
               className="flex-row items-center gap-3 py-3 px-1"

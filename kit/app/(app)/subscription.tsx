@@ -4,6 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import { Text, Button, Card } from "../../components/ui";
 import { Header } from "../../components/layout";
 import { useSubscription } from "../../hooks/useSubscription";
+import { useTheme } from "../../lib/theme";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
@@ -18,9 +19,19 @@ const PRO_FEATURES = [
 
 export default function SubscriptionScreen() {
   const { isPro, subscription, startCheckout, loading } = useSubscription();
+  const theme = useTheme();
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* Ligne décorative */}
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: theme.primary,
+          opacity: 0.25,
+        }}
+      />
       <Header title="Mon abonnement" showBack />
 
       <ScrollView
@@ -63,7 +74,7 @@ export default function SubscriptionScreen() {
           <>
             <View className="items-center py-6 mb-6">
               <View className="w-16 h-16 rounded-2xl bg-primary/10 items-center justify-center mb-4">
-                <Feather name="zap" size={32} color="#6ee7b7" />
+                <Feather name="zap" size={32} color={theme.primary} />
               </View>
               <Text variant="h2" className="text-center mb-2">
                 Passe à Pro
@@ -117,7 +128,7 @@ export default function SubscriptionScreen() {
 
         {isPro && (
           <View className="items-center py-8 gap-3">
-            <Feather name="check-circle" size={48} color="#6ee7b7" />
+              <Feather name="check-circle" size={48} color={theme.primary} />
             <Text variant="h3" className="text-center">
               Tu es Pro !
             </Text>

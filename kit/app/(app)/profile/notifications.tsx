@@ -11,11 +11,13 @@ import {
   getReminderTime,
   setReminderTime,
 } from "../../../lib/notifications";
+import { useTheme } from "../../../lib/theme";
 
 const KEY_REMINDERS = "notif_reminders";
 const KEY_MORNING_DIGEST = "notif_morning_digest";
 
 export default function NotificationSettingsScreen() {
+  const theme = useTheme();
   const [remindersEnabled, setRemindersEnabled] = useState(true);
   const [morningDigest, setMorningDigest] = useState(false);
   const [digestHour, setDigestHour] = useState(9);
@@ -64,10 +66,19 @@ export default function NotificationSettingsScreen() {
   if (!loaded) return null;
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* Ligne décorative */}
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: theme.primary,
+          opacity: 0.25,
+        }}
+      />
       <Header title="Notifications" showBack />
       <View className="px-5 pt-4">
-        <Card padding="sm">
+        <Card>
           <View className="flex-row items-center justify-between py-3 px-1">
             <View className="flex-1 mr-4">
               <Text className="text-sm">Rappels de relance</Text>
@@ -81,7 +92,7 @@ export default function NotificationSettingsScreen() {
                 setRemindersEnabled(v);
                 toggle(KEY_REMINDERS, v);
               }}
-              trackColor={{ true: "#6ee7b7", false: "#334155" }}
+              trackColor={{ true: theme.primary, false: theme.border }}
               thumbColor="#fff"
             />
           </View>
@@ -132,7 +143,7 @@ export default function NotificationSettingsScreen() {
                 toggle(KEY_MORNING_DIGEST, v);
                 if (!v) cancelMorningDigest();
               }}
-              trackColor={{ true: "#6ee7b7", false: "#334155" }}
+              trackColor={{ true: theme.primary, false: theme.border }}
               thumbColor="#fff"
             />
           </View>
@@ -168,7 +179,7 @@ export default function NotificationSettingsScreen() {
             </>
           )}
         </Card>
-        <Card padding="sm" className="mt-4">
+        <Card className="mt-4">
           <Text variant="muted" className="text-xs leading-relaxed">
             Les notifications respectent le mode Ne pas déranger et les réglages de ton appareil. Tu peux autoriser ou désactiver les sons par app dans les paramètres système.
           </Text>

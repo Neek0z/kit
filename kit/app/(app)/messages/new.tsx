@@ -5,6 +5,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Text, Input, Button } from "../../../components/ui";
 import { Header } from "../../../components/layout";
 import { useStartConversation } from "../../../hooks/useStartConversation";
+import { useTheme } from "../../../lib/theme";
 
 export default function NewConversationScreen() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function NewConversationScreen() {
   const { startConversationByEmail } = useStartConversation();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const theme = useTheme();
 
   useEffect(() => {
     if (params.email) setEmail(params.email);
@@ -38,7 +40,16 @@ export default function NewConversationScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* Ligne décorative */}
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: theme.primary,
+          opacity: 0.25,
+        }}
+      />
       <Header title="Nouvelle conversation" showBack />
       <View className="px-5 pt-4 gap-4">
         <Text variant="muted" className="text-sm">

@@ -162,6 +162,25 @@ export const MLM_GROUP_PRESETS = [
   },
 ] as const;
 
+export interface PromptCategory {
+  id: string;
+  name: string;
+  emoji: string;
+  description?: string;
+  sort_order: number;
+}
+
+export interface Prompt {
+  id: string;
+  category_id: string;
+  title: string;
+  prompt_fr: string;
+  prompt_en: string;
+  tip?: string;
+  tool: string;
+  sort_order: number;
+}
+
 export interface Contact {
   id: ContactId;
   user_id: UserId;
@@ -199,3 +218,28 @@ export interface Message {
   created_at: string;
   read_at: string | null;
 }
+
+export type TaskPriority = "low" | "normal" | "high";
+
+export interface ContactTask {
+  id: string;
+  user_id: string;
+  contact_id: string;
+  title: string;
+  due_date?: string;
+  completed_at?: string;
+  priority: TaskPriority;
+  created_at: string;
+}
+
+export const PRIORITY_COLORS: Record<TaskPriority, string> = {
+  low: "#64748b",
+  normal: "#6ee7b7",
+  high: "#f87171",
+};
+
+export const PRIORITY_LABELS: Record<TaskPriority, string> = {
+  low: "Faible",
+  normal: "Normal",
+  high: "Urgent",
+};

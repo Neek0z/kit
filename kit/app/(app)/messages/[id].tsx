@@ -20,11 +20,13 @@ import { useConversationDetails } from "../../../hooks/useConversationDetails";
 import { useContacts } from "../../../hooks/useContacts";
 import { useInteractions } from "../../../hooks/useInteractions";
 import { useToast } from "../../../lib/ToastContext";
+import { useTheme } from "../../../lib/theme";
 
 export default function ConversationScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { user } = useAuthContext();
   const listRef = useRef<FlatList>(null);
+  const theme = useTheme();
   const { otherParticipant, loading: detailsLoading } = useConversationDetails(id ?? null);
   const { messages, loading: messagesLoading, sending, sendMessage } = useMessages(id ?? null);
   const { contacts } = useContacts();
@@ -46,14 +48,25 @@ export default function ConversationScreen() {
 
   if (detailsLoading && !otherParticipant) {
     return (
-      <SafeAreaView className="flex-1 bg-background dark:bg-background-dark items-center justify-center">
-        <ActivityIndicator color="#6ee7b7" />
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: theme.bg, alignItems: "center", justifyContent: "center" }}
+      >
+        <ActivityIndicator color={theme.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* Ligne décorative */}
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: theme.primary,
+          opacity: 0.25,
+        }}
+      />
       <Header
         title={displayName}
         showBack
@@ -79,7 +92,7 @@ export default function ConversationScreen() {
           }}
           className="mx-5 py-2.5 flex-row items-center gap-2 border-b border-border dark:border-border-dark"
         >
-          <Feather name="check-circle" size={16} color="#6ee7b7" />
+          <Feather name="check-circle" size={16} color={theme.primary} />
           <Text className="text-primary text-sm font-medium">
             Enregistrer comme interaction
           </Text>

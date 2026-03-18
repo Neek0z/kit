@@ -9,6 +9,7 @@ import { Header } from "../../../../components/layout";
 import { TagsEditor } from "../../../../components/contacts";
 import { useContacts } from "../../../../hooks/useContacts";
 import { PipelineStatus, PIPELINE_LABELS } from "../../../../types";
+import { useTheme } from "../../../../lib/theme";
 
 const STATUSES = Object.entries(PIPELINE_LABELS) as [PipelineStatus, string][];
 
@@ -16,6 +17,7 @@ export default function EditContactScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { contacts, updateContact } = useContacts();
   const contact = contacts.find((c) => c.id === id);
+  const theme = useTheme();
 
   const [loading, setLoading] = useState(false);
   const [fullName, setFullName] = useState("");
@@ -98,14 +100,30 @@ export default function EditContactScreen() {
 
   if (!contact) {
     return (
-      <SafeAreaView className="flex-1 bg-background dark:bg-background-dark items-center justify-center">
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: theme.bg,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
         <Text variant="muted">Contact introuvable.</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* Ligne décorative */}
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: theme.primary,
+          opacity: 0.25,
+        }}
+      />
       <Header title="Modifier le contact" showBack />
 
       <ScrollView
@@ -116,7 +134,7 @@ export default function EditContactScreen() {
           onPress={handleImportFromPhone}
           className="flex-row items-center gap-2 bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-4 py-3 mb-6"
         >
-          <Feather name="smartphone" size={16} color="#6ee7b7" />
+          <Feather name="smartphone" size={16} color={theme.primary} />
           <Text className="text-primary text-sm font-medium">
             Importer depuis mes contacts
           </Text>

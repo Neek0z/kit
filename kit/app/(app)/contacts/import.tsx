@@ -18,6 +18,7 @@ import { Header } from "../../../components/layout";
 import { useContacts } from "../../../hooks/useContacts";
 import { useSubscription } from "../../../hooks/useSubscription";
 import { PipelineStatus, PIPELINE_LABELS } from "../../../types";
+import { useTheme } from "../../../lib/theme";
 
 const STATUS_MAP: Record<string, PipelineStatus> = {
   new: "new",
@@ -87,6 +88,7 @@ function parseCSV(csv: string): { full_name: string; phone?: string; email?: str
 }
 
 export default function ImportContactsScreen() {
+  const theme = useTheme();
   const { contacts, createContact, refetch } = useContacts();
   const { checkLimit, isPro } = useSubscription();
   const limit = isPro ? 9999 : 25;
@@ -206,7 +208,16 @@ export default function ImportContactsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* Ligne décorative */}
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: theme.primary,
+          opacity: 0.25,
+        }}
+      />
       <Header title="Importer des contacts" showBack />
 
       <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>
@@ -220,13 +231,17 @@ export default function ImportContactsScreen() {
           className="flex-row items-center gap-3 bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-4 py-4 mb-3"
         >
           <View className="w-10 h-10 rounded-full bg-primary/10 items-center justify-center">
-            <Feather name="smartphone" size={20} color="#6ee7b7" />
+            <Feather name="smartphone" size={20} color={theme.primary} />
           </View>
           <View className="flex-1">
             <Text className="font-medium">Depuis le carnet</Text>
             <Text variant="muted" className="text-xs">Choisir plusieurs contacts à importer</Text>
           </View>
-          {loadingDevice ? <ActivityIndicator size="small" color="#6ee7b7" /> : <Feather name="chevron-right" size={18} color="#64748b" />}
+          {loadingDevice ? (
+            <ActivityIndicator size="small" color={theme.primary} />
+          ) : (
+            <Feather name="chevron-right" size={18} color={theme.textHint} />
+          )}
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -235,13 +250,13 @@ export default function ImportContactsScreen() {
           className="flex-row items-center gap-3 bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-4 py-4 mb-6"
         >
           <View className="w-10 h-10 rounded-full bg-secondary/10 items-center justify-center">
-            <Feather name="file-text" size={20} color="#818cf8" />
+            <Feather name="file-text" size={20} color={theme.primary} />
           </View>
           <View className="flex-1">
             <Text className="font-medium">Depuis un CSV (coller)</Text>
             <Text variant="muted" className="text-xs">Colle un CSV au format export (Nom, Téléphone, Email, Statut…)</Text>
           </View>
-          <Feather name="chevron-right" size={18} color="#64748b" />
+          <Feather name="chevron-right" size={18} color={theme.textHint} />
         </TouchableOpacity>
 
         {source === "csv" && (
@@ -253,7 +268,7 @@ export default function ImportContactsScreen() {
               value={csvText}
               onChangeText={setCsvText}
               placeholder="Nom,Téléphone,Email,Statut,..."
-              placeholderTextColor="#64748b"
+              placeholderTextColor={theme.textHint}
               className="bg-background dark:bg-background-dark border border-border dark:border-border-dark rounded-xl px-3 py-3 text-textMain dark:text-textMain-dark text-sm min-h-[100px]"
               multiline
               textAlignVertical="top"
@@ -286,7 +301,7 @@ export default function ImportContactsScreen() {
       </ScrollView>
 
       <Modal visible={source === "carnet"} animationType="slide" onRequestClose={() => setSource(null)}>
-        <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+        <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
           <View className="flex-row items-center justify-between px-4 py-3 border-b border-border dark:border-border-dark">
             <TouchableOpacity onPress={() => setSource(null)}>
               <Text className="text-primary">Annuler</Text>

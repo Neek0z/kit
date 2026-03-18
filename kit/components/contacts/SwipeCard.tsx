@@ -8,25 +8,14 @@ import {
   type GestureResponderEvent,
   type PanResponderGestureState,
 } from "react-native";
-import { Text, Badge } from "../ui";
+import { Text, StatusPill } from "../ui";
 import { Contact, PIPELINE_LABELS, PipelineStatus } from "../../types";
+import { useTheme } from "../../lib/theme";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const STEPS: PipelineStatus[] = ["new", "contacted", "interested", "follow_up", "client"];
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.3;
-
-const STATUS_VARIANTS: Record<
-  PipelineStatus,
-  "success" | "info" | "warning" | "neutral" | "danger"
-> = {
-  new: "neutral",
-  contacted: "info",
-  interested: "warning",
-  follow_up: "danger",
-  client: "success",
-  inactive: "neutral",
-};
 
 interface SwipeCardProps {
   contact: Contact;
@@ -45,6 +34,7 @@ export function SwipeCard({
   isTop,
   index,
 }: SwipeCardProps) {
+  const theme = useTheme();
   const translateX = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(0)).current;
 
@@ -176,7 +166,7 @@ export function SwipeCard({
               }}
             >
               <Text
-                style={{ fontSize: 12, fontWeight: "600", color: "#f87171" }}
+                style={{ fontSize: 12, fontWeight: "600", color: theme.textHint }}
                 numberOfLines={1}
               >
                 ← {prevStatusLabel ?? "—"}
@@ -194,7 +184,7 @@ export function SwipeCard({
               }}
             >
               <Text
-                style={{ fontSize: 12, fontWeight: "600", color: "#1D9E75" }}
+                style={{ fontSize: 12, fontWeight: "600", color: theme.primary }}
                 numberOfLines={1}
               >
                 {nextStatusLabel ?? "—"} →
@@ -219,14 +209,7 @@ export function SwipeCard({
           </Text>
         )}
 
-        <Badge
-          label={
-            PIPELINE_LABELS[contact.status as PipelineStatus] ?? contact.status
-          }
-          variant={
-            STATUS_VARIANTS[contact.status as PipelineStatus] ?? "neutral"
-          }
-        />
+        <StatusPill status={contact.status} size="sm" />
 
         {contact.notes && (
           <View className="mt-4 bg-background dark:bg-background-dark rounded-xl p-3 w-full">

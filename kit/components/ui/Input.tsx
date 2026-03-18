@@ -1,4 +1,5 @@
 import { TextInput, TextInputProps, View, Text } from "react-native";
+import { useTheme } from "../../lib/theme";
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -11,20 +12,34 @@ export function Input({
   className = "",
   ...props
 }: InputProps & { className?: string }) {
+  const theme = useTheme();
   return (
-    <View className="gap-1.5">
+    <View style={{ gap: 6 }}>
       {label && (
-        <Text className="text-textMuted dark:text-textMuted-dark text-sm font-medium">{label}</Text>
+        <Text style={{ color: theme.textMuted, fontSize: 13, fontWeight: "600" }}>
+          {label}
+        </Text>
       )}
       <TextInput
-        className={`bg-surface dark:bg-surface-dark border rounded-xl px-4 py-4 text-textMain dark:text-textMain-dark text-base
-          ${error ? "border-danger" : "border-border dark:border-border-dark"}
-          ${className}`}
-        placeholderTextColor="#94a3b8"
+        style={[
+          {
+            backgroundColor: theme.surface,
+            borderWidth: 1,
+            borderColor: error ? theme.borderAccent : theme.border,
+            borderRadius: 12,
+            padding: 12,
+            fontSize: 14,
+            color: theme.textPrimary,
+          },
+          // Keep optional caller-provided nativewind classes (e.g. minHeight).
+          // Core design tokens are enforced via inline styles.
+        ]}
+        placeholderTextColor={theme.textHint}
+        className={className}
         {...props}
       />
       {error && (
-        <Text className="text-danger text-xs">{error}</Text>
+        <Text style={{ color: theme.primaryBorder, fontSize: 12 }}>{error}</Text>
       )}
     </View>
   );

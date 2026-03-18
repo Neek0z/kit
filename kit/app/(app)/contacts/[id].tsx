@@ -39,6 +39,7 @@ import { useTheme, STATUS_COLORS, StatusKey } from "../../../lib/theme";
 import { useContactGroups } from "../../../hooks/useContactGroups";
 import { GroupBadge } from "../../../components/groups/GroupBadge";
 import { GroupPicker } from "../../../components/groups/GroupPicker";
+import { ContactTasksSection } from "../../../components/contacts/ContactTasksSection";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
@@ -240,9 +241,8 @@ export default function ContactDetailScreen() {
           style={{
             height: 1,
             marginHorizontal: 32,
-            backgroundColor: theme.isDark
-              ? "rgba(110,231,183,0.3)"
-              : "rgba(5,150,105,0.25)",
+            backgroundColor: theme.primary,
+            opacity: 0.25,
           }}
         />
 
@@ -305,14 +305,14 @@ export default function ContactDetailScreen() {
             {
               icon: "message-circle",
               label: "WhatsApp",
-              color: "#22c55e",
+              color: theme.primary,
               onPress: handleWhatsApp,
               visible: !!contact.phone,
             },
             {
               icon: "mail",
               label: "Email",
-              color: "#818cf8",
+              color: theme.primary,
               onPress: handleEmail,
               visible: !!contact.email,
             },
@@ -386,7 +386,7 @@ export default function ContactDetailScreen() {
             {contact.phone && (
               <>
                 <View className="flex-row items-center gap-3 py-2">
-                  <Feather name="phone" size={15} color="#475569" />
+                  <Feather name="phone" size={15} color={theme.textHint} />
                   <Text className="text-sm">{contact.phone}</Text>
                 </View>
                 <Divider />
@@ -394,7 +394,7 @@ export default function ContactDetailScreen() {
             )}
             {contact.email && (
               <View className="flex-row items-center gap-3 py-2">
-                <Feather name="mail" size={15} color="#475569" />
+                <Feather name="mail" size={15} color={theme.textHint} />
                 <Text className="text-sm">{contact.email}</Text>
               </View>
             )}
@@ -472,6 +472,9 @@ export default function ContactDetailScreen() {
             </Card>
           )}
 
+          {/* Tâches */}
+          <ContactTasksSection contactId={id ?? ""} />
+
           <Card>
             <FollowUpPicker
               value={contact.next_follow_up}
@@ -512,7 +515,7 @@ export default function ContactDetailScreen() {
                 onPress={handleReprogramByRecurrence}
                 className="mt-3 py-2 flex-row items-center gap-2"
               >
-                <Feather name="refresh-cw" size={14} color="#6ee7b7" />
+                <Feather name="refresh-cw" size={14} color={theme.primary} />
                 <Text className="text-primary text-sm font-medium">
                   Reprogrammer selon la récurrence
                 </Text>
@@ -523,7 +526,7 @@ export default function ContactDetailScreen() {
                 onPress={handleMarkAsFollowedUp}
                 className="mt-3 py-2 flex-row items-center gap-2"
               >
-                <Feather name="check-circle" size={14} color="#6ee7b7" />
+                <Feather name="check-circle" size={14} color={theme.primary} />
                 <Text className="text-primary text-sm font-medium">
                   Marquer comme relancé
                 </Text>
@@ -583,7 +586,7 @@ export default function ContactDetailScreen() {
                         className="flex-row items-center gap-3 py-2"
                       >
                         <View className="w-8 h-8 rounded-full bg-primary/20 items-center justify-center">
-                          <Feather name="calendar" size={14} color="#6ee7b7" />
+                          <Feather name="calendar" size={14} color={theme.primary} />
                         </View>
                         <View className="flex-1">
                           <Text className="text-sm font-medium">
@@ -598,7 +601,7 @@ export default function ContactDetailScreen() {
                             à {at.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
                           </Text>
                         </View>
-                        <Feather name="chevron-right" size={16} color="#64748b" />
+                        <Feather name="chevron-right" size={16} color={theme.textHint} />
                       </TouchableOpacity>
                     );
                   })}
@@ -625,7 +628,7 @@ export default function ContactDetailScreen() {
                             INTERACTION_ICONS[item.type as InteractionType] as FeatherName
                           }
                           size={14}
-                          color="#6ee7b7"
+                          color={theme.primary}
                         />
                       </View>
                       <View className="flex-1">

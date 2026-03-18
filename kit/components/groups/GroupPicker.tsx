@@ -166,7 +166,7 @@ export function GroupPicker({
                       >
                         <Text
                           style={{
-                            color: "#0f172a",
+                            color: theme.textPrimary,
                             fontSize: 13,
                             fontWeight: "800",
                           }}

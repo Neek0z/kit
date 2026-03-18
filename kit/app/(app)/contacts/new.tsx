@@ -10,6 +10,7 @@ import { TagsEditor } from "../../../components/contacts";
 import { useContacts } from "../../../hooks/useContacts";
 import { useToast } from "../../../lib/ToastContext";
 import { PipelineStatus, PIPELINE_LABELS } from "../../../types";
+import { useTheme } from "../../../lib/theme";
 
 const STATUSES = Object.entries(PIPELINE_LABELS) as [PipelineStatus, string][];
 
@@ -17,6 +18,7 @@ export default function NewContactScreen() {
   const { createContact } = useContacts();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(false);
+  const theme = useTheme();
 
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
@@ -84,7 +86,16 @@ export default function NewContactScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* Ligne décorative */}
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: theme.primary,
+          opacity: 0.25,
+        }}
+      />
       <Header title="Nouveau contact" showBack />
 
       <ScrollView
@@ -95,7 +106,7 @@ export default function NewContactScreen() {
           onPress={handleImportFromPhone}
           className="flex-row items-center gap-2 bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-4 py-3 mb-6"
         >
-          <Feather name="smartphone" size={16} color="#6ee7b7" />
+          <Feather name="smartphone" size={16} color={theme.primary} />
           <Text className="text-primary text-sm font-medium">
             Importer depuis mes contacts
           </Text>

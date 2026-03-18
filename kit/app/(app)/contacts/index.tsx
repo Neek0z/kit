@@ -79,9 +79,8 @@ export default function ContactsListScreen() {
         style={{
           height: 1,
           marginHorizontal: 32,
-          backgroundColor: theme.isDark
-            ? "rgba(110,231,183,0.3)"
-            : "rgba(5,150,105,0.25)",
+          backgroundColor: theme.primary,
+          opacity: 0.25,
         }}
       />
 
@@ -155,28 +154,46 @@ export default function ContactsListScreen() {
           </Text>
               </TouchableOpacity>
               {!swipeMode && (
-                <TouchableOpacity
-                  onPress={() => {
-                    if (!canAddContact) {
-                      router.push("/(app)/subscription");
-                      return;
-                    }
-                    router.push("/(app)/contacts/new");
-                  }}
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
-                    backgroundColor: theme.primaryBg,
-                    borderWidth: 1,
-                    borderColor: theme.primaryBorder,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                  accessibilityLabel="Ajouter un contact"
-                >
-                  <Feather name="plus" size={16} color={theme.primary} />
-                </TouchableOpacity>
+                <>
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (!canAddContact) {
+                        router.push("/(app)/subscription");
+                        return;
+                      }
+                      router.push("/(app)/contacts/new");
+                    }}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: theme.primaryBg,
+                      borderWidth: 1,
+                      borderColor: theme.primaryBorder,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    accessibilityLabel="Ajouter un contact"
+                  >
+                    <Feather name="plus" size={16} color={theme.primary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => router.push("/(app)/groups")}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor: theme.surface,
+                      borderWidth: 1,
+                      borderColor: theme.border,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                    accessibilityLabel="Gérer les groupes"
+                  >
+                    <Feather name="users" size={16} color={theme.primary} />
+                  </TouchableOpacity>
+                </>
               )}
             </View>
           </View>

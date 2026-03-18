@@ -11,10 +11,12 @@ import { Text, Button, Card } from "../../../components/ui";
 import { Header } from "../../../components/layout";
 import { useSubscription } from "../../../hooks/useSubscription";
 import { useContacts } from "../../../hooks/useContacts";
+import { useTheme } from "../../../lib/theme";
 
 export default function ExportScreen() {
   const { isPro } = useSubscription();
   const { contacts } = useContacts();
+  const theme = useTheme();
 
   const handleExport = async () => {
     if (!isPro) {
@@ -60,7 +62,16 @@ export default function ExportScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* Ligne décorative */}
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: theme.primary,
+          opacity: 0.25,
+        }}
+      />
       <Header title="Exporter mes données" showBack />
       <View className="px-5 pt-4 gap-4">
         <Card>

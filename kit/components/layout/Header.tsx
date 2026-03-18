@@ -1,7 +1,8 @@
-import { View, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, Text as RNText } from "react-native";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { Text } from "../ui";
+import { useTheme } from "../../lib/theme";
 
 interface HeaderProps {
   title: string;
@@ -22,34 +23,74 @@ export function Header({
   onBack,
   rightAction,
 }: HeaderProps) {
+  const theme = useTheme();
+
   return (
     <View className="flex-row items-center justify-between px-5 pt-4 pb-3">
       <View className="flex-row items-center gap-3 flex-1">
         {showBack && (
           <TouchableOpacity
             onPress={onBack ?? (() => router.back())}
-            className="mr-1"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: theme.primaryBg,
+              borderWidth: 1,
+              borderColor: theme.primaryBorder,
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: 2,
+            }}
           >
-            <Feather name="arrow-left" size={22} color="#f1f5f9" />
+            <Feather name="arrow-left" size={18} color={theme.primary} />
           </TouchableOpacity>
         )}
         <View className="flex-1">
-          <Text variant="h2">{title}</Text>
+          <RNText
+            style={{
+              fontSize: 28,
+              fontWeight: "800",
+              letterSpacing: -1,
+              color: theme.textPrimary,
+              lineHeight: 32,
+            }}
+            numberOfLines={1}
+          >
+            {title}
+          </RNText>
           {subtitle && (
-            <Text variant="muted" className="mt-0.5">
+            <RNText
+              style={{
+                marginTop: 2,
+                fontSize: 13,
+                color: theme.textMuted,
+                fontWeight: "600",
+              }}
+              numberOfLines={1}
+            >
               {subtitle}
-            </Text>
+            </RNText>
           )}
         </View>
       </View>
       {rightAction && (
         <TouchableOpacity
           onPress={rightAction.onPress}
-          className="p-1"
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: theme.primaryBg,
+            borderWidth: 1,
+            borderColor: theme.primaryBorder,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
           accessibilityRole="button"
           accessibilityLabel={rightAction.accessibilityLabel}
         >
-          <Feather name={rightAction.icon} size={22} color="#6ee7b7" />
+          <Feather name={rightAction.icon} size={18} color={theme.primary} />
         </TouchableOpacity>
       )}
     </View>

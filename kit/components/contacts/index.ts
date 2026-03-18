@@ -6,3 +6,6 @@ export { PipelineArc } from "./PipelineArc";
 export { SwipeCard } from "./SwipeCard";
 export { SwipeMode } from "./SwipeMode";
 export { WorkflowTimeline } from "./WorkflowTimeline";
+export { ContactTaskItem } from "./ContactTaskItem";
+export { AddTaskSheet } from "./AddTaskSheet";
+export { ContactTasksSection } from "./ContactTasksSection";

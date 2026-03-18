@@ -1,4 +1,5 @@
-import { TouchableOpacity, Text, ActivityIndicator } from "react-native";
+import { TouchableOpacity, Text as RNText, ActivityIndicator } from "react-native";
+import { useTheme } from "../../lib/theme";
 
 interface ButtonProps {
   label: string;
@@ -15,33 +16,71 @@ export function Button({
   loading = false,
   disabled = false
 }: ButtonProps) {
-  const base = "rounded-xl px-6 py-4 items-center justify-center";
+  const theme = useTheme();
+
+  const baseStyle = {
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    alignItems: "center" as const,
+    justifyContent: "center" as const,
+    flexDirection: "row" as const,
+    gap: 8,
+  };
+
   const variants = {
-    primary: "bg-primary",
-    secondary: "bg-surface dark:bg-surface-dark border border-border dark:border-border-dark",
-    ghost: "bg-transparent",
+    primary: {
+      backgroundColor: theme.primaryBg,
+      borderWidth: 1,
+      borderColor: theme.primaryBorder,
+    },
+    secondary: {
+      backgroundColor: theme.surface,
+      borderWidth: 1,
+      borderColor: theme.border,
+    },
+    ghost: {
+      backgroundColor: "transparent",
+      borderWidth: 0,
+      borderColor: "transparent",
+    },
   } as const;
+
   const textColors = {
-    primary: "text-onPrimary font-bold",
-    secondary: "text-textMain dark:text-textMain-dark",
-    ghost: "text-primary",
+    primary: {
+      color: theme.primary,
+      fontWeight: "700" as const,
+      fontSize: 15,
+    },
+    secondary: {
+      color: theme.textPrimary,
+      fontWeight: "700" as const,
+      fontSize: 15,
+    },
+    ghost: {
+      color: theme.primary,
+      fontWeight: "700" as const,
+      fontSize: 15,
+    },
   } as const;
 
   return (
     <TouchableOpacity
-      className={`${base} ${variants[variant]} ${
-        disabled || loading ? "opacity-50" : ""
-      }`}
+      style={[
+        baseStyle,
+        variants[variant],
+        disabled || loading ? { opacity: 0.5 } : null,
+      ]}
       onPress={onPress}
       disabled={disabled || loading}
       activeOpacity={0.8}
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === "primary" ? "#0f172a" : "#6ee7b7"}
+          color={variant === "primary" ? theme.textPrimary : theme.primary}
         />
       ) : (
-        <Text className={textColors[variant]}>{label}</Text>
+        <RNText style={textColors[variant]}>{label}</RNText>
       )}
     </TouchableOpacity>
   );

@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import { completeWorkflowTask } from "../../lib/workflowService";
 import { Text, Card } from "../ui";
 import { WorkflowTask, INTERACTION_ICONS, InteractionType } from "../../types";
+import { useTheme } from "../../lib/theme";
 
 interface WorkflowTimelineProps {
   contactId: string;
@@ -13,6 +14,7 @@ interface WorkflowTimelineProps {
 export function WorkflowTimeline({ contactId }: WorkflowTimelineProps) {
   const [tasks, setTasks] = useState<WorkflowTask[]>([]);
   const [loading, setLoading] = useState(true);
+  const theme = useTheme();
 
   useEffect(() => {
     let cancelled = false;
@@ -81,13 +83,15 @@ export function WorkflowTimeline({ contactId }: WorkflowTimelineProps) {
           style={{
             fontSize: 11,
             textTransform: "uppercase",
-            letterSpacing: 1,
+            letterSpacing: 0.8,
+            fontWeight: "600",
+            color: theme.textHint,
           }}
         >
           Workflow client
         </Text>
         <View className="flex-row items-center">
-          <Text style={{ fontSize: 12, color: "#6ee7b7", fontWeight: "500" }}>
+          <Text style={{ fontSize: 12, color: theme.primary, fontWeight: "500" }}>
             {completed.length}/{tasks.length}
           </Text>
         </View>
@@ -188,7 +192,7 @@ export function WorkflowTimeline({ contactId }: WorkflowTimelineProps) {
                     style={{
                       fontSize: 13,
                       fontWeight: "500",
-                      color: isCompleted ? "#475569" : "#f1f5f9",
+                      color: isCompleted ? theme.textMuted : theme.textPrimary,
                       textDecorationLine: isCompleted
                         ? "line-through"
                         : "none",
@@ -213,7 +217,7 @@ export function WorkflowTimeline({ contactId }: WorkflowTimelineProps) {
                 <Text
                   style={{
                     fontSize: 11,
-                    color: isOverdue ? "#f87171" : "#64748b",
+                    color: isOverdue ? theme.primary : theme.textMuted,
                     marginTop: 2,
                   }}
                 >
@@ -238,7 +242,7 @@ export function WorkflowTimeline({ contactId }: WorkflowTimelineProps) {
 
                 {task.description && !isCompleted && (
                   <Text
-                    style={{ fontSize: 11, color: "#475569", marginTop: 2 }}
+                    style={{ fontSize: 11, color: theme.textMuted, marginTop: 2 }}
                   >
                     {task.description}
                   </Text>
@@ -251,7 +255,7 @@ export function WorkflowTimeline({ contactId }: WorkflowTimelineProps) {
 
       {pending.length === 0 && (
         <View style={{ marginTop: 12, alignItems: "center" }}>
-          <Text style={{ fontSize: 12, color: "#6ee7b7" }}>
+          <Text style={{ fontSize: 12, color: theme.primary }}>
             🎉 Workflow complété !
           </Text>
         </View>

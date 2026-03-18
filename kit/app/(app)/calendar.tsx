@@ -19,6 +19,7 @@ import { CalendarMonthView } from "../../components/calendar/CalendarMonthView";
 import { useAppointments, type AppointmentWithContact } from "../../hooks/useAppointments";
 import { useContacts } from "../../hooks/useContacts";
 import { useToast } from "../../lib/ToastContext";
+import { useTheme } from "../../lib/theme";
 import { dayKey, isSameDay } from "../../components/calendar/calendarUtils";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
@@ -42,6 +43,7 @@ function formatSelectedDayLabel(d: Date): string {
 }
 
 export default function CalendarScreen() {
+  const theme = useTheme();
   const { showToast } = useToast();
   const { contacts } = useContacts();
   const {
@@ -177,7 +179,16 @@ export default function CalendarScreen() {
   const isSelectedToday = isSameDay(selectedDate, new Date());
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* Ligne décorative */}
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: theme.primary,
+          opacity: 0.25,
+        }}
+      />
       <Header
         title="Calendrier"
         rightAction={{
@@ -241,8 +252,8 @@ export default function CalendarScreen() {
             <RefreshControl
               refreshing={loading}
               onRefresh={refetch}
-              colors={["#6ee7b7"]}
-              tintColor="#6ee7b7"
+              colors={[theme.primary]}
+              tintColor={theme.primary}
             />
           }
         >
@@ -258,7 +269,7 @@ export default function CalendarScreen() {
               onPress={goToToday}
               className="mt-3 flex-row items-center justify-center gap-2 py-2"
             >
-              <Feather name="circle" size={12} color="#6ee7b7" />
+                <Feather name="circle" size={12} color={theme.primary} />
               <Text className="text-primary text-sm font-medium">
                 Revenir à aujourd'hui
               </Text>
@@ -276,12 +287,14 @@ export default function CalendarScreen() {
             </View>
             {loading && list.length === 0 ? (
               <View className="py-8 items-center">
-                <ActivityIndicator color="#6ee7b7" />
+                  <ActivityIndicator color={theme.primary} />
               </View>
             ) : appointmentsForSelectedDay.length === 0 ? (
               <View className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl py-8 px-4 items-center">
-                <Feather name="calendar" size={32} color="#64748b" />
-                <Text variant="muted" className="text-sm mt-2 text-center">Aucun rendez-vous ce jour-là</Text>
+                <Feather name="calendar" size={32} color={theme.textMuted} />
+                  <Text variant="muted" className="text-sm mt-2 text-center">
+                    Aucun rendez-vous ce jour-là
+                  </Text>
                 <TouchableOpacity onPress={() => openCreate()} className="mt-3 py-2 px-4 rounded-lg bg-primary/20">
                   <Text className="text-primary text-sm font-medium">Ajouter un RDV</Text>
                 </TouchableOpacity>

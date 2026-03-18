@@ -15,11 +15,13 @@ import { Text, EmptyState } from "../../../components/ui";
 import { Header } from "../../../components/layout";
 import { ConversationListItem } from "../../../components/messages";
 import { useConversations } from "../../../hooks/useConversations";
+import { useTheme } from "../../../lib/theme";
 
 export default function MessagesScreen() {
   const router = useRouter();
   const { conversations, loading, error, refetch } = useConversations();
   const [search, setSearch] = useState("");
+  const theme = useTheme();
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -41,14 +43,30 @@ export default function MessagesScreen() {
 
   if (showFullScreenLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-background dark:bg-background-dark items-center justify-center">
-        <ActivityIndicator color="#6ee7b7" />
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: theme.bg,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator color={theme.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      {/* Ligne décorative */}
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: theme.primary,
+          opacity: 0.25,
+        }}
+      />
       <Header
         title="Messages"
         rightAction={{
@@ -66,11 +84,11 @@ export default function MessagesScreen() {
       )}
       {conversations.length > 0 && (
         <View className="mx-5 mt-2 mb-1 flex-row items-center bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-4 gap-2">
-          <Feather name="search" size={16} color="#64748b" />
+          <Feather name="search" size={16} color={theme.textMuted} />
           <TextInput
             className="flex-1 py-2.5 text-textMain dark:text-textMain-dark text-base"
             placeholder="Rechercher par nom ou email..."
-            placeholderTextColor="#64748b"
+            placeholderTextColor={theme.textHint}
             value={search}
             onChangeText={setSearch}
             autoCapitalize="none"
@@ -104,8 +122,8 @@ export default function MessagesScreen() {
             <RefreshControl
               refreshing={loading}
               onRefresh={refetch}
-              colors={["#6ee7b7"]}
-              tintColor="#6ee7b7"
+              colors={[theme.primary]}
+              tintColor={theme.primary}
             />
           }
           contentContainerStyle={{ paddingBottom: 24 }}

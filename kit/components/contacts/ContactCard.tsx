@@ -1,26 +1,19 @@
 import { View, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Text, Avatar, Badge } from "../ui";
-import { Contact, PIPELINE_LABELS, PipelineStatus } from "../../types";
-
-const STATUS_VARIANTS: Record<
-  PipelineStatus,
-  "success" | "info" | "warning" | "neutral" | "danger"
-> = {
-  new: "neutral",
-  contacted: "info",
-  interested: "warning",
-  follow_up: "danger",
-  client: "success",
-  inactive: "neutral",
-};
+import { Text, Avatar, StatusPill } from "../ui";
+import { Contact } from "../../types";
+import { useContactTasks } from "../../hooks/useContactTasks";
+import { useTheme } from "../../lib/theme";
 
 interface ContactCardProps {
   contact: Contact;
 }
 
 export function ContactCard({ contact }: ContactCardProps) {
+  const { pendingCount } = useContactTasks(contact.id);
+  const theme = useTheme();
+
   return (
     <TouchableOpacity
       onPress={() => router.push(`/(app)/contacts/${contact.id}`)}
@@ -58,14 +51,27 @@ export function ContactCard({ contact }: ContactCardProps) {
           )}
         </View>
         <View className="items-end gap-1">
-          <Badge
-            label={
-              PIPELINE_LABELS[contact.status as PipelineStatus] ?? contact.status
-            }
-            variant={
-              STATUS_VARIANTS[contact.status as PipelineStatus] ?? "neutral"
-            }
-          />
+          <StatusPill status={contact.status} size="sm" />
+          {pendingCount > 0 && (
+          <View
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: 9,
+              backgroundColor: theme.primaryBg,
+              borderWidth: 1,
+              borderColor: theme.primaryBorder,
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{ fontSize: 9, fontWeight: "700", color: theme.primary }}
+            >
+              {pendingCount}
+            </Text>
+          </View>
+          )}
           {contact.next_follow_up && (
             <Text variant="muted" className="text-xs">
               {new Date(contact.next_follow_up).toLocaleDateString("fr-FR", {
@@ -75,7 +81,7 @@ export function ContactCard({ contact }: ContactCardProps) {
             </Text>
           )}
         </View>
-        <Feather name="chevron-right" size={16} color="#475569" />
+        <Feather name="chevron-right" size={16} color={theme.textHint} />
       </View>
     </TouchableOpacity>
   );

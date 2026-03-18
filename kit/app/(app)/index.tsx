@@ -39,7 +39,7 @@ export default function DashboardScreen() {
         <View
           style={{
             height: 1,
-            marginHorizontal: 24,
+            marginHorizontal: 32,
             backgroundColor: theme.primary,
             opacity: 0.25,
           }}
@@ -107,9 +107,9 @@ export default function DashboardScreen() {
             <TouchableOpacity
               onPress={() => router.push("/(app)/contacts")}
               style={{
-                backgroundColor: "rgba(248,113,113,0.08)",
+                backgroundColor: theme.primaryBg,
                 borderWidth: 1,
-                borderColor: "rgba(248,113,113,0.2)",
+                borderColor: theme.primaryBorder,
                 borderRadius: 14,
                 padding: 12,
                 flexDirection: "row",
@@ -118,11 +118,11 @@ export default function DashboardScreen() {
                 marginBottom: 14,
               }}
             >
-              <Feather name="alert-circle" size={16} color="#f87171" />
+              <Feather name="alert-circle" size={16} color={theme.primary} />
               <Text
                 style={{
                   flex: 1,
-                  color: "#f87171",
+                  color: theme.primary,
                   fontSize: 13,
                   fontWeight: "600",
                 }}
@@ -130,7 +130,7 @@ export default function DashboardScreen() {
                 {overdueFollowUps.length} relance
                 {overdueFollowUps.length > 1 ? "s" : ""} en retard
               </Text>
-              <Feather name="chevron-right" size={14} color="#f87171" />
+              <Feather name="chevron-right" size={14} color={theme.primary} />
             </TouchableOpacity>
           )}
 
@@ -197,7 +197,7 @@ export default function DashboardScreen() {
             <Card style={{ marginBottom: 14 }}>
               <Text
                 style={{
-                  fontSize: 10,
+                  fontSize: 11,
                   letterSpacing: 0.8,
                   color: theme.textHint,
                   textTransform: "uppercase",
@@ -225,7 +225,7 @@ export default function DashboardScreen() {
               >
                 À relancer
               </Text>
-              <Card padding="sm">
+              <Card>
                 {toFollowUp.slice(0, 5).map((contact, i) => (
                   <ContactRow
                     key={contact.id}
@@ -252,7 +252,7 @@ export default function DashboardScreen() {
               >
                 Récents
               </Text>
-              <Card padding="sm">
+              <Card>
                 {recentContacts.map((contact, i) => (
                   <ContactRow
                     key={contact.id}

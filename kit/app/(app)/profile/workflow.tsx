@@ -7,10 +7,12 @@ import { Header } from "../../../components/layout";
 import { supabase } from "../../../lib/supabase";
 import { useAuthContext } from "../../../lib/AuthContext";
 import { WorkflowStep, INTERACTION_LABELS, InteractionType } from "../../../types";
+import { useTheme } from "../../../lib/theme";
 
 export default function WorkflowSettingsScreen() {
   const { user } = useAuthContext();
   const [steps, setSteps] = useState<WorkflowStep[]>([]);
+  const theme = useTheme();
 
   useEffect(() => {
     if (!user) return;
@@ -35,7 +37,15 @@ export default function WorkflowSettingsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-background dark:bg-background-dark">
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+      <View
+        style={{
+          height: 1,
+          marginHorizontal: 32,
+          backgroundColor: theme.primary,
+          opacity: 0.25,
+        }}
+      />
       <Header title="Workflow client" showBack />
 
       <ScrollView
@@ -49,23 +59,25 @@ export default function WorkflowSettingsScreen() {
 
         <View className="gap-2 pb-8">
           {steps.map((step, index) => (
-            <Card key={step.id} padding="sm">
+            <Card key={step.id}>
               <View className="flex-row items-center gap-3">
                 <View
                   style={{
                     width: 28,
                     height: 28,
                     borderRadius: 14,
-                    backgroundColor: step.is_active ? "#6ee7b7" : "#1e293b",
+                    backgroundColor: step.is_active ? theme.primaryBg : theme.surface,
                     alignItems: "center",
                     justifyContent: "center",
+                    borderWidth: 1,
+                    borderColor: step.is_active ? theme.primaryBorder : theme.border,
                   }}
                 >
                   <Text
                     style={{
                       fontSize: 12,
                       fontWeight: "600",
-                      color: step.is_active ? "#0f172a" : "#475569",
+                      color: step.is_active ? theme.textPrimary : theme.textMuted,
                     }}
                   >
                     {index + 1}
@@ -77,12 +89,12 @@ export default function WorkflowSettingsScreen() {
                     style={{
                       fontSize: 14,
                       fontWeight: "500",
-                      color: step.is_active ? "#f1f5f9" : "#475569",
+                      color: step.is_active ? theme.textPrimary : theme.textMuted,
                     }}
                   >
                     {step.name}
                   </Text>
-                  <Text style={{ fontSize: 11, color: "#64748b" }}>
+                  <Text style={{ fontSize: 11, color: theme.textHint }}>
                     J+{step.delay_days} ·{" "}
                     {INTERACTION_LABELS[step.interaction_type as InteractionType]}
                   </Text>

@@ -2,7 +2,8 @@ import { Tabs, router, usePathname } from "expo-router";
 import { View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { PushTokenSync } from "../../components/PushTokenSync";
-import { useTheme } from "../../lib/ThemeContext";
+import { useTheme as useAppTheme } from "../../lib/ThemeContext";
+import { useTheme as useDesignTheme } from "../../lib/theme";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
@@ -24,12 +25,11 @@ function TabIcon({ name, color, focused }: TabIconProps) {
 }
 
 export default function AppLayout() {
-  const { isDark } = useTheme();
-  const tabBarBg = isDark ? "#080c12" : "#ffffff";
-  const tabBarBorder = isDark
-    ? "rgba(255,255,255,0.06)"
-    : "rgba(0,0,0,0.06)";
-  const tabBarInactive = isDark ? "#334155" : "#cbd5e1";
+  const { isDark } = useAppTheme();
+  const theme = useDesignTheme();
+  const tabBarBg = isDark ? theme.bg : theme.surface;
+  const tabBarBorder = theme.border;
+  const tabBarInactive = theme.textHint;
   const pathname = usePathname();
 
   return (
@@ -46,7 +46,7 @@ export default function AppLayout() {
             paddingBottom: 8,
             height: 64,
           },
-          tabBarActiveTintColor: isDark ? "#6ee7b7" : "#059669",
+          tabBarActiveTintColor: theme.primary,
           tabBarInactiveTintColor: tabBarInactive,
           tabBarShowLabel: false,
         }}
@@ -91,6 +91,14 @@ export default function AppLayout() {
         options={{
           tabBarIcon: ({ color, focused }) => (
             <TabIcon name="message-circle" color={color} focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="content"
+        options={{
+          tabBarIcon: ({ color, focused }) => (
+            <TabIcon name="instagram" color={color} focused={focused} />
           ),
         }}
       />
