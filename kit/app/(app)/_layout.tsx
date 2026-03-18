@@ -102,6 +102,14 @@ export default function AppLayout() {
           ),
         }}
       />
+      {/* Empêche toute auto-inclusion de la route /groups dans la tab bar */}
+      <Tabs.Screen
+        name="groups"
+        options={{
+          // Retire complètement /groups de la tab bar (le route reste accessible via router.push)
+          href: null,
+        }}
+      />
       <Tabs.Screen
         name="profile"
         options={{
