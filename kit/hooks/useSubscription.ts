@@ -7,6 +7,8 @@ interface Subscription {
   plan: "free" | "pro";
   status: string;
   current_period_end?: string;
+  is_early_adopter?: boolean;
+  early_adopter_price?: number;
 }
 
 interface UseSubscriptionReturn {
@@ -26,7 +28,6 @@ const FREE_LIMITS = {
   reminders: 5,
 };
 
-const STRIPE_PRICE_ID = process.env.EXPO_PUBLIC_STRIPE_PRICE_ID ?? "";
 const SUCCESS_URL = "kit://subscription/success";
 const CANCEL_URL = "kit://subscription/cancel";
 
@@ -40,7 +41,9 @@ export function useSubscription(): UseSubscriptionReturn {
 
     supabase
       .from("subscriptions")
-      .select("plan, status, current_period_end")
+      .select(
+        "plan, status, current_period_end, is_early_adopter, early_adopter_price"
+      )
       .eq("user_id", user.id)
       .maybeSingle()
       .then(({ data }) => {
@@ -78,7 +81,6 @@ export function useSubscription(): UseSubscriptionReturn {
         "create-checkout-session",
         {
           body: {
-            priceId: STRIPE_PRICE_ID,
             successUrl: SUCCESS_URL,
             cancelUrl: CANCEL_URL,
           },

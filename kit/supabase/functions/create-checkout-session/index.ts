@@ -37,7 +37,7 @@ serve(async (req) => {
       });
     }
 
-    const { priceId, successUrl, cancelUrl } = await req.json();
+    const { successUrl, cancelUrl } = await req.json();
 
     const { data: sub } = await supabase
       .from("subscriptions")
@@ -60,6 +60,24 @@ serve(async (req) => {
         .eq("user_id", user.id);
     }
 
+    const { data: pricingConfig } = await supabase
+      .from("pricing_config")
+      .select("*")
+      .single();
+
+    const isEarlyAdopter =
+      !!pricingConfig?.early_adopter_active &&
+      (pricingConfig?.early_adopter_count ?? 0) <
+        (pricingConfig?.early_adopter_limit ?? 0);
+
+    const priceId = isEarlyAdopter
+      ? Deno.env.get("STRIPE_EARLY_ADOPTER_PRICE_ID")
+      : Deno.env.get("STRIPE_NORMAL_PRICE_ID");
+
+    if (!priceId) {
+      throw new Error("Stripe price ID missing for current pricing mode");
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       payment_method_types: ["card"],
@@ -67,6 +85,16 @@ serve(async (req) => {
       mode: "subscription",
       success_url: successUrl,
       cancel_url: cancelUrl,
+      metadata: {
+        supabase_user_id: user.id,
+        is_early_adopter: isEarlyAdopter ? "true" : "false",
+      },
+      subscription_data: {
+        metadata: {
+          supabase_user_id: user.id,
+          is_early_adopter: isEarlyAdopter ? "true" : "false",
+        },
+      },
     });
 
     return new Response(JSON.stringify({ url: session.url }), {

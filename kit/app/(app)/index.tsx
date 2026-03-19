@@ -6,6 +6,8 @@ import { Feather } from "@expo/vector-icons";
 import { useTheme, STATUS_COLORS, StatusKey } from "../../lib/theme";
 import { useDashboard } from "../../hooks/useDashboard";
 import { useAuthContext } from "../../lib/AuthContext";
+import { useSubscription } from "../../hooks/useSubscription";
+import { usePricing } from "../../hooks/usePricing";
 import { Card, StatusPill, Avatar } from "../../components/ui";
 import { PipelineBar } from "../../components/dashboard";
 import type { Contact } from "../../types";
@@ -13,6 +15,8 @@ import type { Contact } from "../../types";
 export default function DashboardScreen() {
   const theme = useTheme();
   const { user } = useAuthContext();
+  const { isPro } = useSubscription();
+  const { isEarlyAdopter, currentPrice, pricing } = usePricing();
   const {
     totalContacts,
     toFollowUp,
@@ -131,6 +135,47 @@ export default function DashboardScreen() {
                 {overdueFollowUps.length > 1 ? "s" : ""} en retard
               </Text>
               <Feather name="chevron-right" size={14} color={theme.primary} />
+            </TouchableOpacity>
+          )}
+
+          {/* Upgrade banner proche limite Free */}
+          {!isPro && totalContacts >= 20 && (
+            <TouchableOpacity
+              onPress={() => router.push("/(app)/subscription")}
+              style={{
+                backgroundColor: isEarlyAdopter
+                  ? theme.primaryBg
+                  : theme.surface,
+                borderWidth: 1,
+                borderColor: isEarlyAdopter
+                  ? theme.primaryBorder
+                  : theme.border,
+                borderRadius: 14,
+                padding: 12,
+                marginBottom: 14,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+              }}
+            >
+              <Text style={{ fontSize: 16 }}>{isEarlyAdopter ? "⚡" : "✨"}</Text>
+              <Text
+                style={{
+                  flex: 1,
+                  fontSize: 13,
+                  fontWeight: "500",
+                  color: isEarlyAdopter ? theme.primary : theme.textPrimary,
+                }}
+              >
+                {isEarlyAdopter
+                  ? `${pricing?.spots_left ?? 0} places Early Adopter restantes — ${currentPrice.toFixed(2).replace(".", ",")}€/mois`
+                  : `${totalContacts}/25 contacts · Passe à Pro`}
+              </Text>
+              <Feather
+                name="chevron-right"
+                size={14}
+                color={isEarlyAdopter ? theme.primary : theme.textHint}
+              />
             </TouchableOpacity>
           )}
 

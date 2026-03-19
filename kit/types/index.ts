@@ -185,6 +185,7 @@ export interface Contact {
   id: ContactId;
   user_id: UserId;
   full_name: string;
+  avatar_url?: string | null;
   phone?: string;
   email?: string;
   notes?: string;

@@ -37,6 +37,12 @@ serve(async (req) => {
       const periodEnd = new Date(
         subscription.current_period_end * 1000
       ).toISOString();
+      const isEarlyAdopter =
+        subscription.metadata?.is_early_adopter === "true";
+      const { data: pricingConfig } = await supabase
+        .from("pricing_config")
+        .select("early_adopter_price")
+        .single();
 
       await supabase
         .from("subscriptions")
@@ -45,8 +51,16 @@ serve(async (req) => {
           plan,
           status: subscription.status,
           current_period_end: periodEnd,
+          is_early_adopter: isEarlyAdopter,
+          early_adopter_price: isEarlyAdopter
+            ? pricingConfig?.early_adopter_price ?? null
+            : null,
         })
         .eq("stripe_customer_id", customerId);
+
+      if (event.type === "customer.subscription.created" && isEarlyAdopter) {
+        await supabase.rpc("increment_early_adopter_count");
+      }
       break;
     }
 
@@ -58,6 +72,8 @@ serve(async (req) => {
           plan: "free",
           status: "canceled",
           stripe_subscription_id: null,
+          is_early_adopter: false,
+          early_adopter_price: null,
         })
         .eq("stripe_customer_id", customerId);
       break;

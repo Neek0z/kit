@@ -9,3 +9,5 @@ export { WorkflowTimeline } from "./WorkflowTimeline";
 export { ContactTaskItem } from "./ContactTaskItem";
 export { AddTaskSheet } from "./AddTaskSheet";
 export { ContactTasksSection } from "./ContactTasksSection";
+export { ContactTabBar } from "./ContactTabBar";
+export type { ContactTabKey } from "./ContactTabBar";
