@@ -107,3 +107,11 @@ Améliorations persos :
 - cloche pour notif
 - recherche dans l'app (à différents endroits ?)
 - sync calendrier (prompt déjà dans les md)
+- voir pour une version pc
+
+
+.Call avec Célia #2
+noter mes questions pour check par Célia
+ajouter exemples photos dans prompt
+ajouter une zone de texte dans les relances (fiche contact) (fusionner tâches ?)
+workflow client actuel (pour le parrain) donc ajouté un workflow "vrai" client pour la todo sur l'app (à créer)
