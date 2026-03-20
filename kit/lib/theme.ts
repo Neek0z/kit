@@ -41,17 +41,18 @@ export function useTheme() {
 
   return {
     isDark,
-    bg: isDark ? "#080c12" : "#f4f6f9",
+    bg: isDark ? "#080c12" : "#f8f9fb",
     surface: isDark ? "#0e1420" : "#ffffff",
+    surfaceAlt: isDark ? "#0e1420" : "#f1f4f8",
     surfaceHover: isDark ? "#131b28" : "#f8fafc",
     textPrimary: isDark ? "#f1f5f9" : "#0f172a",
-    textMuted: isDark ? "#64748b" : "#94a3b8",
-    textHint: isDark ? "#334155" : "#cbd5e1",
-    border: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)",
-    borderAccent: isDark ? "rgba(110,231,183,0.2)" : "rgba(5,150,105,0.2)",
-    primary: isDark ? "#6ee7b7" : "#059669",
-    primaryBg: isDark ? "rgba(110,231,183,0.12)" : "rgba(5,150,105,0.1)",
-    primaryBorder: isDark ? "rgba(110,231,183,0.3)" : "rgba(5,150,105,0.25)",
+    textMuted: isDark ? "#64748b" : "#64748b",
+    textHint: isDark ? "#334155" : "#94a3b8",
+    border: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)",
+    borderAccent: isDark ? "rgba(110,231,183,0.2)" : "rgba(15,118,110,0.2)",
+    primary: isDark ? "#6ee7b7" : "#0d9488",
+    primaryBg: isDark ? "rgba(110,231,183,0.12)" : "rgba(13,148,136,0.08)",
+    primaryBorder: isDark ? "rgba(110,231,183,0.3)" : "rgba(13,148,136,0.2)",
     accentLine: isDark
       ? "linear-gradient(90deg, transparent, rgba(110,231,183,0.4), transparent)"
       : "linear-gradient(90deg, transparent, rgba(5,150,105,0.35), transparent)",

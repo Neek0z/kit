@@ -11,8 +11,7 @@ import {
   dayKey,
 } from "./calendarUtils";
 import type { AppointmentWithContact } from "../../hooks/useAppointments";
-
-const MAX_ITEMS_IN_CELL = 2;
+import { useTheme } from "../../lib/theme";
 
 interface CalendarMonthViewProps {
   monthAnchor: Date;
@@ -33,6 +32,7 @@ export function CalendarMonthView({
   onPrevMonth,
   onNextMonth,
 }: CalendarMonthViewProps) {
+  const theme = useTheme();
   const monthStart = getStartOfMonth(monthAnchor);
   const grid = getMonthGrid(monthStart);
   const letters = getWeekdayLetters();
@@ -42,13 +42,13 @@ export function CalendarMonthView({
       {/* Header mois + flèches */}
       <View className="flex-row items-center justify-between px-2 py-3 border-b border-border dark:border-border-dark">
         <TouchableOpacity onPress={onPrevMonth} className="p-2">
-          <Feather name="chevron-left" size={24} color="#6ee7b7" />
+          <Feather name="chevron-left" size={24} color={theme.primary} />
         </TouchableOpacity>
         <Text variant="h3" className="text-textMain dark:text-textMain-dark capitalize">
           {monthStart.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
         </Text>
         <TouchableOpacity onPress={onNextMonth} className="p-2">
-          <Feather name="chevron-right" size={24} color="#6ee7b7" />
+          <Feather name="chevron-right" size={24} color={theme.primary} />
         </TouchableOpacity>
       </View>
 
@@ -73,8 +73,6 @@ export function CalendarMonthView({
               const selected = isSameDay(d, selectedDate);
               const today = isToday(d);
               const inMonth = isCurrentMonth(d, monthStart);
-              const displayed = dayAppointments.slice(0, MAX_ITEMS_IN_CELL);
-              const rest = dayAppointments.length - MAX_ITEMS_IN_CELL;
 
               return (
                 <TouchableOpacity
@@ -84,65 +82,80 @@ export function CalendarMonthView({
                   className="flex-1 border border-border/50 dark:border-border-dark/50 p-0.5 min-w-0"
                   style={{
                     backgroundColor: selected
-                      ? "rgba(110, 231, 183, 0.35)"
+                      ? theme.primary
                       : today
-                        ? "rgba(110, 231, 183, 0.12)"
+                        ? theme.primaryBg
                         : "transparent",
                   }}
                 >
-                  {/* Numéro du jour */}
-                  <View className="items-end pr-1 pt-0.5">
+                  {/* Numéro du jour en cercle + points RDV */}
+                  <View
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      alignSelf: "center",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderWidth: today && !selected ? 1 : 0,
+                      borderColor:
+                        today && !selected ? theme.primaryBorder : "transparent",
+                      backgroundColor: selected
+                        ? theme.primary
+                        : today
+                          ? theme.primaryBg
+                          : "transparent",
+                    }}
+                  >
                     <Text
                       numberOfLines={1}
-                      className={`text-xs font-semibold ${
-                        !inMonth
-                          ? "text-textMuted dark:text-textMuted-dark opacity-50"
-                          : selected
-                            ? "text-primary"
-                            : today
-                              ? "text-primary"
-                              : "text-textMain dark:text-textMain-dark"
-                      }`}
+                      style={{
+                        fontSize: 13,
+                        fontWeight: selected || today ? "700" : "600",
+                        color: selected
+                          ? theme.isDark
+                            ? "#0f172a"
+                            : "#ffffff"
+                          : today
+                            ? theme.primary
+                            : !inMonth
+                              ? theme.textMuted
+                              : theme.textPrimary,
+                      }}
                     >
                       {d.getDate()}
                     </Text>
                   </View>
 
-                  {/* RDV dans la case */}
-                  <View className="flex-1 mt-0.5 min-h-0">
-                    {displayed.map((a) => {
-                      const at = new Date(a.scheduled_at);
-                      const title = (a.title || "RDV").slice(0, 10);
-                      return (
-                        <TouchableOpacity
-                          key={a.id}
-                          activeOpacity={0.9}
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            onAppointmentPress(a);
+                  {/* Indicateurs RDV (max 3) */}
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      gap: 2,
+                      marginTop: 2,
+                      height: 4,
+                      alignSelf: "center",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {Array.from({ length: Math.min(3, dayAppointments.length) }).map(
+                      (_, i) => (
+                        <View
+                          // eslint-disable-next-line react/no-array-index-key
+                          key={i}
+                          style={{
+                            width: 3,
+                            height: 3,
+                            borderRadius: 1.5,
+                            backgroundColor: selected
+                              ? theme.isDark
+                                ? "rgba(15,26,26,0.5)"
+                                : "rgba(255,255,255,0.7)"
+                              : theme.primary,
                           }}
-                          className="mb-0.5 rounded pl-1.5 pr-1 py-0.5 flex-row items-center overflow-hidden"
-                          style={{ backgroundColor: "rgba(110, 231, 183, 0.25)" }}
-                        >
-                          <View style={{ width: 3, height: 12, backgroundColor: "#6ee7b7", marginRight: 4, borderRadius: 2 }} />
-                          <Text
-                            numberOfLines={1}
-                            className="text-[10px] font-medium text-textMain dark:text-textMain-dark flex-1"
-                          >
-                            {at.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}{" "}
-                            {title}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                    {rest > 0 && (
-                      <Text
-                        variant="muted"
-                        className="text-[10px] px-1"
-                        numberOfLines={1}
-                      >
-                        +{rest}
-                      </Text>
+                        />
+                      )
                     )}
                   </View>
                 </TouchableOpacity>

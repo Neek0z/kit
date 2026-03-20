@@ -6,6 +6,7 @@ import {
   Alert,
   ActivityIndicator,
   Switch,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -17,6 +18,7 @@ import { useTheme } from "../../../lib/ThemeContext";
 import { useTheme as useDesignTheme } from "../../../lib/theme";
 import { useProfile } from "../../../hooks/useProfile";
 import { useSubscription } from "../../../hooks/useSubscription";
+import { useDashboard } from "../../../hooks/useDashboard";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
@@ -38,6 +40,7 @@ export default function ProfileScreen() {
   const designTheme = useDesignTheme();
   const { profile, fetchProfile, updateProfile, uploadAvatar, loading: profileLoading } = useProfile();
   const { isPro } = useSubscription();
+  const { totalContacts, byStatus, totalInteractions, loading: dashboardLoading } = useDashboard();
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   // Changé à chaque succès upload+update → force le rechargement de l’image (évite le cache)
   const [avatarRefreshKey, setAvatarRefreshKey] = useState(0);
@@ -124,7 +127,7 @@ export default function ProfileScreen() {
     );
   };
 
-  if (profileLoading) {
+  if (profileLoading || dashboardLoading) {
     return (
       <SafeAreaView
         style={{
@@ -174,31 +177,99 @@ export default function ProfileScreen() {
 
           <TouchableOpacity
             onPress={() => router.push("/(app)/subscription")}
-            className={`mt-3 px-4 py-1.5 rounded-full flex-row items-center gap-1.5 ${
-              isPro ? "bg-primary/10" : "bg-surface dark:bg-surface-dark border border-border dark:border-border-dark"
-            }`}
+            style={{
+              marginTop: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 7,
+              borderRadius: 999,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+              backgroundColor: isPro ? "rgba(251,191,36,0.1)" : designTheme.primaryBg,
+              borderWidth: 1,
+              borderColor: isPro ? "rgba(251,191,36,0.25)" : designTheme.primaryBorder,
+            }}
           >
             <Feather
-              name="zap"
+              name={isPro ? "star" : "zap"}
               size={12}
-              color={isPro ? designTheme.primary : designTheme.textHint}
+              color={isPro ? "#fbbf24" : designTheme.primary}
             />
             <Text
-              className={`text-xs font-semibold ${isPro ? "text-primary" : "text-textMuted dark:text-textMuted-dark"}`}
+              style={{
+                fontSize: 12,
+                fontWeight: "700",
+                color: isPro ? "#fbbf24" : designTheme.primary,
+              }}
             >
-              {isPro ? "Plan Pro" : "Plan Free · Passer à Pro"}
+              {isPro ? "Plan Pro ✨" : "Plan Free · Passer à Pro"}
             </Text>
+            {!isPro && <Feather name="chevron-right" size={13} color={designTheme.primary} />}
           </TouchableOpacity>
+        </View>
+
+        {/* Stats utilisateur */}
+        <View style={{ flexDirection: "row", gap: 8, marginHorizontal: 20, marginBottom: 20 }}>
+          {[
+            { label: "Contacts", value: totalContacts, icon: "users" as const, color: designTheme.primary },
+            { label: "Clients", value: byStatus.client ?? 0, icon: "star" as const, color: "#fbbf24" },
+            {
+              label: "Interactions",
+              value: totalInteractions,
+              icon: "activity" as const,
+              color: "#818cf8",
+            },
+          ].map((stat) => (
+            <View
+              key={stat.label}
+              style={{
+                flex: 1,
+                backgroundColor: designTheme.surface,
+                borderWidth: 1,
+                borderColor: designTheme.border,
+                borderRadius: 14,
+                padding: 12,
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              <Feather name={stat.icon} size={16} color={stat.color} />
+              <Text style={{ fontSize: 20, fontWeight: "800", color: designTheme.textPrimary }}>
+                {stat.value}
+              </Text>
+              <Text style={{ fontSize: 10, color: designTheme.textMuted, textAlign: "center" }}>
+                {stat.label}
+              </Text>
+            </View>
+          ))}
         </View>
 
         <View className="px-5 gap-4 pb-8">
           <Card>
+            <Text
+              variant="muted"
+              className="text-xs uppercase tracking-wider px-1 py-2"
+            >
+              Mon compte
+            </Text>
+            <Divider />
             <TouchableOpacity
               onPress={() => router.push("/(app)/profile/edit")}
               className="flex-row items-center justify-between py-3 px-1"
             >
               <View className="flex-row items-center gap-3">
-                <Feather name="user" size={18} color="#475569" />
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: "rgba(71,85,105,0.12)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="user" size={18} color="#475569" />
+                </View>
                 <Text className="text-sm">Modifier le profil</Text>
               </View>
               <Feather name="chevron-right" size={16} color="#475569" />
@@ -211,11 +282,24 @@ export default function ProfileScreen() {
               className="flex-row items-center justify-between py-3 px-1"
             >
               <View className="flex-row items-center gap-3">
-                <Feather
-                  name="zap"
-                  size={18}
-                  color={isPro ? "#6ee7b7" : "#475569"}
-                />
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: isPro
+                      ? "rgba(110,231,183,0.12)"
+                      : "rgba(71,85,105,0.12)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather
+                    name={isPro ? "star" : "zap"}
+                    size={18}
+                    color={isPro ? "#6ee7b7" : "#475569"}
+                  />
+                </View>
                 <Text className="text-sm">Abonnement</Text>
               </View>
               <View className="flex-row items-center gap-2">
@@ -226,6 +310,30 @@ export default function ProfileScreen() {
                 </Text>
                 <Feather name="chevron-right" size={16} color="#475569" />
               </View>
+            </TouchableOpacity>
+
+            <Divider />
+
+            <TouchableOpacity
+              onPress={() => router.push("/(app)/groups")}
+              className="flex-row items-center justify-between py-3 px-1"
+            >
+              <View className="flex-row items-center gap-3">
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: "rgba(129,140,248,0.12)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="users" size={18} color="#818cf8" />
+                </View>
+                <Text className="text-sm">Mes groupes</Text>
+              </View>
+              <Feather name="chevron-right" size={16} color="#818cf8" />
             </TouchableOpacity>
           </Card>
 
@@ -238,6 +346,19 @@ export default function ProfileScreen() {
             </Text>
             <Divider />
             <View className="flex-row items-center justify-between py-3 px-1">
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  backgroundColor: "rgba(129,140,248,0.12)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 12,
+                }}
+              >
+                <Feather name="moon" size={18} color="#818cf8" />
+              </View>
               <View className="flex-1 mr-4">
                 <Text className="text-sm">Mode sombre</Text>
                 <Text variant="muted" className="text-xs mt-0.5">
@@ -266,10 +387,21 @@ export default function ProfileScreen() {
               className="flex-row items-center justify-between py-3 px-1"
             >
               <View className="flex-row items-center gap-3">
-                <Feather name="bell" size={18} color="#475569" />
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: "rgba(251,191,36,0.12)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="bell" size={18} color="#fbbf24" />
+                </View>
                 <Text className="text-sm">Paramètres de rappels</Text>
               </View>
-              <Feather name="chevron-right" size={16} color="#475569" />
+              <Feather name="chevron-right" size={16} color="#fbbf24" />
             </TouchableOpacity>
 
             <Divider />
@@ -279,10 +411,21 @@ export default function ProfileScreen() {
               className="flex-row items-center justify-between py-3 px-1"
             >
               <View className="flex-row items-center gap-3">
-                <Feather name="git-branch" size={18} color="#475569" />
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: "rgba(110,231,183,0.12)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="git-branch" size={18} color="#6ee7b7" />
+                </View>
                 <Text className="text-sm">Workflow client</Text>
               </View>
-              <Feather name="chevron-right" size={16} color="#475569" />
+              <Feather name="chevron-right" size={16} color="#6ee7b7" />
             </TouchableOpacity>
           </Card>
 
@@ -299,7 +442,18 @@ export default function ProfileScreen() {
               className="flex-row items-center justify-between py-3 px-1"
             >
               <View className="flex-row items-center gap-3">
-                <Feather name="download" size={18} color="#475569" />
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: designTheme.primaryBg,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="download" size={18} color={designTheme.primary} />
+                </View>
                 <View>
                   <Text className="text-sm">Exporter mes contacts</Text>
                   {!isPro && (
@@ -309,7 +463,7 @@ export default function ProfileScreen() {
                   )}
                 </View>
               </View>
-              <Feather name="chevron-right" size={16} color="#475569" />
+              <Feather name="chevron-right" size={16} color={designTheme.primary} />
             </TouchableOpacity>
           </Card>
 
@@ -322,7 +476,20 @@ export default function ProfileScreen() {
             </Text>
             <Divider />
             <View className="flex-row items-center justify-between py-3 px-1">
-              <Text variant="muted" className="text-sm">
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  backgroundColor: "rgba(148,163,184,0.12)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: 12,
+                }}
+              >
+                <Feather name="info" size={18} color="#94a3b8" />
+              </View>
+              <Text variant="muted" className="text-sm flex-1">
                 Version
               </Text>
               <Text variant="muted" className="text-sm">
@@ -330,18 +497,52 @@ export default function ProfileScreen() {
               </Text>
             </View>
             <Divider />
-            <TouchableOpacity className="flex-row items-center justify-between py-3 px-1">
-              <Text variant="muted" className="text-sm">
-                Politique de confidentialité
-              </Text>
-              <Feather name="external-link" size={14} color="#475569" />
+            <TouchableOpacity
+              onPress={() => Linking.openURL("https://kit.app/privacy")}
+              className="flex-row items-center justify-between py-3 px-1"
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: "rgba(148,163,184,0.12)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="shield" size={18} color="#94a3b8" />
+                </View>
+                <Text variant="muted" className="text-sm">
+                  Politique de confidentialité
+                </Text>
+              </View>
+              <Feather name="external-link" size={14} color="#94a3b8" />
             </TouchableOpacity>
             <Divider />
-            <TouchableOpacity className="flex-row items-center justify-between py-3 px-1">
-              <Text variant="muted" className="text-sm">
-                Conditions d'utilisation
-              </Text>
-              <Feather name="external-link" size={14} color="#475569" />
+            <TouchableOpacity
+              onPress={() => Linking.openURL("https://kit.app/terms")}
+              className="flex-row items-center justify-between py-3 px-1"
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: "rgba(148,163,184,0.12)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="file-text" size={18} color="#94a3b8" />
+                </View>
+                <Text variant="muted" className="text-sm">
+                  Conditions d'utilisation
+                </Text>
+              </View>
+              <Feather name="external-link" size={14} color="#94a3b8" />
             </TouchableOpacity>
           </Card>
 
@@ -350,7 +551,18 @@ export default function ProfileScreen() {
               onPress={handleSignOut}
               className="flex-row items-center gap-3 py-3 px-1"
             >
-              <Feather name="log-out" size={18} color="#f87171" />
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  backgroundColor: "rgba(248,113,113,0.12)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Feather name="log-out" size={18} color="#f87171" />
+              </View>
               <Text className="text-sm text-danger">Se déconnecter</Text>
             </TouchableOpacity>
             <Divider />
@@ -358,7 +570,18 @@ export default function ProfileScreen() {
               onPress={handleDeleteAccount}
               className="flex-row items-center gap-3 py-3 px-1"
             >
-              <Feather name="trash-2" size={18} color="#475569" />
+              <View
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 10,
+                  backgroundColor: "rgba(71,85,105,0.12)",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Feather name="trash-2" size={18} color="#475569" />
+              </View>
               <Text variant="muted" className="text-sm">
                 Supprimer mon compte
               </Text>

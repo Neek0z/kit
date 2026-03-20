@@ -16,7 +16,18 @@ import { SwipeMode } from "../../../components/contacts";
 import { useContacts } from "../../../hooks/useContacts";
 import { useSubscription } from "../../../hooks/useSubscription";
 import { PipelineStatus } from "../../../types";
-import { useTheme } from "../../../lib/theme";
+import { useTheme, STATUS_COLORS, StatusKey } from "../../../lib/theme";
+
+const STATUS_PROGRESS: Record<PipelineStatus, number> = {
+  new: 0,
+  contacted: 1,
+  interested: 2,
+  follow_up: 3,
+  client: 4,
+  inactive: 0,
+};
+
+const TOTAL_STEPS = 4;
 
 const FILTERS: { label: string; value: PipelineStatus | "all" | "overdue" }[] = [
   { label: "Tous", value: "all" },
@@ -154,46 +165,22 @@ export default function ContactsListScreen() {
           </Text>
               </TouchableOpacity>
               {!swipeMode && (
-                <>
-                  <TouchableOpacity
-                    onPress={() => {
-                      if (!canAddContact) {
-                        router.push("/(app)/subscription");
-                        return;
-                      }
-                      router.push("/(app)/contacts/new");
-                    }}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      backgroundColor: theme.primaryBg,
-                      borderWidth: 1,
-                      borderColor: theme.primaryBorder,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                    accessibilityLabel="Ajouter un contact"
-                  >
-                    <Feather name="plus" size={16} color={theme.primary} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => router.push("/(app)/groups")}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      backgroundColor: theme.surface,
-                      borderWidth: 1,
-                      borderColor: theme.border,
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                    accessibilityLabel="Gérer les groupes"
-                  >
-                    <Feather name="users" size={16} color={theme.primary} />
-                  </TouchableOpacity>
-                </>
+                <TouchableOpacity
+                  onPress={() => router.push("/(app)/groups")}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: theme.surface,
+                    borderWidth: 1,
+                    borderColor: theme.border,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  accessibilityLabel="Gérer les groupes"
+                >
+                  <Feather name="users" size={16} color={theme.primary} />
+                </TouchableOpacity>
               )}
             </View>
           </View>
@@ -324,59 +311,98 @@ export default function ContactsListScreen() {
             <FlatList
               data={filtered}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => router.push(`/(app)/contacts/${item.id}`)}
-                  activeOpacity={0.7}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 12,
-                    paddingVertical: 11,
-                    paddingHorizontal: 20,
-                    backgroundColor:
-                      item.status === "client"
-                        ? "rgba(110,231,183,0.03)"
-                        : "transparent",
-                    borderBottomWidth: 1,
-                    borderBottomColor: theme.border,
-                  }}
-                >
-                  <Avatar
-                    name={item.full_name}
-                    status={item.status}
-                    size="md"
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text
+              renderItem={({ item }) => {
+                const progress = STATUS_PROGRESS[
+                  item.status as PipelineStatus
+                ] ?? 0;
+                const progressPercent = (progress / TOTAL_STEPS) * 100;
+                const statusColors =
+                  STATUS_COLORS[item.status as StatusKey] ??
+                  STATUS_COLORS.inactive;
+
+                return (
+                  <View>
+                    <TouchableOpacity
+                      onPress={() => router.push(`/(app)/contacts/${item.id}`)}
+                      activeOpacity={0.7}
                       style={{
-                        fontSize: 15,
-                        fontWeight: "600",
-                        color: theme.textPrimary,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 12,
+                        paddingVertical: 11,
+                        paddingHorizontal: 20,
+                        backgroundColor:
+                          item.status === "client"
+                            ? "rgba(110,231,183,0.03)"
+                            : "transparent",
                       }}
                     >
-                      {item.full_name}
-                    </Text>
-                    {item.phone && (
-                      <Text
-                        style={{
-                          fontSize: 12,
-                          color: theme.textMuted,
-                          marginTop: 1,
-                        }}
-                      >
-                        {item.phone}
-                      </Text>
-                    )}
+                      <Avatar
+                        name={item.full_name}
+                        status={item.status}
+                        url={item.avatar_url}
+                        size="md"
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontSize: 15,
+                            fontWeight: "600",
+                            color: theme.textPrimary,
+                          }}
+                        >
+                          {item.full_name}
+                        </Text>
+                        {item.phone && (
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              color: theme.textMuted,
+                              marginTop: 1,
+                            }}
+                          >
+                            {item.phone}
+                          </Text>
+                        )}
+
+                        {/* Barre de progression pipeline */}
+                        <View
+                          style={{
+                            marginTop: 7,
+                            height: 3,
+                            backgroundColor: theme.border,
+                            borderRadius: 2,
+                            overflow: "hidden",
+                          }}
+                        >
+                          <View
+                            style={{
+                              height: 3,
+                              width: `${progressPercent}%`,
+                              backgroundColor: statusColors.text,
+                              borderRadius: 2,
+                            }}
+                          />
+                        </View>
+                      </View>
+                      <StatusPill status={item.status} size="sm" />
+                      <Feather
+                        name="chevron-right"
+                        size={14}
+                        color={theme.textHint}
+                      />
+                    </TouchableOpacity>
+                    {/* Séparateur indenté iOS */}
+                    <View
+                      style={{
+                        height: 1,
+                        backgroundColor: theme.border,
+                        marginLeft: 72,
+                      }}
+                    />
                   </View>
-                  <StatusPill status={item.status} size="sm" />
-                  <Feather
-                    name="chevron-right"
-                    size={14}
-                    color={theme.textHint}
-                  />
-                </TouchableOpacity>
-              )}
+                );
+              }}
               refreshControl={
                 <RefreshControl
                   refreshing={loading}
@@ -409,6 +435,41 @@ export default function ContactsListScreen() {
             />
           )}
         </>
+      )}
+
+      {/* FAB flottant "+": ajoute un contact */}
+      {!swipeMode && (
+        <TouchableOpacity
+          onPress={() =>
+            canAddContact
+              ? router.push("/(app)/contacts/new")
+              : router.push("/(app)/subscription")
+          }
+          style={{
+            position: "absolute",
+            bottom: 24,
+            right: 20,
+            width: 52,
+            height: 52,
+            borderRadius: 26,
+            backgroundColor: theme.primary,
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 100,
+            shadowColor: theme.primary,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.3,
+            shadowRadius: 8,
+            elevation: 8,
+          }}
+          accessibilityLabel="Ajouter un contact"
+        >
+          <Feather
+            name="plus"
+            size={24}
+            color={theme.isDark ? "#0f172a" : "#ffffff"}
+          />
+        </TouchableOpacity>
       )}
     </SafeAreaView>
   );

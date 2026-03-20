@@ -12,7 +12,7 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { Feather } from "@expo/vector-icons";
-import { Text, Button, Input } from "../ui";
+import { Text, Button, Input, Avatar } from "../ui";
 import type { Appointment, Contact } from "../../types";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
@@ -165,16 +165,31 @@ export function AppointmentSheet({
                               : "bg-background dark:bg-background-dark border-border dark:border-border-dark"
                           }`}
                         >
-                          <Text
-                            className={`text-sm font-medium max-w-[120px] truncate ${
-                              selected
-                                ? "text-onPrimary"
-                                : "text-textMuted dark:text-textMuted-dark"
-                            }`}
-                            numberOfLines={1}
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 8,
+                              maxWidth: 180,
+                            }}
                           >
-                            {c.full_name}
-                          </Text>
+                            <Avatar
+                              name={c.full_name}
+                              url={c.avatar_url}
+                              status={c.status}
+                              size="sm"
+                            />
+                            <Text
+                              className={`text-sm font-medium flex-1 truncate ${
+                                selected
+                                  ? "text-onPrimary"
+                                  : "text-textMuted dark:text-textMuted-dark"
+                              }`}
+                              numberOfLines={1}
+                            >
+                              {c.full_name.split(" ")[0]}
+                            </Text>
+                          </View>
                         </TouchableOpacity>
                       );
                     })}

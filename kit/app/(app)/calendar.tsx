@@ -11,8 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import { Text, EmptyState } from "../../components/ui";
-import { Header } from "../../components/layout";
+import { Text } from "../../components/ui";
 import { AppointmentSheet } from "../../components/calendar/AppointmentSheet";
 import { CalendarWeekView } from "../../components/calendar/CalendarWeekView";
 import { CalendarMonthView } from "../../components/calendar/CalendarMonthView";
@@ -25,22 +24,6 @@ import { dayKey, isSameDay } from "../../components/calendar/calendarUtils";
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
 type ViewMode = "week" | "month";
-
-function formatSelectedDayLabel(d: Date): string {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const d0 = new Date(d);
-  d0.setHours(0, 0, 0, 0);
-  if (d0.getTime() === today.getTime()) return "Aujourd'hui";
-  if (d0.getTime() === tomorrow.getTime()) return "Demain";
-  return d.toLocaleDateString("fr-FR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
-}
 
 export default function CalendarScreen() {
   const theme = useTheme();
@@ -189,59 +172,85 @@ export default function CalendarScreen() {
           opacity: 0.25,
         }}
       />
-      <Header
-        title="Calendrier"
-        rightAction={{
-          icon: "plus" as FeatherName,
-          onPress: () => openCreate(),
-          accessibilityLabel: "Nouveau rendez-vous",
+      {/* Header compact + toggle pill */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 20,
+          paddingTop: 16,
+          paddingBottom: 8,
         }}
-      />
+      >
+        <Text
+          style={{
+            fontSize: 26,
+            fontWeight: "800",
+            color: theme.textPrimary,
+            letterSpacing: -1,
+          }}
+        >
+          Calendrier
+        </Text>
+
+        <View
+          style={{
+            flexDirection: "row",
+            backgroundColor: theme.surface,
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: 100,
+            padding: 3,
+            alignSelf: "flex-start",
+          }}
+        >
+          {(["Semaine", "Mois"] as const).map((mode) => {
+            const key = mode.toLowerCase() as ViewMode;
+            const isActive = viewMode === key;
+            return (
+              <TouchableOpacity
+                key={mode}
+                onPress={() => {
+                  setViewMode(key);
+                  if (key === "week") setWeekAnchor(selectedDate);
+                  if (key === "month")
+                    setMonthAnchor(
+                      new Date(
+                        selectedDate.getFullYear(),
+                        selectedDate.getMonth(),
+                        1
+                      )
+                    );
+                }}
+                style={{
+                  paddingHorizontal: 14,
+                  paddingVertical: 6,
+                  borderRadius: 100,
+                  backgroundColor: isActive ? theme.primary : "transparent",
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: isActive
+                      ? theme.isDark
+                        ? "#0f172a"
+                        : "#ffffff"
+                      : theme.textMuted,
+                  }}
+                >
+                  {mode}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
 
       <View className="flex-1 min-h-0">
-        {/* Toggle Semaine / Mois */}
-        <View className="px-5 mb-3">
-          <View className="flex-row rounded-xl bg-surface dark:bg-surface-dark border border-border dark:border-border-dark p-1">
-            <TouchableOpacity
-              onPress={() => {
-                setViewMode("week");
-                setWeekAnchor(selectedDate);
-              }}
-              className={`flex-1 py-2.5 rounded-lg items-center ${
-                viewMode === "week" ? "bg-primary" : ""
-              }`}
-            >
-              <Text
-                className={`text-sm font-medium ${
-                  viewMode === "week"
-                    ? "text-onPrimary"
-                    : "text-textMuted dark:text-textMuted-dark"
-                }`}
-              >
-                Semaine
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => {
-                setViewMode("month");
-                setMonthAnchor(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
-              }}
-              className={`flex-1 py-2.5 rounded-lg items-center ${
-                viewMode === "month" ? "bg-primary" : ""
-              }`}
-            >
-              <Text
-                className={`text-sm font-medium ${
-                  viewMode === "month"
-                    ? "text-onPrimary"
-                    : "text-textMuted dark:text-textMuted-dark"
-                }`}
-              >
-                Mois
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+        {/* Contenu */}
 
         {viewMode === "week" ? (
         <ScrollView
@@ -260,6 +269,7 @@ export default function CalendarScreen() {
           <CalendarWeekView
             weekAnchor={weekAnchor}
             selectedDate={selectedDate}
+            appointmentsByDay={appointmentsByDay}
             onSelectDate={handleSelectDate}
             onPrevWeek={handlePrevWeek}
             onNextWeek={handleNextWeek}
@@ -275,61 +285,193 @@ export default function CalendarScreen() {
               </Text>
             </TouchableOpacity>
           )}
-          <View className="mt-6">
-            <View className="flex-row items-center justify-between mb-3">
-              <Text variant="muted" className="text-xs font-semibold uppercase tracking-wider capitalize">
-                {formatSelectedDayLabel(selectedDate)}
-              </Text>
-              <TouchableOpacity onPress={() => openCreate()} className="flex-row items-center gap-1.5">
-                <Feather name="plus" size={14} color="#6ee7b7" />
-                <Text className="text-primary text-sm font-medium">RDV</Text>
-              </TouchableOpacity>
+          <View style={{ marginTop: 24 }}>
+            {/* Header agenda */}
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 12,
+              }}
+            >
+              <View>
+                <Text
+                  style={{
+                    fontSize: 15,
+                    fontWeight: "700",
+                    color: theme.textPrimary,
+                  }}
+                >
+                  {isSelectedToday
+                    ? "Aujourd'hui"
+                    : selectedDate.toLocaleDateString("fr-FR", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                      })}
+                </Text>
+
+                {appointmentsForSelectedDay.length > 0 && (
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      color: theme.textMuted,
+                      marginTop: 1,
+                    }}
+                  >
+                    {appointmentsForSelectedDay.length} rendez-vous
+                  </Text>
+                )}
+              </View>
             </View>
+
             {loading && list.length === 0 ? (
-              <View className="py-8 items-center">
-                  <ActivityIndicator color={theme.primary} />
+              <View style={{ paddingVertical: 24, alignItems: "center" }}>
+                <ActivityIndicator color={theme.primary} />
               </View>
             ) : appointmentsForSelectedDay.length === 0 ? (
-              <View className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl py-8 px-4 items-center">
-                <Feather name="calendar" size={32} color={theme.textMuted} />
-                  <Text variant="muted" className="text-sm mt-2 text-center">
-                    Aucun rendez-vous ce jour-là
-                  </Text>
-                <TouchableOpacity onPress={() => openCreate()} className="mt-3 py-2 px-4 rounded-lg bg-primary/20">
-                  <Text className="text-primary text-sm font-medium">Ajouter un RDV</Text>
-                </TouchableOpacity>
+              <View
+                style={{
+                  backgroundColor: theme.surface,
+                  borderWidth: 1,
+                  borderColor: theme.border,
+                  borderRadius: 16,
+                  padding: 20,
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    backgroundColor: theme.primaryBg,
+                    borderWidth: 1,
+                    borderColor: theme.primaryBorder,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="calendar" size={20} color={theme.primary} />
+                </View>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: "600",
+                    color: theme.textPrimary,
+                    textAlign: "center",
+                  }}
+                >
+                  Aucun RDV ce jour
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: theme.textMuted,
+                    textAlign: "center",
+                  }}
+                >
+                  Appuie sur + pour planifier un rendez-vous
+                </Text>
               </View>
             ) : (
-              <View className="gap-2">
+              <View style={{ gap: 8 }}>
                 {appointmentsForSelectedDay.map((a) => {
                   const at = new Date(a.scheduled_at);
-                  const contactName = (a as AppointmentWithContact).contacts?.full_name ?? "—";
+                  const contactName =
+                    (a as AppointmentWithContact).contacts?.full_name ?? "";
+
                   return (
                     <TouchableOpacity
                       key={a.id}
                       onPress={() => openEdit(a)}
                       onLongPress={() => handleDelete(a)}
                       activeOpacity={0.7}
-                      className="flex-row items-center gap-3 bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-4 py-3"
+                      style={{
+                        backgroundColor: theme.surface,
+                        borderWidth: 1,
+                        borderColor: theme.border,
+                        borderRadius: 16,
+                        padding: 14,
+                        flexDirection: "row",
+                        gap: 12,
+                      }}
                     >
-                      <View className="w-10 h-10 rounded-full bg-primary/20 items-center justify-center">
-                        <Text className="text-primary text-xs font-bold">
-                          {at.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                      <View
+                        style={{
+                          alignItems: "center",
+                          minWidth: 44,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            fontWeight: "700",
+                            color: theme.primary,
+                          }}
+                        >
+                          {at.toLocaleTimeString("fr-FR", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
                         </Text>
                       </View>
-                      <View className="flex-1">
-                        <Text className="text-sm font-semibold" numberOfLines={1}>{a.title || "Rendez-vous"}</Text>
-                        <Text variant="muted" className="text-xs mt-0.5">{contactName}</Text>
-                      </View>
-                      <TouchableOpacity
-                        onPress={(e) => {
-                          e.stopPropagation();
-                          a.contact_id && router.push(`/(app)/contacts/${a.contact_id}`);
+
+                      <View
+                        style={{
+                          width: 3,
+                          borderRadius: 2,
+                          backgroundColor: theme.primary,
+                          alignSelf: "stretch",
                         }}
-                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                      >
-                        <Feather name="chevron-right" size={18} color="#64748b" />
-                      </TouchableOpacity>
+                      />
+
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: "600",
+                            color: theme.textPrimary,
+                          }}
+                          numberOfLines={1}
+                        >
+                          {a.title || "Rendez-vous"}
+                        </Text>
+
+                        {contactName ? (
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              alignItems: "center",
+                              gap: 5,
+                              marginTop: 4,
+                            }}
+                          >
+                            <Feather
+                              name="user"
+                              size={11}
+                              color={theme.textMuted}
+                            />
+                            <Text
+                              style={{
+                                fontSize: 12,
+                                color: theme.textMuted,
+                              }}
+                              numberOfLines={1}
+                            >
+                              {contactName}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+
+                      <Feather
+                        name="chevron-right"
+                        size={16}
+                        color={theme.textHint}
+                      />
                     </TouchableOpacity>
                   );
                 })}
@@ -357,47 +499,238 @@ export default function CalendarScreen() {
                 onNextMonth={handleNextMonth}
               />
             </View>
-            <View className="py-3 border-t border-border dark:border-border-dark" style={{ maxHeight: 200 }}>
-              <View className="flex-row items-center justify-between mb-2">
-                <Text variant="muted" className="text-xs font-semibold uppercase tracking-wider capitalize">
-                  {formatSelectedDayLabel(selectedDate)}
-                </Text>
-                <TouchableOpacity onPress={() => openCreate()} className="flex-row items-center gap-1.5">
-                  <Feather name="plus" size={14} color="#6ee7b7" />
-                  <Text className="text-primary text-sm font-medium">RDV</Text>
-                </TouchableOpacity>
+            <View
+              style={{
+                paddingTop: 12,
+                borderTopWidth: 1,
+                borderTopColor: theme.border,
+                maxHeight: 200,
+                paddingHorizontal: 20,
+                paddingBottom: 12,
+              }}
+            >
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <View>
+                  <Text
+                    style={{
+                      fontSize: 14,
+                      fontWeight: "700",
+                      color: theme.textPrimary,
+                    }}
+                  >
+                    {isSelectedToday
+                      ? "Aujourd'hui"
+                      : selectedDate.toLocaleDateString("fr-FR", {
+                          weekday: "long",
+                          day: "numeric",
+                          month: "long",
+                        })}
+                  </Text>
+                  {appointmentsForSelectedDay.length > 0 && (
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: theme.textMuted,
+                        marginTop: 1,
+                      }}
+                    >
+                      {appointmentsForSelectedDay.length} rendez-vous
+                    </Text>
+                  )}
+                </View>
               </View>
+
               {appointmentsForSelectedDay.length === 0 ? (
-                <Text variant="muted" className="text-sm">Aucun RDV ce jour</Text>
+                <View
+                  style={{
+                    backgroundColor: theme.surface,
+                    borderWidth: 1,
+                    borderColor: theme.border,
+                    borderRadius: 16,
+                    padding: 16,
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: 20,
+                      backgroundColor: theme.primaryBg,
+                      borderWidth: 1,
+                      borderColor: theme.primaryBorder,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Feather name="calendar" size={18} color={theme.primary} />
+                  </View>
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "600",
+                      color: theme.textPrimary,
+                      textAlign: "center",
+                    }}
+                  >
+                    Aucun RDV ce jour
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: 11,
+                      color: theme.textMuted,
+                      textAlign: "center",
+                    }}
+                  >
+                    Appuie sur + pour planifier un rendez-vous
+                  </Text>
+                </View>
               ) : (
-                <ScrollView showsVerticalScrollIndicator={false} nestedScrollEnabled>
-                  {appointmentsForSelectedDay.map((a) => {
-                    const at = new Date(a.scheduled_at);
-                    const contactName = (a as AppointmentWithContact).contacts?.full_name ?? "—";
-                    return (
-                      <TouchableOpacity
-                        key={a.id}
-                        onPress={() => openEdit(a)}
-                        onLongPress={() => handleDelete(a)}
-                        className="flex-row items-center gap-2 py-2 border-b border-border/50 dark:border-border-dark/50"
-                      >
-                        <Text className="text-primary text-xs font-semibold w-10">
-                          {at.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
-                        </Text>
-                        <View className="flex-1">
-                          <Text className="text-sm font-medium" numberOfLines={1}>{a.title || "Rendez-vous"}</Text>
-                          <Text variant="muted" className="text-xs" numberOfLines={1}>{contactName}</Text>
-                        </View>
-                        <Feather name="chevron-right" size={14} color="#64748b" />
-                      </TouchableOpacity>
-                    );
-                  })}
+                <ScrollView
+                  showsVerticalScrollIndicator={false}
+                  nestedScrollEnabled
+                >
+                  <View style={{ gap: 8, paddingBottom: 8 }}>
+                    {appointmentsForSelectedDay.map((a) => {
+                      const at = new Date(a.scheduled_at);
+                      const contactName =
+                        (a as AppointmentWithContact).contacts?.full_name ?? "";
+
+                      return (
+                        <TouchableOpacity
+                          key={a.id}
+                          onPress={() => openEdit(a)}
+                          onLongPress={() => handleDelete(a)}
+                          activeOpacity={0.7}
+                          style={{
+                            backgroundColor: theme.surface,
+                            borderWidth: 1,
+                            borderColor: theme.border,
+                            borderRadius: 16,
+                            padding: 14,
+                            flexDirection: "row",
+                            gap: 12,
+                          }}
+                        >
+                          <View
+                            style={{
+                              alignItems: "center",
+                              minWidth: 44,
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: 13,
+                                fontWeight: "700",
+                                color: theme.primary,
+                              }}
+                            >
+                              {at.toLocaleTimeString("fr-FR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </Text>
+                          </View>
+
+                          <View
+                            style={{
+                              width: 3,
+                              borderRadius: 2,
+                              backgroundColor: theme.primary,
+                              alignSelf: "stretch",
+                            }}
+                          />
+
+                          <View style={{ flex: 1 }}>
+                            <Text
+                              style={{
+                                fontSize: 14,
+                                fontWeight: "600",
+                                color: theme.textPrimary,
+                              }}
+                              numberOfLines={1}
+                            >
+                              {a.title || "Rendez-vous"}
+                            </Text>
+                            {contactName ? (
+                              <View
+                                style={{
+                                  flexDirection: "row",
+                                  alignItems: "center",
+                                  gap: 5,
+                                  marginTop: 4,
+                                }}
+                              >
+                                <Feather
+                                  name="user"
+                                  size={11}
+                                  color={theme.textMuted}
+                                />
+                                <Text
+                                  style={{
+                                    fontSize: 12,
+                                    color: theme.textMuted,
+                                  }}
+                                  numberOfLines={1}
+                                >
+                                  {contactName}
+                                </Text>
+                              </View>
+                            ) : null}
+                          </View>
+
+                          <Feather
+                            name="chevron-right"
+                            size={16}
+                            color={theme.textHint}
+                          />
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
                 </ScrollView>
               )}
             </View>
           </View>
         )}
       </View>
+
+      {/* FAB flottant : Nouveau RDV */}
+      <TouchableOpacity
+        onPress={() => openCreate()}
+        style={{
+          position: "absolute",
+          bottom: 24,
+          right: 20,
+          width: 52,
+          height: 52,
+          borderRadius: 26,
+          backgroundColor: theme.primary,
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 100,
+          shadowColor: theme.primary,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 8,
+          elevation: 8,
+        }}
+        accessibilityLabel="Nouveau rendez-vous"
+      >
+        <Feather
+          name="plus"
+          size={24}
+          color={theme.isDark ? "#0f172a" : "#ffffff"}
+        />
+      </TouchableOpacity>
 
       <AppointmentSheet
         visible={sheetVisible}

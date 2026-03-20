@@ -14,6 +14,7 @@ import { Card, EmptyState } from "../../../components/ui";
 import { usePrompts } from "../../../hooks/usePrompts";
 import { useSubscription } from "../../../hooks/useSubscription";
 import { useTheme } from "../../../lib/theme";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Prompt } from "../../../types";
 
 function PromptCard({
@@ -25,6 +26,11 @@ function PromptCard({
 }) {
   const [copied, setCopied] = useState(false);
   const [lang, setLang] = useState<"fr" | "en">("fr");
+  const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    setExpanded(false);
+  }, [prompt.id]);
 
   const handleCopy = async () => {
     const { Clipboard } = require("@react-native-clipboard/clipboard");
@@ -48,158 +54,190 @@ function PromptCard({
         overflow: "hidden",
       }}
     >
-      {/* Header card */}
-      <View style={{ padding: 14, paddingBottom: 10 }}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 8,
-          }}
-        >
-          <RNText
-            style={{
-              fontSize: 14,
-              fontWeight: "700",
-              color: theme.textPrimary,
-              flex: 1,
-            }}
-            numberOfLines={2}
-          >
-            {prompt.title}
-          </RNText>
-
-          {/* Toggle FR / EN */}
+      {/* Accordion header */}
+      <TouchableOpacity
+        onPress={() => setExpanded((v) => !v)}
+        activeOpacity={0.85}
+      >
+        <View style={{ padding: 14 }}>
           <View
             style={{
               flexDirection: "row",
-              backgroundColor: theme.bg,
-              borderRadius: 8,
-              borderWidth: 1,
-              borderColor: theme.border,
-              overflow: "hidden",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 10,
             }}
           >
-            {(["fr", "en"] as const).map((l) => (
-              <TouchableOpacity
-                key={l}
-                onPress={() => setLang(l)}
-                style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 4,
-                  backgroundColor:
-                    lang === l ? theme.primaryBg : "transparent",
-                }}
-              >
-                <RNText
+            <RNText
+              style={{
+                fontSize: 14,
+                fontWeight: "700",
+                color: theme.textPrimary,
+                flex: 1,
+              }}
+              numberOfLines={2}
+            >
+              {prompt.title}
+            </RNText>
+
+            {/* Toggle FR / EN (toujours visible dans le header) */}
+            <View
+              style={{
+                flexDirection: "row",
+                backgroundColor: theme.bg,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: theme.border,
+                overflow: "hidden",
+              }}
+            >
+              {(["fr", "en"] as const).map((l) => (
+                <TouchableOpacity
+                  key={l}
+                  onPress={(e) => {
+                    // Eviter que le tap sur le toggle reploie/déploie la card
+                    (e as any).stopPropagation?.();
+                    setLang(l);
+                  }}
                   style={{
-                    fontSize: 11,
-                    fontWeight: "600",
-                    color: lang === l ? theme.primary : theme.textMuted,
-                    textTransform: "uppercase",
+                    paddingHorizontal: 8,
+                    paddingVertical: 4,
+                    backgroundColor:
+                      lang === l ? theme.primaryBg : "transparent",
                   }}
                 >
-                  {l}
-                </RNText>
-              </TouchableOpacity>
-            ))}
+                  <RNText
+                    style={{
+                      fontSize: 11,
+                      fontWeight: "600",
+                      color: lang === l ? theme.primary : theme.textMuted,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {l}
+                  </RNText>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <Feather
+              name={expanded ? "chevron-up" : "chevron-down"}
+              size={18}
+              color={theme.textHint}
+            />
           </View>
         </View>
+      </TouchableOpacity>
 
-        {/* Prompt text */}
-        <RNText
-          style={{
-            fontSize: 12,
-            color: theme.textMuted,
-            lineHeight: 18,
-          }}
-          numberOfLines={4}
-        >
-          {lang === "fr" ? prompt.prompt_fr : prompt.prompt_en}
-        </RNText>
-      </View>
+      {expanded && (
+        <View style={{ paddingBottom: 14 }}>
+          {/* Prompt text */}
+          <View style={{ paddingHorizontal: 14, marginBottom: 10 }}>
+            <RNText
+              style={{
+                fontSize: 12,
+                color: theme.textMuted,
+                lineHeight: 18,
+              }}
+            >
+              {lang === "fr" ? prompt.prompt_fr : prompt.prompt_en}
+            </RNText>
+          </View>
 
-      {/* Tip */}
-      {prompt.tip && (
-        <View
-          style={{
-            marginHorizontal: 14,
-            marginBottom: 10,
-            backgroundColor: "rgba(251,191,36,0.08)",
-            borderRadius: 10,
-            padding: 10,
-            flexDirection: "row",
-            gap: 8,
-          }}
-        >
-          <RNText style={{ fontSize: 13 }}>💡</RNText>
-          <RNText style={{ fontSize: 11, color: "#fbbf24", lineHeight: 16, flex: 1 }}>
-            {prompt.tip}
-          </RNText>
-        </View>
-      )}
+          {/* Tip */}
+          {prompt.tip && (
+            <View
+              style={{
+                marginHorizontal: 14,
+                marginBottom: 10,
+                backgroundColor: "rgba(251,191,36,0.08)",
+                borderRadius: 10,
+                padding: 10,
+                flexDirection: "row",
+                gap: 8,
+              }}
+            >
+              <RNText style={{ fontSize: 13 }}>💡</RNText>
+              <RNText
+                style={{
+                  fontSize: 11,
+                  color: "#fbbf24",
+                  lineHeight: 16,
+                  flex: 1,
+                }}
+              >
+                {prompt.tip}
+              </RNText>
+            </View>
+          )}
 
-      {/* Actions */}
-      <View
-        style={{
-          flexDirection: "row",
-          gap: 8,
-          paddingHorizontal: 14,
-          paddingBottom: 14,
-        }}
-      >
-        <TouchableOpacity
-          onPress={handleCopy}
-          style={{
-            flex: 1,
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-            paddingVertical: 10,
-            borderRadius: 10,
-            backgroundColor: copied ? theme.primaryBg : theme.bg,
-            borderWidth: 1,
-            borderColor: copied ? theme.primaryBorder : theme.border,
-          }}
-        >
-          <Feather
-            name={copied ? "check" : "copy"}
-            size={14}
-            color={copied ? theme.primary : theme.textMuted}
-          />
-          <RNText
+          {/* Actions */}
+          <View
             style={{
-              fontSize: 12,
-              fontWeight: "600",
-              color: copied ? theme.primary : theme.textMuted,
+              flexDirection: "row",
+              gap: 8,
+              paddingHorizontal: 14,
             }}
           >
-            {copied ? "Copié !" : "Copier le prompt"}
-          </RNText>
-        </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleCopy}
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 6,
+                paddingVertical: 10,
+                borderRadius: 10,
+                backgroundColor: copied ? theme.primaryBg : `${theme.primary}12`,
+                borderWidth: 1,
+                borderColor: copied ? theme.primaryBorder : `${theme.primary}25`,
+              }}
+            >
+              <Feather
+                name={copied ? "check" : "copy"}
+                size={14}
+                color={copied ? theme.primary : theme.textMuted}
+              />
+              <RNText
+                style={{
+                  fontSize: 12,
+                  fontWeight: "600",
+                  color: copied ? theme.primary : theme.textMuted,
+                }}
+              >
+                {copied ? "Copié !" : "Copier"}
+              </RNText>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={handleOpenGemini}
-          style={{
-            paddingHorizontal: 14,
-            paddingVertical: 10,
-            borderRadius: 10,
-            backgroundColor: theme.bg,
-            borderWidth: 1,
-            borderColor: theme.border,
-            flexDirection: "row",
-            alignItems: "center",
-            gap: 6,
-          }}
-        >
-          <RNText style={{ fontSize: 13 }}>✨</RNText>
-          <RNText style={{ fontSize: 12, fontWeight: "600", color: theme.textMuted }}>
-            Gemini
-          </RNText>
-        </TouchableOpacity>
-      </View>
+            <TouchableOpacity
+              onPress={handleOpenGemini}
+              style={{
+                paddingHorizontal: 14,
+                paddingVertical: 10,
+                borderRadius: 10,
+                backgroundColor: "rgba(129,140,248,0.08)",
+                borderWidth: 1,
+                borderColor: "rgba(129,140,248,0.18)",
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <RNText style={{ fontSize: 13 }}>✨</RNText>
+              <RNText
+                style={{
+                  fontSize: 12,
+                  fontWeight: "600",
+                  color: theme.textMuted,
+                }}
+              >
+                Ouvrir Gemini
+              </RNText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -209,6 +247,7 @@ export default function ContentScreen() {
   const { isPro } = useSubscription();
   const { categories, loading, getPromptsByCategory } = usePrompts();
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [showTutorial, setShowTutorial] = useState(true);
 
   const displayedCategory = activeCategory ?? categories[0]?.id ?? null;
   const displayedPrompts = useMemo(() => {
@@ -222,6 +261,29 @@ export default function ContentScreen() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categories.length]);
+
+  useEffect(() => {
+    let mounted = true;
+    AsyncStorage.getItem("kit_content_tutorial_dismissed")
+      .then((val) => {
+        if (!mounted) return;
+        if (val === "true") setShowTutorial(false);
+      })
+      .catch(() => {
+        // pas bloquant
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const dismissTutorial = async () => {
+    try {
+      await AsyncStorage.setItem("kit_content_tutorial_dismissed", "true");
+    } finally {
+      setShowTutorial(false);
+    }
+  };
 
   // Paywall si pas Pro
   if (!isPro) {
@@ -344,112 +406,175 @@ export default function ContentScreen() {
                 paddingBottom: 12,
               }}
             >
-              <RNText
-                style={{
-                  fontSize: 28,
-                  fontWeight: "800",
-                  color: theme.textPrimary,
-                  letterSpacing: -1,
-                }}
-              >
-                Contenu Instagram
-              </RNText>
-              <RNText
-                style={{
-                  fontSize: 13,
-                  color: theme.textMuted,
-                  marginTop: 4,
-                }}
-              >
-                Prompts prêts à utiliser avec Gemini ou ChatGPT
-              </RNText>
-            </View>
+              <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
+                <View style={{ flex: 1 }}>
+                  <RNText
+                    style={{
+                      fontSize: 28,
+                      fontWeight: "800",
+                      color: theme.textPrimary,
+                      letterSpacing: -1,
+                    }}
+                  >
+                    Contenu
+                  </RNText>
+                  <RNText
+                    style={{
+                      fontSize: 13,
+                      color: theme.textMuted,
+                      marginTop: 4,
+                    }}
+                  >
+                    Prompts IA pour Instagram
+                  </RNText>
+                </View>
 
-            {/* Tuto rapide */}
-            <View
-              style={{
-                marginHorizontal: 20,
-                marginBottom: 12,
-                backgroundColor: theme.primaryBg,
-                borderWidth: 1,
-                borderColor: theme.primaryBorder,
-                borderRadius: 14,
-                padding: 12,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
-              <RNText style={{ fontSize: 20 }}>💡</RNText>
-              <View style={{ flex: 1 }}>
-                <RNText
+                <View
                   style={{
-                    fontSize: 12,
-                    fontWeight: "600",
-                    color: theme.primary,
-                    marginBottom: 2,
+                    backgroundColor: "rgba(251,191,36,0.1)",
+                    borderWidth: 1,
+                    borderColor: "rgba(251,191,36,0.25)",
+                    borderRadius: 100,
+                    paddingHorizontal: 12,
+                    paddingVertical: 6,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 6,
+                    marginTop: 6,
+                    alignSelf: "flex-start",
                   }}
                 >
-                  Comment utiliser ?
-                </RNText>
-                <RNText
-                  style={{
-                    fontSize: 11,
-                    color: theme.textMuted,
-                    lineHeight: 16,
-                  }}
-                >
-                  Copie un prompt → ouvre Gemini ou ChatGPT → colle-le → génère ton visuel → partage sur Instagram
-                </RNText>
+                  <Feather name="star" size={12} color="#fbbf24" />
+                  <RNText style={{ fontSize: 12, fontWeight: "800", color: "#fbbf24" }}>
+                    Pro
+                  </RNText>
+                </View>
               </View>
             </View>
 
-            {/* Filtres catégories */}
-            <FlatList
-              horizontal
-              data={categories}
-              keyExtractor={(c) => c.id}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{
-                paddingHorizontal: 20,
-                gap: 8,
-                paddingBottom: 12,
-              }}
-              renderItem={({ item }) => {
-                const isActive = displayedCategory === item.id;
-                return (
-                  <TouchableOpacity
-                    onPress={() => setActiveCategory(item.id)}
+            {/* Tuto rapide (dismissible) */}
+            {showTutorial && (
+              <View
+                style={{
+                  marginHorizontal: 20,
+                  marginBottom: 12,
+                  backgroundColor: theme.primaryBg,
+                  borderWidth: 1,
+                  borderColor: theme.primaryBorder,
+                  borderRadius: 14,
+                  padding: 12,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                }}
+              >
+                <RNText style={{ fontSize: 18 }}>💡</RNText>
+                <View style={{ flex: 1 }}>
+                  <RNText
                     style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 6,
-                      paddingHorizontal: 14,
-                      paddingVertical: 8,
-                      borderRadius: 100,
-                      backgroundColor: isActive
-                        ? theme.primaryBg
-                        : theme.surface,
-                      borderWidth: 1,
-                      borderColor: isActive
-                        ? theme.primaryBorder
-                        : theme.border,
+                      fontSize: 12,
+                      fontWeight: "700",
+                      color: theme.primary,
+                      marginBottom: 2,
                     }}
                   >
-                    <RNText style={{ fontSize: 14 }}>{item.emoji}</RNText>
-                    <RNText
+                    Comment utiliser ?
+                  </RNText>
+                  <RNText
+                    style={{
+                      fontSize: 11,
+                      color: theme.textMuted,
+                      lineHeight: 16,
+                    }}
+                  >
+                    Copie un prompt → ouvre Gemini → colle → génère → partage
+                  </RNText>
+                </View>
+
+                <TouchableOpacity onPress={dismissTutorial} hitSlop={10}>
+                  <Feather name="x" size={16} color={theme.textHint} />
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {/* Catégories : grille 2x2 */}
+            <View
+              style={{
+                paddingHorizontal: 20,
+                paddingBottom: 12,
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: 8,
+              }}
+            >
+              {categories.map((cat) => {
+                const isActive = displayedCategory === cat.id;
+                const promptsCount = getPromptsByCategory(cat.id).length;
+                const catAny = cat as any;
+                const color: string = catAny.color ?? theme.primary;
+
+                return (
+                  <TouchableOpacity
+                    key={cat.id}
+                    onPress={() => setActiveCategory(cat.id)}
+                    style={{
+                      width: "47%",
+                      backgroundColor: isActive ? theme.primaryBg : theme.surface,
+                      borderWidth: 1,
+                      borderColor: isActive ? theme.primaryBorder : theme.border,
+                      borderRadius: 14,
+                      padding: 12,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 10,
+                    }}
+                  >
+                    <View
                       style={{
-                        fontSize: 12,
-                        fontWeight: "600",
-                        color: isActive ? theme.primary : theme.textMuted,
+                        width: 36,
+                        height: 36,
+                        borderRadius: 10,
+                        backgroundColor: isActive ? `${theme.primary}20` : theme.bg,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
                       }}
                     >
-                      {item.name}
-                    </RNText>
+                      <RNText style={{ fontSize: 18 }}>{cat.emoji}</RNText>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <RNText
+                        style={{
+                          fontSize: 12,
+                          fontWeight: "800",
+                          color: isActive ? theme.primary : theme.textPrimary,
+                        }}
+                        numberOfLines={2}
+                      >
+                        {cat.name}
+                      </RNText>
+                      <RNText
+                        style={{
+                          fontSize: 10,
+                          color: theme.textHint,
+                          marginTop: 1,
+                        }}
+                      >
+                        {promptsCount} prompts
+                      </RNText>
+                    </View>
+
+                    {isActive && (
+                      <Feather
+                        name="check-circle"
+                        size={16}
+                        color={theme.primary}
+                      />
+                    )}
                   </TouchableOpacity>
                 );
-              }}
-            />
+              })}
+            </View>
           </View>
         }
         renderItem={({ item }) => (
