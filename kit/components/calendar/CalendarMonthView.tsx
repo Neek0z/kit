@@ -28,7 +28,7 @@ export function CalendarMonthView({
   selectedDate,
   appointmentsByDay,
   onSelectDate,
-  onAppointmentPress,
+  onAppointmentPress: _onAppointmentPress,
   onPrevMonth,
   onNextMonth,
 }: CalendarMonthViewProps) {
@@ -38,35 +38,58 @@ export function CalendarMonthView({
   const letters = getWeekdayLetters();
 
   return (
-    <View className="flex-1 bg-surface dark:bg-surface-dark rounded-2xl border border-border dark:border-border-dark overflow-hidden min-h-0">
+    <View className="flex-1 min-h-0">
       {/* Header mois + flèches */}
-      <View className="flex-row items-center justify-between px-2 py-3 border-b border-border dark:border-border-dark">
-        <TouchableOpacity onPress={onPrevMonth} className="p-2">
-          <Feather name="chevron-left" size={24} color={theme.primary} />
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 2,
+          marginBottom: 12,
+        }}
+      >
+        <TouchableOpacity onPress={onPrevMonth} style={{ padding: 4 }}>
+          <Feather name="chevron-left" size={20} color={theme.primary} />
         </TouchableOpacity>
-        <Text variant="h3" className="text-textMain dark:text-textMain-dark capitalize">
+
+        <Text
+          style={{
+            fontSize: 16,
+            fontWeight: "700",
+            color: theme.textPrimary,
+          }}
+        >
           {monthStart.toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}
         </Text>
-        <TouchableOpacity onPress={onNextMonth} className="p-2">
-          <Feather name="chevron-right" size={24} color={theme.primary} />
+
+        <TouchableOpacity onPress={onNextMonth} style={{ padding: 4 }}>
+          <Feather name="chevron-right" size={20} color={theme.primary} />
         </TouchableOpacity>
       </View>
 
-      {/* Ligne L M M J V S D */}
-      <View className="flex-row border-b border-border dark:border-border-dark py-2">
+      {/* Jours de la semaine */}
+      <View style={{ flexDirection: "row", marginBottom: 6 }}>
         {letters.map((letter, i) => (
-          <View key={i} className="flex-1 items-center">
-            <Text variant="muted" className="text-xs font-semibold">
+          <View key={i} style={{ flex: 1, alignItems: "center" }}>
+            <Text
+              style={{
+                fontSize: 11,
+                fontWeight: "600",
+                color: theme.textHint,
+                textAlign: "center",
+              }}
+            >
               {letter}
             </Text>
           </View>
         ))}
       </View>
 
-      {/* Grille des jours - prend tout l'espace restant (6 lignes) */}
-      <View className="flex-1 min-h-0">
+      {/* Grille compacte */}
+      <View style={{ flex: 1 }}>
         {grid.map((row, rowIndex) => (
-          <View key={rowIndex} className="flex-1 flex-row min-h-0">
+          <View key={rowIndex} style={{ flexDirection: "row", flex: 1 }}>
             {row.map((d) => {
               const key = dayKey(d);
               const dayAppointments = appointmentsByDay[key] ?? [];
@@ -79,48 +102,40 @@ export function CalendarMonthView({
                   key={d.getTime()}
                   activeOpacity={0.8}
                   onPress={() => onSelectDate(d)}
-                  className="flex-1 border border-border/50 dark:border-border-dark/50 p-0.5 min-w-0"
                   style={{
-                    backgroundColor: selected
-                      ? theme.primary
-                      : today
-                        ? theme.primaryBg
-                        : "transparent",
+                    flex: 1,
+                    alignItems: "center",
+                    paddingVertical: 4,
+                    backgroundColor: "transparent",
                   }}
                 >
-                  {/* Numéro du jour en cercle + points RDV */}
+                  {/* Cercle sélection / today */}
                   <View
                     style={{
                       width: 32,
                       height: 32,
                       borderRadius: 16,
-                      alignSelf: "center",
                       alignItems: "center",
                       justifyContent: "center",
                       borderWidth: today && !selected ? 1 : 0,
-                      borderColor:
-                        today && !selected ? theme.primaryBorder : "transparent",
-                      backgroundColor: selected
-                        ? theme.primary
-                        : today
-                          ? theme.primaryBg
-                          : "transparent",
+                      borderColor: theme.primaryBorder,
+                      backgroundColor: selected ? theme.primary : today ? theme.primaryBg : "transparent",
                     }}
                   >
                     <Text
                       numberOfLines={1}
                       style={{
                         fontSize: 13,
-                        fontWeight: selected || today ? "700" : "600",
+                        fontWeight: selected || today ? "700" : "400",
                         color: selected
                           ? theme.isDark
                             ? "#0f172a"
                             : "#ffffff"
                           : today
                             ? theme.primary
-                            : !inMonth
-                              ? theme.textMuted
-                              : theme.textPrimary,
+                            : inMonth
+                              ? theme.textPrimary
+                              : theme.textMuted,
                       }}
                     >
                       {d.getDate()}
@@ -134,29 +149,26 @@ export function CalendarMonthView({
                       gap: 2,
                       marginTop: 2,
                       height: 4,
-                      alignSelf: "center",
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
-                    {Array.from({ length: Math.min(3, dayAppointments.length) }).map(
-                      (_, i) => (
-                        <View
-                          // eslint-disable-next-line react/no-array-index-key
-                          key={i}
-                          style={{
-                            width: 3,
-                            height: 3,
-                            borderRadius: 1.5,
-                            backgroundColor: selected
-                              ? theme.isDark
-                                ? "rgba(15,26,26,0.5)"
-                                : "rgba(255,255,255,0.7)"
-                              : theme.primary,
-                          }}
-                        />
-                      )
-                    )}
+                    {Array.from({ length: Math.min(3, dayAppointments.length) }).map((_, i) => (
+                      <View
+                        // eslint-disable-next-line react/no-array-index-key
+                        key={i}
+                        style={{
+                          width: 3,
+                          height: 3,
+                          borderRadius: 1.5,
+                          backgroundColor: selected
+                            ? theme.isDark
+                              ? "rgba(15,26,26,0.5)"
+                              : "rgba(255,255,255,0.6)"
+                            : theme.primary,
+                        }}
+                      />
+                    ))}
                   </View>
                 </TouchableOpacity>
               );

@@ -206,7 +206,7 @@ export default function CalendarScreen() {
           }}
         >
           {(["Semaine", "Mois"] as const).map((mode) => {
-            const key = mode.toLowerCase() as ViewMode;
+            const key: ViewMode = mode === "Semaine" ? "week" : "month";
             const isActive = viewMode === key;
             return (
               <TouchableOpacity
