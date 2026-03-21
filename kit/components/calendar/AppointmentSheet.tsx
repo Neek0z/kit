@@ -7,15 +7,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  TextInput,
+  Text as RNText,
 } from "react-native";
 import DateTimePicker, {
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { Feather } from "@expo/vector-icons";
-import { Text, Button, Input, Avatar } from "../ui";
+import { Avatar } from "../ui";
 import type { Appointment, Contact } from "../../types";
-
-type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
 interface AppointmentSheetProps {
   visible: boolean;
@@ -48,7 +48,9 @@ export function AppointmentSheet({
   onSubmitEdit,
   onDelete,
 }: AppointmentSheetProps) {
-  const [contactId, setContactId] = useState<string>(preselectedContactId ?? "");
+  const [contactId, setContactId] = useState<string>(
+    preselectedContactId ?? ""
+  );
   const [scheduledAt, setScheduledAt] = useState<Date>(() => {
     const d = new Date();
     d.setMinutes(d.getMinutes() + 60);
@@ -108,8 +110,7 @@ export function AppointmentSheet({
   };
 
   const selectedContact = contacts.find((c) => c.id === contactId);
-  const canSubmit =
-    mode === "edit" ? true : contactId.length > 0;
+  const canSubmit = mode === "edit" ? true : contactId.length > 0;
 
   return (
     <Modal
@@ -120,34 +121,82 @@ export function AppointmentSheet({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1 justify-end"
+        style={{ flex: 1, justifyContent: "flex-end" }}
       >
-        <View className="flex-1 bg-black/50 justify-end">
-          <View
-            className="bg-surface dark:bg-surface-dark rounded-t-3xl max-h-[90%]"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: -4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 12,
-              elevation: 20,
-            }}
-          >
-            <View className="w-10 h-1 rounded-full bg-border dark:bg-border-dark self-center mt-3 mb-2" />
-            <ScrollView
-              className="px-5 pb-8"
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-            >
-              <Text variant="h3" className="mb-4">
-                {mode === "create" ? "Nouveau rendez-vous" : "Modifier le rendez-vous"}
-              </Text>
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.4)",
+          }}
+          onPress={onClose}
+          activeOpacity={1}
+        />
 
+        <View
+          style={{
+            backgroundColor: "#fff",
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            paddingBottom: Platform.OS === "ios" ? 34 : 24,
+            maxHeight: "90%",
+          }}
+        >
+          <View
+            style={{
+              width: 40,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: "#e2e8f0",
+              alignSelf: "center",
+              marginTop: 12,
+              marginBottom: 4,
+            }}
+          />
+
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View
+              style={{
+                paddingHorizontal: 20,
+                paddingTop: 8,
+                paddingBottom: 16,
+              }}
+            >
+              <RNText
+                style={{
+                  fontSize: 18,
+                  fontWeight: "700",
+                  color: "#0f172a",
+                }}
+              >
+                {mode === "create"
+                  ? "Nouveau rendez-vous"
+                  : "Modifier le rendez-vous"}
+              </RNText>
+            </View>
+
+            <View style={{ paddingHorizontal: 20, gap: 16 }}>
+              {/* Contact selector */}
               {mode === "create" && (
-                <View className="mb-4">
-                  <Text variant="muted" className="text-sm font-medium mb-2">
+                <View>
+                  <RNText
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "600",
+                      color: "#64748b",
+                      marginBottom: 8,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
                     Contact
-                  </Text>
+                  </RNText>
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -159,79 +208,133 @@ export function AppointmentSheet({
                         <TouchableOpacity
                           key={c.id}
                           onPress={() => setContactId(c.id)}
-                          className={`px-3 py-2 rounded-lg border ${
-                            selected
-                              ? "bg-primary border-primary"
-                              : "bg-background dark:bg-background-dark border-border dark:border-border-dark"
-                          }`}
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: 8,
+                            paddingHorizontal: 12,
+                            paddingVertical: 8,
+                            borderRadius: 100,
+                            maxWidth: 180,
+                            backgroundColor: selected
+                              ? "#f0fdf4"
+                              : "#f8fafc",
+                            borderWidth: 1,
+                            borderColor: selected
+                              ? "#10b981"
+                              : "#e2e8f0",
+                          }}
                         >
-                          <View
+                          <Avatar
+                            name={c.full_name}
+                            url={c.avatar_url}
+                            status={c.status}
+                            size="sm"
+                          />
+                          <RNText
                             style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              gap: 8,
-                              maxWidth: 180,
+                              fontSize: 13,
+                              fontWeight: selected ? "600" : "500",
+                              color: selected ? "#10b981" : "#64748b",
+                              flexShrink: 1,
                             }}
+                            numberOfLines={1}
                           >
-                            <Avatar
-                              name={c.full_name}
-                              url={c.avatar_url}
-                              status={c.status}
-                              size="sm"
-                            />
-                            <Text
-                              className={`text-sm font-medium flex-1 truncate ${
-                                selected
-                                  ? "text-onPrimary"
-                                  : "text-textMuted dark:text-textMuted-dark"
-                              }`}
-                              numberOfLines={1}
-                            >
-                              {c.full_name.split(" ")[0]}
-                            </Text>
-                          </View>
+                            {c.full_name.split(" ")[0]}
+                          </RNText>
                         </TouchableOpacity>
                       );
                     })}
                   </ScrollView>
                   {contacts.length === 0 && (
-                    <Text variant="muted" className="text-sm">
+                    <RNText
+                      style={{
+                        fontSize: 13,
+                        color: "#94a3b8",
+                        marginTop: 4,
+                      }}
+                    >
                       Aucun contact. Crée un contact d'abord.
-                    </Text>
+                    </RNText>
                   )}
                 </View>
               )}
 
               {mode === "edit" && selectedContact && (
-                <View className="mb-4 py-2">
-                  <Text variant="muted" className="text-xs uppercase tracking-wider mb-1">
+                <View>
+                  <RNText
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "600",
+                      color: "#64748b",
+                      marginBottom: 6,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
                     Contact
-                  </Text>
-                  <Text className="text-base font-medium">{selectedContact.full_name}</Text>
+                  </RNText>
+                  <RNText
+                    style={{
+                      fontSize: 15,
+                      fontWeight: "500",
+                      color: "#0f172a",
+                    }}
+                  >
+                    {selectedContact.full_name}
+                  </RNText>
                 </View>
               )}
 
-              <View className="mb-4">
-                <Text variant="muted" className="text-sm font-medium mb-2">
+              {/* Date */}
+              <View>
+                <RNText
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: "#64748b",
+                    marginBottom: 6,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
                   Date et heure
-                </Text>
+                </RNText>
                 <TouchableOpacity
                   onPress={() => setShowDatePicker(true)}
-                  className="flex-row items-center gap-2 bg-background dark:bg-background-dark border border-border dark:border-border-dark rounded-xl px-4 py-3"
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 10,
+                    backgroundColor: "#f8fafc",
+                    borderWidth: 1,
+                    borderColor: "#e2e8f0",
+                    borderRadius: 12,
+                    padding: 14,
+                  }}
                 >
                   <Feather name="calendar" size={16} color="#10b981" />
-                  <Text className="text-base text-textMain dark:text-textMain-dark">
+                  <RNText
+                    style={{
+                      fontSize: 15,
+                      color: "#0f172a",
+                    }}
+                  >
                     {scheduledAt.toLocaleDateString("fr-FR", {
                       weekday: "short",
                       day: "numeric",
                       month: "short",
                       year: "numeric",
                     })}{" "}
-                    à {scheduledAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
-                  </Text>
+                    à{" "}
+                    {scheduledAt.toLocaleTimeString("fr-FR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </RNText>
                 </TouchableOpacity>
                 {Platform.OS === "ios" && showDatePicker && (
-                  <View className="mt-3">
+                  <View style={{ marginTop: 12 }}>
                     <DateTimePicker
                       value={scheduledAt}
                       mode="datetime"
@@ -242,9 +345,17 @@ export function AppointmentSheet({
                     />
                     <TouchableOpacity
                       onPress={() => setShowDatePicker(false)}
-                      className="mt-2 py-2"
+                      style={{ marginTop: 8, paddingVertical: 6 }}
                     >
-                      <Text className="text-primary text-sm font-medium">Fermer</Text>
+                      <RNText
+                        style={{
+                          fontSize: 14,
+                          fontWeight: "600",
+                          color: "#10b981",
+                        }}
+                      >
+                        Fermer
+                      </RNText>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -259,68 +370,165 @@ export function AppointmentSheet({
                 )}
               </View>
 
-              <View className="mb-4">
-                <Input
-                  label="Titre (optionnel)"
+              {/* Title */}
+              <View>
+                <RNText
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: "#64748b",
+                    marginBottom: 6,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Titre (optionnel)
+                </RNText>
+                <TextInput
+                  style={{
+                    backgroundColor: "#f8fafc",
+                    borderWidth: 1,
+                    borderColor: "#e2e8f0",
+                    borderRadius: 12,
+                    padding: 14,
+                    fontSize: 15,
+                    color: "#0f172a",
+                  }}
                   placeholder="Ex. Appel découverte"
+                  placeholderTextColor="#94a3b8"
                   value={title}
                   onChangeText={setTitle}
                 />
               </View>
-              <View className="mb-6">
-                <Input
-                  label="Notes (optionnel)"
+
+              {/* Notes */}
+              <View>
+                <RNText
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: "#64748b",
+                    marginBottom: 6,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Notes (optionnel)
+                </RNText>
+                <TextInput
+                  style={{
+                    backgroundColor: "#f8fafc",
+                    borderWidth: 1,
+                    borderColor: "#e2e8f0",
+                    borderRadius: 12,
+                    padding: 14,
+                    fontSize: 15,
+                    color: "#0f172a",
+                    minHeight: 80,
+                    textAlignVertical: "top",
+                  }}
                   placeholder="Notes..."
+                  placeholderTextColor="#94a3b8"
                   value={notes}
                   onChangeText={setNotes}
                   multiline
-                  numberOfLines={3}
-                  className="min-h-[80px]"
                 />
               </View>
+            </View>
+          </ScrollView>
 
-              <View className="flex-row gap-3">
-                <TouchableOpacity
-                  onPress={onClose}
-                  className="flex-1 py-4 items-center border border-border dark:border-border-dark rounded-xl"
-                >
-                  <Text variant="muted">Annuler</Text>
-                </TouchableOpacity>
-                <View className="flex-1">
-                  <Button
-                    label={mode === "create" ? "Créer" : "Enregistrer"}
-                    onPress={handleSubmit}
-                    loading={loading}
-                    disabled={!canSubmit}
-                  />
-                </View>
-              </View>
-
-              {mode === "edit" && appointment && onDelete && (
-                <TouchableOpacity
-                  onPress={() =>
-                    Alert.alert(
-                      "Supprimer le rendez-vous",
-                      "Ce rendez-vous sera supprimé.",
-                      [
-                        { text: "Annuler", style: "cancel" },
-                        {
-                          text: "Supprimer",
-                          style: "destructive",
-                          onPress: () => onDelete(appointment.id),
-                        },
-                      ]
-                    )
-                  }
-                  className="mt-4 py-3 items-center"
-                >
-                  <Text variant="muted" className="text-sm text-danger">
-                    Supprimer ce rendez-vous
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </ScrollView>
+          {/* Buttons */}
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 10,
+              paddingHorizontal: 20,
+              paddingTop: 16,
+            }}
+          >
+            <TouchableOpacity
+              onPress={onClose}
+              style={{
+                flex: 1,
+                paddingVertical: 14,
+                borderRadius: 14,
+                alignItems: "center",
+                backgroundColor: "#f8fafc",
+                borderWidth: 1,
+                borderColor: "#e2e8f0",
+              }}
+            >
+              <RNText
+                style={{
+                  fontSize: 15,
+                  fontWeight: "600",
+                  color: "#64748b",
+                }}
+              >
+                Annuler
+              </RNText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={!canSubmit || loading}
+              style={{
+                flex: 2,
+                paddingVertical: 14,
+                borderRadius: 14,
+                alignItems: "center",
+                backgroundColor: "#10b981",
+                opacity: !canSubmit || loading ? 0.5 : 1,
+              }}
+            >
+              <RNText
+                style={{
+                  fontSize: 15,
+                  fontWeight: "600",
+                  color: "#fff",
+                }}
+              >
+                {loading
+                  ? "..."
+                  : mode === "create"
+                    ? "Créer"
+                    : "Enregistrer"}
+              </RNText>
+            </TouchableOpacity>
           </View>
+
+          {mode === "edit" && appointment && onDelete && (
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert(
+                  "Supprimer le rendez-vous",
+                  "Ce rendez-vous sera supprimé.",
+                  [
+                    { text: "Annuler", style: "cancel" },
+                    {
+                      text: "Supprimer",
+                      style: "destructive",
+                      onPress: () => onDelete(appointment.id),
+                    },
+                  ]
+                )
+              }
+              style={{
+                marginTop: 12,
+                paddingVertical: 12,
+                alignItems: "center",
+              }}
+            >
+              <RNText
+                style={{
+                  fontSize: 14,
+                  fontWeight: "500",
+                  color: "#ef4444",
+                }}
+              >
+                Supprimer ce rendez-vous
+              </RNText>
+            </TouchableOpacity>
+          )}
         </View>
       </KeyboardAvoidingView>
     </Modal>

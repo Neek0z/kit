@@ -7,16 +7,19 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ScrollView,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
-import { useTheme } from "../../lib/theme";
 import type { TaskPriority } from "../../types";
 import { PRIORITY_COLORS, PRIORITY_LABELS } from "../../types";
 
 interface AddTaskSheetProps {
   visible: boolean;
   onClose: () => void;
-  onAdd: (title: string, dueDate?: string, priority?: TaskPriority) => Promise<void>;
+  onAdd: (
+    title: string,
+    dueDate?: string,
+    priority?: TaskPriority
+  ) => Promise<void>;
 }
 
 const PRIORITIES: TaskPriority[] = ["normal", "high", "low"];
@@ -30,8 +33,11 @@ const QUICK_TASKS = [
   "Faire un suivi",
 ];
 
-export function AddTaskSheet({ visible, onClose, onAdd }: AddTaskSheetProps) {
-  const theme = useTheme();
+export function AddTaskSheet({
+  visible,
+  onClose,
+  onAdd,
+}: AddTaskSheetProps) {
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<TaskPriority>("normal");
   const [loading, setLoading] = useState(false);
@@ -54,142 +60,264 @@ export function AddTaskSheet({ visible, onClose, onAdd }: AddTaskSheetProps) {
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1, justifyContent: "flex-end" }}
       >
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.4)",
+          }}
+          onPress={onClose}
+          activeOpacity={1}
+        />
+
         <View
           style={{
-            backgroundColor: theme.surface,
+            backgroundColor: "#fff",
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
-            padding: 20,
-            gap: 16,
+            paddingBottom: Platform.OS === "ios" ? 34 : 24,
+            maxHeight: "90%",
           }}
         >
-          {/* Handle */}
           <View
             style={{
               width: 40,
               height: 4,
               borderRadius: 2,
-              backgroundColor: theme.border,
+              backgroundColor: "#e2e8f0",
               alignSelf: "center",
+              marginTop: 12,
+              marginBottom: 4,
             }}
           />
 
-          <RNText style={{ fontSize: 17, fontWeight: "700", color: theme.textPrimary }}>
-            Nouvelle tâche
-          </RNText>
-
-          {/* Suggestions */}
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
-            {suggestions.map((qt) => (
-              <TouchableOpacity
-                key={qt}
-                onPress={() => handleAdd(qt)}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View
+              style={{
+                paddingHorizontal: 20,
+                paddingTop: 8,
+                paddingBottom: 16,
+              }}
+            >
+              <RNText
                 style={{
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
-                  borderRadius: 100,
-                  backgroundColor: theme.bg,
-                  borderWidth: 1,
-                  borderColor: theme.border,
+                  fontSize: 18,
+                  fontWeight: "700",
+                  color: "#0f172a",
                 }}
               >
-                <RNText style={{ fontSize: 11, color: theme.textMuted }}>{qt}</RNText>
-              </TouchableOpacity>
-            ))}
-          </View>
+                Nouvelle tâche
+              </RNText>
+            </View>
 
-          {/* Separator */}
-          <View style={{ height: 1, backgroundColor: theme.border }} />
-
-          {/* Custom input */}
-          <TextInput
-            value={title}
-            onChangeText={setTitle}
-            placeholder="Ou écris ta propre tâche..."
-            placeholderTextColor={theme.textHint}
-            style={{
-              backgroundColor: theme.bg,
-              borderWidth: 1,
-              borderColor: theme.border,
-              borderRadius: 12,
-              padding: 12,
-              fontSize: 14,
-              color: theme.textPrimary,
-            }}
-          />
-
-          {/* Priority */}
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            {PRIORITIES.map((p) => (
-              <TouchableOpacity
-                key={p}
-                onPress={() => setPriority(p)}
-                style={{
-                  flex: 1,
-                  paddingVertical: 8,
-                  borderRadius: 10,
-                  alignItems: "center",
-                  backgroundColor: priority === p ? `${PRIORITY_COLORS[p]}18` : theme.bg,
-                  borderWidth: 1,
-                  borderColor: priority === p ? `${PRIORITY_COLORS[p]}40` : theme.border,
-                }}
-              >
+            <View style={{ paddingHorizontal: 20, gap: 16 }}>
+              {/* Quick suggestions */}
+              <View>
                 <RNText
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: priority === p ? PRIORITY_COLORS[p] : theme.textMuted,
+                    color: "#64748b",
+                    marginBottom: 8,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
                   }}
                 >
-                  {PRIORITY_LABELS[p]}
+                  Suggestions
                 </RNText>
-              </TouchableOpacity>
-            ))}
-          </View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    gap: 8,
+                  }}
+                >
+                  {suggestions.map((qt) => (
+                    <TouchableOpacity
+                      key={qt}
+                      onPress={() => handleAdd(qt)}
+                      style={{
+                        paddingHorizontal: 14,
+                        paddingVertical: 8,
+                        borderRadius: 100,
+                        backgroundColor: "#f8fafc",
+                        borderWidth: 1,
+                        borderColor: "#e2e8f0",
+                      }}
+                    >
+                      <RNText
+                        style={{
+                          fontSize: 13,
+                          fontWeight: "500",
+                          color: "#64748b",
+                        }}
+                      >
+                        {qt}
+                      </RNText>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+
+              <View
+                style={{
+                  height: 1,
+                  backgroundColor: "#e2e8f0",
+                }}
+              />
+
+              {/* Custom input */}
+              <View>
+                <RNText
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: "#64748b",
+                    marginBottom: 6,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Tâche personnalisée
+                </RNText>
+                <TextInput
+                  value={title}
+                  onChangeText={setTitle}
+                  placeholder="Ou écris ta propre tâche..."
+                  placeholderTextColor="#94a3b8"
+                  style={{
+                    backgroundColor: "#f8fafc",
+                    borderWidth: 1,
+                    borderColor: "#e2e8f0",
+                    borderRadius: 12,
+                    padding: 14,
+                    fontSize: 15,
+                    color: "#0f172a",
+                  }}
+                />
+              </View>
+
+              {/* Priority */}
+              <View>
+                <RNText
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: "#64748b",
+                    marginBottom: 8,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Priorité
+                </RNText>
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  {PRIORITIES.map((p) => {
+                    const isActive = priority === p;
+                    return (
+                      <TouchableOpacity
+                        key={p}
+                        onPress={() => setPriority(p)}
+                        style={{
+                          flex: 1,
+                          paddingVertical: 10,
+                          borderRadius: 100,
+                          alignItems: "center",
+                          backgroundColor: isActive
+                            ? `${PRIORITY_COLORS[p]}15`
+                            : "#f8fafc",
+                          borderWidth: 1,
+                          borderColor: isActive
+                            ? PRIORITY_COLORS[p]
+                            : "#e2e8f0",
+                        }}
+                      >
+                        <RNText
+                          style={{
+                            fontSize: 13,
+                            fontWeight: isActive ? "600" : "500",
+                            color: isActive
+                              ? PRIORITY_COLORS[p]
+                              : "#64748b",
+                          }}
+                        >
+                          {PRIORITY_LABELS[p]}
+                        </RNText>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            </View>
+          </ScrollView>
 
           {/* Buttons */}
-          <View style={{ flexDirection: "row", gap: 10 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 10,
+              paddingHorizontal: 20,
+              paddingTop: 16,
+            }}
+          >
             <TouchableOpacity
               onPress={onClose}
               style={{
                 flex: 1,
                 paddingVertical: 14,
-                borderRadius: 12,
+                borderRadius: 14,
                 alignItems: "center",
+                backgroundColor: "#f8fafc",
                 borderWidth: 1,
-                borderColor: theme.border,
+                borderColor: "#e2e8f0",
               }}
             >
-              <RNText style={{ color: theme.textMuted, fontSize: 14 }}>Annuler</RNText>
+              <RNText
+                style={{
+                  fontSize: 15,
+                  fontWeight: "600",
+                  color: "#64748b",
+                }}
+              >
+                Annuler
+              </RNText>
             </TouchableOpacity>
-
             <TouchableOpacity
               onPress={() => handleAdd()}
               disabled={!title.trim() || loading}
               style={{
                 flex: 2,
                 paddingVertical: 14,
-                borderRadius: 12,
+                borderRadius: 14,
                 alignItems: "center",
-                backgroundColor: title.trim() ? theme.primaryBg : theme.bg,
-                borderWidth: 1,
-                borderColor: title.trim() ? theme.primaryBorder : theme.border,
-                opacity: loading ? 0.6 : 1,
+                backgroundColor: "#10b981",
+                opacity: !title.trim() || loading ? 0.5 : 1,
               }}
             >
               <RNText
                 style={{
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: "600",
-                  color: title.trim() ? theme.primary : theme.textMuted,
+                  color: "#fff",
                 }}
               >
-                Ajouter la tâche
+                {loading ? "..." : "Ajouter la tâche"}
               </RNText>
             </TouchableOpacity>
           </View>
@@ -198,4 +326,3 @@ export function AddTaskSheet({ visible, onClose, onAdd }: AddTaskSheetProps) {
     </Modal>
   );
 }
-

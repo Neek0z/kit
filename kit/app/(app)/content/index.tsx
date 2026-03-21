@@ -13,7 +13,7 @@ import { Feather } from "@expo/vector-icons";
 import { Card, EmptyState } from "../../../components/ui";
 import { usePrompts } from "../../../hooks/usePrompts";
 import { useSubscription } from "../../../hooks/useSubscription";
-import { useTheme } from "../../../lib/theme";
+import { useTheme, screenTitleTextStyle } from "../../../lib/theme";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Prompt } from "../../../types";
 
@@ -424,14 +424,7 @@ export default function ContentScreen() {
             >
               <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
                 <View style={{ flex: 1 }}>
-                  <RNText
-                    style={{
-                      fontSize: 28,
-                      fontWeight: "800",
-                      color: theme.textPrimary,
-                      letterSpacing: -1,
-                    }}
-                  >
+                  <RNText style={screenTitleTextStyle(theme)}>
                     Contenu
                   </RNText>
                   <RNText

@@ -16,7 +16,12 @@ import { EmptyState, Avatar } from "../../../components/ui";
 import { useContacts } from "../../../hooks/useContacts";
 import { useSubscription } from "../../../hooks/useSubscription";
 import { PipelineStatus, type Contact } from "../../../types";
-import { useTheme, STATUS_COLORS, StatusKey } from "../../../lib/theme";
+import {
+  useTheme,
+  STATUS_COLORS,
+  StatusKey,
+  screenTitleTextStyle,
+} from "../../../lib/theme";
 
 const STATUS_PROGRESS: Record<PipelineStatus, number> = {
   new: 0,
@@ -88,43 +93,46 @@ export default function ContactsListScreen() {
           activeOpacity={0.7}
           style={{
             backgroundColor: "#fff",
-            borderRadius: 16,
-            padding: 14,
+            borderRadius: 12,
+            paddingVertical: 8,
+            paddingHorizontal: 10,
             marginHorizontal: 20,
-            marginBottom: 10,
+            marginBottom: 6,
             shadowColor: "#000",
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.06,
-            shadowRadius: 8,
-            elevation: 2,
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.05,
+            shadowRadius: 6,
+            elevation: 1,
           }}
         >
           <View
-            style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
+            style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
           >
             <Avatar
               name={item.full_name}
               status={item.status}
               url={item.avatar_url}
-              size="md"
+              size="sm"
             />
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, minWidth: 0 }}>
               <Text
                 style={{
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: "600",
                   color: theme.textPrimary,
-                  marginBottom: 2,
+                  marginBottom: 1,
                 }}
+                numberOfLines={1}
               >
                 {item.full_name}
               </Text>
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: 11,
                   color: isOverdue ? "#ef4444" : theme.textMuted,
-                  marginBottom: 8,
+                  marginBottom: 4,
                 }}
+                numberOfLines={1}
               >
                 {isOverdue
                   ? `En retard · ${new Date(
@@ -142,14 +150,14 @@ export default function ContactsListScreen() {
                       })}`
                     : item.phone ?? "Aucun numéro"}
               </Text>
-              <View style={{ flexDirection: "row", gap: 3 }}>
+              <View style={{ flexDirection: "row", gap: 2 }}>
                 {[0, 1, 2, 3, 4].map((i) => (
                   <View
                     key={i}
                     style={{
                       flex: 1,
-                      height: 3,
-                      borderRadius: 2,
+                      height: 2,
+                      borderRadius: 1,
                       backgroundColor:
                         i <= progressValue ? statusColor : "#e2e8f0",
                     }}
@@ -157,20 +165,26 @@ export default function ContactsListScreen() {
                 ))}
               </View>
             </View>
-            <View style={{ flexDirection: "column", gap: 8 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
               {item.phone && (
                 <TouchableOpacity
                   onPress={() => Linking.openURL(`tel:${item.phone}`)}
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
+                    width: 28,
+                    height: 28,
+                    borderRadius: 14,
                     backgroundColor: "#f0fdf4",
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Feather name="phone" size={13} color="#10b981" />
+                  <Feather name="phone" size={12} color="#10b981" />
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -178,9 +192,9 @@ export default function ContactsListScreen() {
                   router.push(`/(app)/contacts/${item.id}`)
                 }
                 style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
+                  width: 28,
+                  height: 28,
+                  borderRadius: 14,
                   backgroundColor: "#f8fafc",
                   alignItems: "center",
                   justifyContent: "center",
@@ -188,7 +202,7 @@ export default function ContactsListScreen() {
               >
                 <Feather
                   name="chevron-right"
-                  size={13}
+                  size={12}
                   color={theme.textMuted}
                 />
               </TouchableOpacity>
@@ -237,16 +251,7 @@ export default function ContactsListScreen() {
           paddingBottom: 8,
         }}
       >
-        <Text
-          style={{
-            fontSize: 30,
-            fontWeight: "800",
-            color: theme.textPrimary,
-            letterSpacing: -1,
-          }}
-        >
-          Contacts
-        </Text>
+        <Text style={screenTitleTextStyle(theme)}>Contacts</Text>
         <TouchableOpacity
           onPress={() => router.push("/(app)/groups")}
           style={{

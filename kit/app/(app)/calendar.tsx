@@ -1,29 +1,36 @@
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import {
   View,
-  FlatList,
   ActivityIndicator,
   TouchableOpacity,
   RefreshControl,
   Alert,
   ScrollView,
+  Text as RNText,
+  StyleSheet,
+  InteractionManager,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import { Text } from "../../components/ui";
 import { AppointmentSheet } from "../../components/calendar/AppointmentSheet";
-import { CalendarWeekView } from "../../components/calendar/CalendarWeekView";
-import { CalendarMonthView } from "../../components/calendar/CalendarMonthView";
-import { useAppointments, type AppointmentWithContact } from "../../hooks/useAppointments";
+import {
+  useAppointments,
+  type AppointmentWithContact,
+} from "../../hooks/useAppointments";
 import { useContacts } from "../../hooks/useContacts";
 import { useToast } from "../../lib/ToastContext";
-import { useTheme } from "../../lib/theme";
-import { dayKey, isSameDay } from "../../components/calendar/calendarUtils";
+import { useTheme, screenTitleTextStyle } from "../../lib/theme";
+import {
+  getStartOfMonth,
+  getMonthGrid,
+  isSameDay,
+  isToday as isTodayFn,
+  isCurrentMonth,
+  dayKey,
+} from "../../components/calendar/calendarUtils";
 
-type FeatherName = React.ComponentProps<typeof Feather>["name"];
-
-type ViewMode = "week" | "month";
+const HOURS = Array.from({ length: 24 }, (_, i) => i); // 0h–23h
+const WEEKDAY_LABELS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 export default function CalendarScreen() {
   const theme = useTheme();
@@ -39,31 +46,27 @@ export default function CalendarScreen() {
   } = useAppointments({ withContactName: true });
   const list = appointments as AppointmentWithContact[];
 
-  const [viewMode, setViewMode] = useState<ViewMode>("week");
+  const agendaScrollRef = useRef<ScrollView>(null);
+  const dayHeaderHeightRef = useRef(0);
+  const firstApptRowYRef = useRef<number | null>(null);
+
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
   });
-  const [weekAnchor, setWeekAnchor] = useState(() => new Date());
-  const [monthAnchor, setMonthAnchor] = useState(() => new Date());
+  const [monthAnchor, setMonthAnchor] = useState(
+    () => new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
+  );
 
   const [sheetVisible, setSheetVisible] = useState(false);
   const [sheetMode, setSheetMode] = useState<"create" | "edit">("create");
-  const [editingAppointment, setEditingAppointment] = useState<AppointmentWithContact | null>(null);
-  const [preselectedContactId, setPreselectedContactId] = useState<string | null>(null);
+  const [editingAppointment, setEditingAppointment] =
+    useState<AppointmentWithContact | null>(null);
+  const [preselectedContactId, setPreselectedContactId] = useState<
+    string | null
+  >(null);
 
-  const appointmentsForSelectedDay = useMemo(() => {
-    const key = dayKey(selectedDate);
-    return list
-      .filter((a) => dayKey(new Date(a.scheduled_at)) === key)
-      .sort(
-        (a, b) =>
-          new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
-      );
-  }, [list, selectedDate]);
-
-  /** RDV groupés par jour (dayKey) pour la vue mois */
   const appointmentsByDay = useMemo(() => {
     const byDay: Record<string, AppointmentWithContact[]> = {};
     list.forEach((a) => {
@@ -74,14 +77,54 @@ export default function CalendarScreen() {
     Object.keys(byDay).forEach((key) => {
       byDay[key].sort(
         (a, b) =>
-          new Date(a.scheduled_at).getTime() - new Date(b.scheduled_at).getTime()
+          new Date(a.scheduled_at).getTime() -
+          new Date(b.scheduled_at).getTime()
       );
     });
     return byDay;
   }, [list]);
 
-  const openCreate = useCallback((contactId?: string | null) => {
-    setPreselectedContactId(contactId ?? null);
+  const appointmentsForSelectedDay = useMemo(() => {
+    const key = dayKey(selectedDate);
+    return appointmentsByDay[key] ?? [];
+  }, [appointmentsByDay, selectedDate]);
+
+  const firstApptHour = useMemo(() => {
+    if (appointmentsForSelectedDay.length === 0) return null;
+    return new Date(
+      appointmentsForSelectedDay[0].scheduled_at
+    ).getHours();
+  }, [appointmentsForSelectedDay]);
+
+  const scrollAgendaToFirstAppointment = useCallback(() => {
+    const headerH = dayHeaderHeightRef.current;
+    const rowY = firstApptRowYRef.current;
+    if (
+      appointmentsForSelectedDay.length === 0 ||
+      firstApptHour === null ||
+      rowY == null ||
+      headerH <= 0
+    ) {
+      return;
+    }
+    agendaScrollRef.current?.scrollTo({
+      y: Math.max(0, headerH + rowY - 20),
+      animated: true,
+    });
+  }, [appointmentsForSelectedDay.length, firstApptHour]);
+
+  useEffect(() => {
+    firstApptRowYRef.current = null;
+  }, [selectedDate.getTime()]);
+
+  useEffect(() => {
+    if (appointmentsForSelectedDay.length === 0) {
+      agendaScrollRef.current?.scrollTo({ y: 0, animated: false });
+    }
+  }, [selectedDate.getTime(), appointmentsForSelectedDay.length]);
+
+  const openCreate = useCallback(() => {
+    setPreselectedContactId(null);
     setSheetMode("create");
     setEditingAppointment(null);
     setSheetVisible(true);
@@ -93,39 +136,6 @@ export default function CalendarScreen() {
     setEditingAppointment(a);
     setSheetVisible(true);
   }, []);
-
-  const handleSelectDate = useCallback((date: Date) => {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    setSelectedDate(d);
-    if (viewMode === "week") {
-      setWeekAnchor(d);
-    } else {
-      setMonthAnchor(new Date(d.getFullYear(), d.getMonth(), 1));
-    }
-  }, [viewMode]);
-
-  const handlePrevWeek = useCallback(() => {
-    const prev = new Date(weekAnchor);
-    prev.setDate(prev.getDate() - 7);
-    setWeekAnchor(prev);
-  }, [weekAnchor]);
-
-  const handleNextWeek = useCallback(() => {
-    const next = new Date(weekAnchor);
-    next.setDate(next.getDate() + 7);
-    setWeekAnchor(next);
-  }, [weekAnchor]);
-
-  const handlePrevMonth = useCallback(() => {
-    const prev = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() - 1, 1);
-    setMonthAnchor(prev);
-  }, [monthAnchor]);
-
-  const handleNextMonth = useCallback(() => {
-    const next = new Date(monthAnchor.getFullYear(), monthAnchor.getMonth() + 1, 1);
-    setMonthAnchor(next);
-  }, [monthAnchor]);
 
   const handleDelete = useCallback(
     (a: AppointmentWithContact) => {
@@ -151,19 +161,53 @@ export default function CalendarScreen() {
     [deleteAppointment, showToast]
   );
 
+  const handleSelectDate = useCallback((date: Date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    setSelectedDate(d);
+  }, []);
+
+  const handlePrevMonth = useCallback(() => {
+    setMonthAnchor(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1)
+    );
+  }, []);
+
+  const handleNextMonth = useCallback(() => {
+    setMonthAnchor(
+      (prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1)
+    );
+  }, []);
+
   const goToToday = useCallback(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     setSelectedDate(today);
-    setWeekAnchor(new Date());
-    setMonthAnchor(new Date());
+    setMonthAnchor(new Date(today.getFullYear(), today.getMonth(), 1));
   }, []);
 
-  const isSelectedToday = isSameDay(selectedDate, new Date());
+  const selectedIsToday = isTodayFn(selectedDate);
+  const monthStart = getStartOfMonth(monthAnchor);
+  const grid = getMonthGrid(monthStart);
+
+  if (loading && list.length === 0) {
+    return (
+      <SafeAreaView
+        style={{
+          flex: 1,
+          backgroundColor: theme.bg,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ActivityIndicator color={theme.primary} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Header compact + toggle pill */}
+      {/* Header */}
       <View
         style={{
           flexDirection: "row",
@@ -174,529 +218,456 @@ export default function CalendarScreen() {
           paddingBottom: 8,
         }}
       >
-        <Text
-          style={{
-            fontSize: 26,
-            fontWeight: "800",
-            color: theme.textPrimary,
-            letterSpacing: -1,
-          }}
-        >
-          Calendrier
-        </Text>
-
-        <View
-          style={{
-            flexDirection: "row",
-            backgroundColor: theme.surface,
-            borderWidth: 1,
-            borderColor: theme.border,
-            borderRadius: 100,
-            padding: 3,
-            alignSelf: "flex-start",
-          }}
-        >
-          {(["Semaine", "Mois"] as const).map((mode) => {
-            const key: ViewMode = mode === "Semaine" ? "week" : "month";
-            const isActive = viewMode === key;
-            return (
-              <TouchableOpacity
-                key={mode}
-                onPress={() => {
-                  setViewMode(key);
-                  if (key === "week") setWeekAnchor(selectedDate);
-                  if (key === "month")
-                    setMonthAnchor(
-                      new Date(
-                        selectedDate.getFullYear(),
-                        selectedDate.getMonth(),
-                        1
-                      )
-                    );
-                }}
-                style={{
-                  paddingHorizontal: 14,
-                  paddingVertical: 6,
-                  borderRadius: 100,
-                  backgroundColor: isActive ? theme.primary : "transparent",
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 12,
-                    fontWeight: "600",
-                    color: isActive
-                      ? theme.isDark
-                        ? "#0f172a"
-                        : "#ffffff"
-                      : theme.textMuted,
-                  }}
-                >
-                  {mode}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        <RNText style={screenTitleTextStyle(theme)}>Calendrier</RNText>
+        {!selectedIsToday && (
+          <TouchableOpacity
+            onPress={goToToday}
+            style={{
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+              borderRadius: 100,
+              backgroundColor: `${theme.primary}15`,
+            }}
+          >
+            <RNText
+              style={{
+                fontSize: 12,
+                fontWeight: "600",
+                color: theme.primary,
+              }}
+            >
+              Aujourd'hui
+            </RNText>
+          </TouchableOpacity>
+        )}
       </View>
 
-      <View className="flex-1 min-h-0">
-        {/* Contenu */}
-
-        {viewMode === "week" ? (
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={loading}
-              onRefresh={refetch}
-              colors={[theme.primary]}
-              tintColor={theme.primary}
-            />
-          }
-        >
-          <CalendarWeekView
-            weekAnchor={weekAnchor}
-            selectedDate={selectedDate}
-            appointmentsByDay={appointmentsByDay}
-            onSelectDate={handleSelectDate}
-            onPrevWeek={handlePrevWeek}
-            onNextWeek={handleNextWeek}
+      {/* Navigation mois */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          paddingHorizontal: 20,
+          paddingBottom: 10,
+        }}
+      >
+        <TouchableOpacity onPress={handlePrevMonth} style={{ padding: 4 }}>
+          <Feather
+            name="chevron-left"
+            size={22}
+            color={theme.textPrimary}
           />
-          {!isSelectedToday && (
-            <TouchableOpacity
-              onPress={goToToday}
-              className="mt-3 flex-row items-center justify-center gap-2 py-2"
-            >
-                <Feather name="circle" size={12} color={theme.primary} />
-              <Text className="text-primary text-sm font-medium">
-                Revenir à aujourd'hui
-              </Text>
-            </TouchableOpacity>
-          )}
-          <View style={{ marginTop: 24 }}>
-            {/* Header agenda */}
-            <View
+        </TouchableOpacity>
+        <RNText
+          style={{
+            fontSize: 17,
+            fontWeight: "700",
+            color: theme.textPrimary,
+            textTransform: "capitalize",
+          }}
+        >
+          {monthStart.toLocaleDateString("fr-FR", {
+            month: "long",
+            year: "numeric",
+          })}
+        </RNText>
+        <TouchableOpacity onPress={handleNextMonth} style={{ padding: 4 }}>
+          <Feather
+            name="chevron-right"
+            size={22}
+            color={theme.textPrimary}
+          />
+        </TouchableOpacity>
+      </View>
+
+      {/* Grille mois compacte */}
+      <View style={{ paddingHorizontal: 16 }}>
+        {/* Jours de la semaine */}
+        <View style={{ flexDirection: "row", marginBottom: 2 }}>
+          {WEEKDAY_LABELS.map((d) => (
+            <RNText
+              key={d}
               style={{
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 12,
+                flex: 1,
+                textAlign: "center",
+                fontSize: 11,
+                fontWeight: "600",
+                color: theme.textHint,
               }}
             >
-              <View>
-                <Text
-                  style={{
-                    fontSize: 15,
-                    fontWeight: "700",
-                    color: theme.textPrimary,
-                  }}
-                >
-                  {isSelectedToday
-                    ? "Aujourd'hui"
-                    : selectedDate.toLocaleDateString("fr-FR", {
-                        weekday: "long",
-                        day: "numeric",
-                        month: "long",
-                      })}
-                </Text>
+              {d}
+            </RNText>
+          ))}
+        </View>
 
-                {appointmentsForSelectedDay.length > 0 && (
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      color: theme.textMuted,
-                      marginTop: 1,
-                    }}
-                  >
-                    {appointmentsForSelectedDay.length} rendez-vous
-                  </Text>
-                )}
-              </View>
-            </View>
+        {/* Semaines */}
+        {grid.map((week, wi) => (
+          <View key={wi} style={{ flexDirection: "row", marginBottom: 0 }}>
+            {week.map((day, di) => {
+              const today = isTodayFn(day);
+              const selected = isSameDay(day, selectedDate);
+              const inMonth = isCurrentMonth(day, monthStart);
+              const key = dayKey(day);
+              const hasAppts = (appointmentsByDay[key]?.length ?? 0) > 0;
 
-            {loading && list.length === 0 ? (
-              <View style={{ paddingVertical: 24, alignItems: "center" }}>
-                <ActivityIndicator color={theme.primary} />
-              </View>
-            ) : appointmentsForSelectedDay.length === 0 ? (
-              <View
-                style={{
-                  backgroundColor: theme.surface,
-                  borderWidth: 1,
-                  borderColor: theme.border,
-                  borderRadius: 16,
-                  padding: 20,
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <View
+              return (
+                <TouchableOpacity
+                  key={di}
+                  onPress={() => handleSelectDate(day)}
                   style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 22,
-                    backgroundColor: theme.primaryBg,
-                    borderWidth: 1,
-                    borderColor: theme.primaryBorder,
+                    flex: 1,
                     alignItems: "center",
-                    justifyContent: "center",
+                    paddingVertical: 1,
                   }}
-                >
-                  <Feather name="calendar" size={20} color={theme.primary} />
-                </View>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: "600",
-                    color: theme.textPrimary,
-                    textAlign: "center",
-                  }}
-                >
-                  Aucun RDV ce jour
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: theme.textMuted,
-                    textAlign: "center",
-                  }}
-                >
-                  Appuie sur + pour planifier un rendez-vous
-                </Text>
-              </View>
-            ) : (
-              <View style={{ gap: 8 }}>
-                {appointmentsForSelectedDay.map((a) => {
-                  const at = new Date(a.scheduled_at);
-                  const contactName =
-                    (a as AppointmentWithContact).contacts?.full_name ?? "";
-
-                  return (
-                    <TouchableOpacity
-                      key={a.id}
-                      onPress={() => openEdit(a)}
-                      onLongPress={() => handleDelete(a)}
-                      activeOpacity={0.7}
-                      style={{
-                        backgroundColor: theme.surface,
-                        borderWidth: 1,
-                        borderColor: theme.border,
-                        borderRadius: 16,
-                        padding: 14,
-                        flexDirection: "row",
-                        gap: 12,
-                      }}
-                    >
-                      <View
-                        style={{
-                          alignItems: "center",
-                          minWidth: 44,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            fontWeight: "700",
-                            color: theme.primary,
-                          }}
-                        >
-                          {at.toLocaleTimeString("fr-FR", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </Text>
-                      </View>
-
-                      <View
-                        style={{
-                          width: 3,
-                          borderRadius: 2,
-                          backgroundColor: theme.primary,
-                          alignSelf: "stretch",
-                        }}
-                      />
-
-                      <View style={{ flex: 1 }}>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            fontWeight: "600",
-                            color: theme.textPrimary,
-                          }}
-                          numberOfLines={1}
-                        >
-                          {a.title || "Rendez-vous"}
-                        </Text>
-
-                        {contactName ? (
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              alignItems: "center",
-                              gap: 5,
-                              marginTop: 4,
-                            }}
-                          >
-                            <Feather
-                              name="user"
-                              size={11}
-                              color={theme.textMuted}
-                            />
-                            <Text
-                              style={{
-                                fontSize: 12,
-                                color: theme.textMuted,
-                              }}
-                              numberOfLines={1}
-                            >
-                              {contactName}
-                            </Text>
-                          </View>
-                        ) : null}
-                      </View>
-
-                      <Feather
-                        name="chevron-right"
-                        size={16}
-                        color={theme.textHint}
-                      />
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-            )}
-          </View>
-        </ScrollView>
-        ) : (
-          /* Vue mois : grille plein écran + bandeau RDV du jour en bas */
-          <View className="flex-1 px-5 min-h-0">
-            {!isSelectedToday && (
-              <TouchableOpacity onPress={goToToday} className="flex-row items-center justify-center gap-2 py-2 mb-1">
-                <Feather name="circle" size={12} color="#10b981" />
-                <Text className="text-primary text-sm font-medium">Revenir à aujourd'hui</Text>
-              </TouchableOpacity>
-            )}
-            <View className="flex-1 min-h-0">
-              <CalendarMonthView
-                monthAnchor={monthAnchor}
-                selectedDate={selectedDate}
-                appointmentsByDay={appointmentsByDay}
-                onSelectDate={handleSelectDate}
-                onAppointmentPress={openEdit}
-                onPrevMonth={handlePrevMonth}
-                onNextMonth={handleNextMonth}
-              />
-            </View>
-            <View
-              style={{
-                paddingTop: 12,
-                borderTopWidth: 1,
-                borderTopColor: theme.border,
-                maxHeight: 200,
-                paddingHorizontal: 20,
-                paddingBottom: 12,
-              }}
-            >
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 8,
-                }}
-              >
-                <View>
-                  <Text
-                    style={{
-                      fontSize: 14,
-                      fontWeight: "700",
-                      color: theme.textPrimary,
-                    }}
-                  >
-                    {isSelectedToday
-                      ? "Aujourd'hui"
-                      : selectedDate.toLocaleDateString("fr-FR", {
-                          weekday: "long",
-                          day: "numeric",
-                          month: "long",
-                        })}
-                  </Text>
-                  {appointmentsForSelectedDay.length > 0 && (
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        color: theme.textMuted,
-                        marginTop: 1,
-                      }}
-                    >
-                      {appointmentsForSelectedDay.length} rendez-vous
-                    </Text>
-                  )}
-                </View>
-              </View>
-
-              {appointmentsForSelectedDay.length === 0 ? (
-                <View
-                  style={{
-                    backgroundColor: theme.surface,
-                    borderWidth: 1,
-                    borderColor: theme.border,
-                    borderRadius: 16,
-                    padding: 16,
-                    alignItems: "center",
-                    gap: 8,
-                  }}
+                  activeOpacity={0.7}
                 >
                   <View
                     style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: 20,
-                      backgroundColor: theme.primaryBg,
-                      borderWidth: 1,
-                      borderColor: theme.primaryBorder,
+                      width: 30,
+                      height: 30,
+                      borderRadius: 15,
+                      backgroundColor: selected
+                        ? theme.primary
+                        : today
+                          ? `${theme.primary}20`
+                          : "transparent",
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
-                    <Feather name="calendar" size={18} color={theme.primary} />
+                    <RNText
+                      style={{
+                        fontSize: 13,
+                        fontWeight: today || selected ? "700" : "400",
+                        color: selected
+                          ? "#fff"
+                          : today
+                            ? theme.primary
+                            : inMonth
+                              ? theme.textPrimary
+                              : theme.textHint,
+                      }}
+                    >
+                      {day.getDate()}
+                    </RNText>
                   </View>
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: "600",
-                      color: theme.textPrimary,
-                      textAlign: "center",
-                    }}
-                  >
-                    Aucun RDV ce jour
-                  </Text>
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      color: theme.textMuted,
-                      textAlign: "center",
-                    }}
-                  >
-                    Appuie sur + pour planifier un rendez-vous
-                  </Text>
-                </View>
-              ) : (
-                <ScrollView
-                  showsVerticalScrollIndicator={false}
-                  nestedScrollEnabled
-                >
-                  <View style={{ gap: 8, paddingBottom: 8 }}>
-                    {appointmentsForSelectedDay.map((a) => {
-                      const at = new Date(a.scheduled_at);
-                      const contactName =
-                        (a as AppointmentWithContact).contacts?.full_name ?? "";
+                  {/* Point indicateur RDV */}
+                  <View style={{ height: 3, marginTop: 0 }}>
+                    {hasAppts && !selected && (
+                      <View
+                        style={{
+                          width: 3,
+                          height: 3,
+                          borderRadius: 1.5,
+                          backgroundColor: theme.primary,
+                        }}
+                      />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        ))}
+      </View>
 
-                      return (
-                        <TouchableOpacity
-                          key={a.id}
-                          onPress={() => openEdit(a)}
-                          onLongPress={() => handleDelete(a)}
-                          activeOpacity={0.7}
-                          style={{
-                            backgroundColor: theme.surface,
-                            borderWidth: 1,
-                            borderColor: theme.border,
-                            borderRadius: 16,
-                            padding: 14,
-                            flexDirection: "row",
-                            gap: 12,
-                          }}
-                        >
-                          <View
+      {/* Séparateur (trait fin) */}
+      <View
+        style={{
+          height: StyleSheet.hairlineWidth,
+          backgroundColor: theme.border,
+          marginHorizontal: 20,
+          marginVertical: 6,
+        }}
+      />
+
+      {/* Vue agenda scrollable */}
+      <ScrollView
+        ref={agendaScrollRef}
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refetch}
+            colors={[theme.primary]}
+            tintColor={theme.primary}
+          />
+        }
+      >
+        <View style={{ paddingHorizontal: 20, paddingBottom: 100 }}>
+          {/* Header du jour sélectionné */}
+          <View
+            style={{ paddingVertical: 10 }}
+            onLayout={(e) => {
+              dayHeaderHeightRef.current = e.nativeEvent.layout.height;
+              if (firstApptHour !== null && appointmentsForSelectedDay.length > 0) {
+                InteractionManager.runAfterInteractions(() => {
+                  scrollAgendaToFirstAppointment();
+                });
+              }
+            }}
+          >
+            <RNText
+              style={{
+                fontSize: 16,
+                fontWeight: "700",
+                color: theme.textPrimary,
+                textTransform: "capitalize",
+              }}
+            >
+              {selectedIsToday
+                ? "Aujourd'hui"
+                : selectedDate.toLocaleDateString("fr-FR", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                  })}
+            </RNText>
+            {appointmentsForSelectedDay.length > 0 && (
+              <RNText
+                style={{
+                  fontSize: 12,
+                  color: theme.textMuted,
+                  marginTop: 2,
+                }}
+              >
+                {appointmentsForSelectedDay.length} rendez-vous
+              </RNText>
+            )}
+          </View>
+
+          {/* État vide */}
+          {appointmentsForSelectedDay.length === 0 && (
+            <View
+              style={{
+                alignItems: "center",
+                paddingVertical: 32,
+                gap: 10,
+              }}
+            >
+              <View
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 26,
+                  backgroundColor: `${theme.primary}15`,
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Feather name="calendar" size={22} color={theme.primary} />
+              </View>
+              <RNText
+                style={{
+                  fontSize: 15,
+                  fontWeight: "600",
+                  color: theme.textPrimary,
+                }}
+              >
+                Aucun rendez-vous
+              </RNText>
+              <RNText
+                style={{ fontSize: 13, color: theme.textMuted }}
+              >
+                Appuie sur + pour en ajouter un
+              </RNText>
+            </View>
+          )}
+
+          {/* Timeline avec créneaux horaires */}
+          {appointmentsForSelectedDay.length > 0 && (
+            <View style={{ position: "relative" }}>
+              {HOURS.map((hour) => {
+                const hourAppts = appointmentsForSelectedDay.filter((apt) => {
+                  const aptHour = new Date(apt.scheduled_at).getHours();
+                  return aptHour === hour;
+                });
+
+                const isCurrentHour =
+                  selectedIsToday && new Date().getHours() === hour;
+
+                return (
+                  <View
+                    key={hour}
+                    style={{
+                      flexDirection: "row",
+                      minHeight: 48,
+                      alignItems: "flex-start",
+                    }}
+                    onLayout={(e) => {
+                      if (hour !== firstApptHour) return;
+                      firstApptRowYRef.current = e.nativeEvent.layout.y;
+                      InteractionManager.runAfterInteractions(() => {
+                        scrollAgendaToFirstAppointment();
+                      });
+                    }}
+                  >
+                    {/* Heure à gauche */}
+                    <View style={{ width: 44, paddingTop: 2 }}>
+                      <RNText
+                        style={{
+                          fontSize: 12,
+                          fontWeight: "500",
+                          color: isCurrentHour
+                            ? theme.primary
+                            : theme.textHint,
+                        }}
+                      >
+                        {`${String(hour).padStart(2, "0")}h`}
+                      </RNText>
+                    </View>
+
+                    {/* Ligne verticale (hairline) */}
+                    <View
+                      style={{
+                        width: StyleSheet.hairlineWidth,
+                        backgroundColor: isCurrentHour
+                          ? theme.primary
+                          : theme.border,
+                        marginRight: 10,
+                        marginTop: 6,
+                        alignSelf: "stretch",
+                      }}
+                    />
+
+                    {/* RDV sur ce créneau */}
+                    <View style={{ flex: 1, gap: 6, paddingVertical: 4 }}>
+                      {hourAppts.map((apt) => {
+                        const startTime = new Date(apt.scheduled_at);
+                        const contactName =
+                          apt.contacts?.full_name ?? "";
+                        const endTime = new Date(
+                          startTime.getTime() + 60 * 60 * 1000
+                        );
+
+                        return (
+                          <TouchableOpacity
+                            key={apt.id}
+                            onPress={() => openEdit(apt)}
+                            onLongPress={() => handleDelete(apt)}
+                            activeOpacity={0.7}
                             style={{
+                              backgroundColor: `${theme.primary}15`,
+                              borderRadius: 14,
+                              padding: 12,
+                              borderLeftWidth: 3,
+                              borderLeftColor: theme.primary,
+                              flexDirection: "row",
                               alignItems: "center",
-                              minWidth: 44,
                             }}
                           >
-                            <Text
-                              style={{
-                                fontSize: 13,
-                                fontWeight: "700",
-                                color: theme.primary,
-                              }}
-                            >
-                              {at.toLocaleTimeString("fr-FR", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </Text>
-                          </View>
-
-                          <View
-                            style={{
-                              width: 3,
-                              borderRadius: 2,
-                              backgroundColor: theme.primary,
-                              alignSelf: "stretch",
-                            }}
-                          />
-
-                          <View style={{ flex: 1 }}>
-                            <Text
-                              style={{
-                                fontSize: 14,
-                                fontWeight: "600",
-                                color: theme.textPrimary,
-                              }}
-                              numberOfLines={1}
-                            >
-                              {a.title || "Rendez-vous"}
-                            </Text>
-                            {contactName ? (
-                              <View
+                            <View style={{ flex: 1 }}>
+                              <RNText
                                 style={{
-                                  flexDirection: "row",
-                                  alignItems: "center",
-                                  gap: 5,
-                                  marginTop: 4,
+                                  fontSize: 14,
+                                  fontWeight: "700",
+                                  color: theme.textPrimary,
+                                }}
+                                numberOfLines={1}
+                              >
+                                {contactName ||
+                                  apt.title ||
+                                  "Rendez-vous"}
+                              </RNText>
+                              <RNText
+                                style={{
+                                  fontSize: 12,
+                                  color: theme.textMuted,
+                                  marginTop: 2,
                                 }}
                               >
-                                <Feather
-                                  name="user"
-                                  size={11}
-                                  color={theme.textMuted}
-                                />
-                                <Text
+                                {startTime.toLocaleTimeString("fr-FR", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                                {" — "}
+                                {endTime.toLocaleTimeString("fr-FR", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </RNText>
+                              {apt.notes && (
+                                <RNText
                                   style={{
-                                    fontSize: 12,
-                                    color: theme.textMuted,
+                                    fontSize: 11,
+                                    color: theme.textHint,
+                                    marginTop: 4,
                                   }}
                                   numberOfLines={1}
                                 >
-                                  {contactName}
-                                </Text>
-                              </View>
-                            ) : null}
-                          </View>
-
-                          <Feather
-                            name="chevron-right"
-                            size={16}
-                            color={theme.textHint}
-                          />
-                        </TouchableOpacity>
-                      );
-                    })}
+                                  {apt.notes}
+                                </RNText>
+                              )}
+                            </View>
+                            <TouchableOpacity
+                              onPress={() => openEdit(apt)}
+                              style={{ padding: 4 }}
+                            >
+                              <Feather
+                                name="more-horizontal"
+                                size={18}
+                                color={theme.textMuted}
+                              />
+                            </TouchableOpacity>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
                   </View>
-                </ScrollView>
-              )}
-            </View>
-          </View>
-        )}
-      </View>
+                );
+              })}
 
-      {/* FAB flottant : Nouveau RDV */}
+              {/* Ligne "maintenant" */}
+              {selectedIsToday && (() => {
+                const now = new Date();
+                const currentMinutes =
+                  now.getHours() * 60 + now.getMinutes();
+                const totalMinutes = 24 * 60;
+                const pct = Math.max(
+                  0,
+                  Math.min(100, (currentMinutes / totalMinutes) * 100)
+                );
+                return (
+                  <View
+                    style={{
+                      position: "absolute",
+                      left: 44,
+                      right: 0,
+                      top: `${pct}%`,
+                      flexDirection: "row",
+                      alignItems: "center",
+                    }}
+                    pointerEvents="none"
+                  >
+                    <View
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: 3,
+                        backgroundColor: theme.primary,
+                      }}
+                    />
+                    <View
+                      style={{
+                        flex: 1,
+                        height: StyleSheet.hairlineWidth,
+                        minHeight: 1,
+                        backgroundColor: theme.primary,
+                      }}
+                    />
+                  </View>
+                );
+              })()}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* FAB */}
       <TouchableOpacity
-        onPress={() => openCreate()}
+        onPress={openCreate}
         style={{
           position: "absolute",
           bottom: 24,
@@ -709,18 +680,14 @@ export default function CalendarScreen() {
           justifyContent: "center",
           zIndex: 100,
           shadowColor: theme.primary,
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.35,
+          shadowRadius: 12,
           elevation: 8,
         }}
         accessibilityLabel="Nouveau rendez-vous"
       >
-        <Feather
-          name="plus"
-          size={24}
-          color={theme.isDark ? "#0f172a" : "#ffffff"}
-        />
+        <Feather name="plus" size={24} color="#fff" />
       </TouchableOpacity>
 
       <AppointmentSheet
@@ -731,7 +698,9 @@ export default function CalendarScreen() {
         }}
         mode={sheetMode}
         contacts={contacts}
-        preselectedContactId={preselectedContactId ?? editingAppointment?.contact_id}
+        preselectedContactId={
+          preselectedContactId ?? editingAppointment?.contact_id
+        }
         appointment={editingAppointment}
         onSubmitCreate={async (params) => {
           const created = await createAppointment(params);

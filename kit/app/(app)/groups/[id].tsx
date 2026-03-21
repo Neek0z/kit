@@ -21,7 +21,6 @@ import {
   Card,
   StatusPill,
   Text as KitText,
-  Button,
 } from "../../../components/ui";
 import { GroupBadge } from "../../../components/groups/GroupBadge";
 import { useTheme } from "../../../lib/theme";
@@ -31,6 +30,8 @@ import { useContacts } from "../../../hooks/useContacts";
 import { useGroupMembers } from "../../../hooks/useGroupMembers";
 import { useGroups } from "../../../hooks/useGroups";
 import { useStartGroupConversation } from "../../../hooks/useStartGroupConversation";
+
+import { Text as RNText } from "react-native";
 
 function RenameGroupModal({
   visible,
@@ -43,7 +44,6 @@ function RenameGroupModal({
   onClose: () => void;
   onSave: (name: string) => Promise<void>;
 }) {
-  const theme = useTheme();
   const [name, setName] = useState(groupName);
   const [loading, setLoading] = useState(false);
 
@@ -69,82 +69,63 @@ function RenameGroupModal({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1, justifyContent: "flex-end" }}
       >
+        <TouchableOpacity
+          style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.4)" }}
+          onPress={onClose}
+          activeOpacity={1}
+        />
         <View
           style={{
-            backgroundColor: theme.surface,
+            backgroundColor: "#fff",
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
-            padding: 20,
-            maxHeight: "80%",
+            paddingBottom: Platform.OS === "ios" ? 34 : 24,
+            maxHeight: "90%",
           }}
         >
-          <View
-            style={{
-              width: 40,
-              height: 4,
-              borderRadius: 2,
-              backgroundColor: theme.border,
-              alignSelf: "center",
-              marginBottom: 16,
-            }}
-          />
+          <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: "#e2e8f0", alignSelf: "center", marginTop: 12, marginBottom: 4 }} />
 
-          <KitText variant="h3" style={{ marginBottom: 12 }}>
-            Renommer le groupe
-          </KitText>
+          <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 }}>
+            <RNText style={{ fontSize: 18, fontWeight: "700", color: "#0f172a" }}>
+              Renommer le groupe
+            </RNText>
+          </View>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
+          <View style={{ paddingHorizontal: 20, gap: 16 }}>
             <TextInput
               value={name}
               onChangeText={setName}
               placeholder="Nom du groupe..."
-              placeholderTextColor={theme.textHint}
+              placeholderTextColor="#94a3b8"
               style={{
-                backgroundColor: theme.surface,
+                backgroundColor: "#f8fafc",
                 borderWidth: 1,
-                borderColor: theme.border,
+                borderColor: "#e2e8f0",
                 borderRadius: 12,
-                padding: 12,
-                fontSize: 14,
-                color: theme.textPrimary,
+                padding: 14,
+                fontSize: 15,
+                color: "#0f172a",
               }}
             />
+          </View>
 
-            <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
-              <TouchableOpacity
-                onPress={onClose}
-                style={{
-                  flex: 1,
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  borderWidth: 1,
-                  borderColor: theme.border,
-                  alignItems: "center",
-                }}
-              >
-                <KitText style={{ color: theme.textMuted, fontSize: 13 }}>Annuler</KitText>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleSave}
-                disabled={loading || !name.trim()}
-                style={{
-                  flex: 1,
-                  paddingVertical: 14,
-                  borderRadius: 12,
-                  borderWidth: 1,
-                  borderColor: name.trim() ? theme.primaryBorder : theme.border,
-                  backgroundColor: name.trim() ? theme.primaryBg : theme.bg,
-                  alignItems: "center",
-                  opacity: loading ? 0.7 : 1,
-                }}
-              >
-                <KitText style={{ color: name.trim() ? theme.primary : theme.textMuted, fontSize: 13, fontWeight: "700" }}>
-                  {loading ? "..." : "Enregistrer"}
-                </KitText>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
+          <View style={{ flexDirection: "row", gap: 10, paddingHorizontal: 20, paddingTop: 16 }}>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{ flex: 1, paddingVertical: 14, borderRadius: 14, alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1, borderColor: "#e2e8f0" }}
+            >
+              <RNText style={{ fontSize: 15, fontWeight: "600", color: "#64748b" }}>Annuler</RNText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={handleSave}
+              disabled={loading || !name.trim()}
+              style={{ flex: 2, paddingVertical: 14, borderRadius: 14, alignItems: "center", backgroundColor: "#10b981", opacity: !name.trim() || loading ? 0.5 : 1 }}
+            >
+              <RNText style={{ fontSize: 15, fontWeight: "600", color: "#fff" }}>
+                {loading ? "..." : "Enregistrer"}
+              </RNText>
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </Modal>

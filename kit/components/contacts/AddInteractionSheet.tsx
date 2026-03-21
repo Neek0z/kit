@@ -6,9 +6,10 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  Text as RNText,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { Text, Button } from "../ui";
 import {
   InteractionType,
   INTERACTION_LABELS,
@@ -57,70 +58,208 @@ export function AddInteractionSheet({
     >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        className="flex-1 justify-end"
+        style={{ flex: 1, justifyContent: "flex-end" }}
       >
-        <View
-          className="bg-surface rounded-t-3xl p-6 gap-5"
+        <TouchableOpacity
           style={{
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: -4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 12,
-            elevation: 20,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.4)",
+          }}
+          onPress={onClose}
+          activeOpacity={1}
+        />
+
+        <View
+          style={{
+            backgroundColor: "#fff",
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            paddingBottom: Platform.OS === "ios" ? 34 : 24,
+            maxHeight: "90%",
           }}
         >
-          <View className="w-10 h-1 rounded-full bg-border self-center -mt-1 mb-1" />
-
-          <Text variant="h3">Ajouter une interaction</Text>
-
-          <View className="flex-row gap-2 flex-wrap">
-            {TYPES.map((type) => (
-              <TouchableOpacity
-                key={type}
-                onPress={() => setSelectedType(type)}
-                className={`flex-row items-center gap-1.5 px-3 py-2 rounded-lg border ${
-                  selectedType === type
-                    ? "bg-primary/10 border-primary"
-                    : "bg-background border-border"
-                }`}
-              >
-                <Feather
-                  name={INTERACTION_ICONS[type] as FeatherName}
-                  size={14}
-                  color={selectedType === type ? "#10b981" : "#475569"}
-                />
-                <Text
-                  className={`text-sm ${
-                    selectedType === type
-                      ? "text-primary font-semibold"
-                      : "text-textMuted"
-                  }`}
-                >
-                  {INTERACTION_LABELS[type]}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          <TextInput
-            className="bg-background dark:bg-background-dark border border-border dark:border-border-dark rounded-xl px-4 py-3 text-textMain dark:text-textMain-dark text-sm min-h-[80px]"
-            placeholder="Note optionnelle..."
-            placeholderTextColor="#475569"
-            value={content}
-            onChangeText={setContent}
-            multiline
+          <View
+            style={{
+              width: 40,
+              height: 4,
+              borderRadius: 2,
+              backgroundColor: "#e2e8f0",
+              alignSelf: "center",
+              marginTop: 12,
+              marginBottom: 4,
+            }}
           />
 
-          <View className="flex-row gap-3">
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View
+              style={{
+                paddingHorizontal: 20,
+                paddingTop: 8,
+                paddingBottom: 16,
+              }}
+            >
+              <RNText
+                style={{
+                  fontSize: 18,
+                  fontWeight: "700",
+                  color: "#0f172a",
+                }}
+              >
+                Nouvelle interaction
+              </RNText>
+            </View>
+
+            <View style={{ paddingHorizontal: 20, gap: 16 }}>
+              <View>
+                <RNText
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: "#64748b",
+                    marginBottom: 8,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Type
+                </RNText>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: 8 }}
+                >
+                  {TYPES.map((type) => {
+                    const isActive = selectedType === type;
+                    return (
+                      <TouchableOpacity
+                        key={type}
+                        onPress={() => setSelectedType(type)}
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 6,
+                          paddingHorizontal: 14,
+                          paddingVertical: 8,
+                          borderRadius: 100,
+                          backgroundColor: isActive ? "#f0fdf4" : "#f8fafc",
+                          borderWidth: 1,
+                          borderColor: isActive ? "#10b981" : "#e2e8f0",
+                        }}
+                      >
+                        <Feather
+                          name={INTERACTION_ICONS[type] as FeatherName}
+                          size={14}
+                          color={isActive ? "#10b981" : "#64748b"}
+                        />
+                        <RNText
+                          style={{
+                            fontSize: 13,
+                            fontWeight: isActive ? "600" : "500",
+                            color: isActive ? "#10b981" : "#64748b",
+                          }}
+                        >
+                          {INTERACTION_LABELS[type]}
+                        </RNText>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+
+              <View>
+                <RNText
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: "#64748b",
+                    marginBottom: 6,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  Note (optionnel)
+                </RNText>
+                <TextInput
+                  style={{
+                    backgroundColor: "#f8fafc",
+                    borderWidth: 1,
+                    borderColor: "#e2e8f0",
+                    borderRadius: 12,
+                    padding: 14,
+                    fontSize: 15,
+                    color: "#0f172a",
+                    minHeight: 80,
+                    textAlignVertical: "top",
+                  }}
+                  placeholder="Note optionnelle..."
+                  placeholderTextColor="#94a3b8"
+                  value={content}
+                  onChangeText={setContent}
+                  multiline
+                />
+              </View>
+            </View>
+          </ScrollView>
+
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 10,
+              paddingHorizontal: 20,
+              paddingTop: 16,
+            }}
+          >
             <TouchableOpacity
               onPress={onClose}
-              className="flex-1 py-4 items-center border border-border rounded-xl"
+              style={{
+                flex: 1,
+                paddingVertical: 14,
+                borderRadius: 14,
+                alignItems: "center",
+                backgroundColor: "#f8fafc",
+                borderWidth: 1,
+                borderColor: "#e2e8f0",
+              }}
             >
-              <Text variant="muted">Annuler</Text>
+              <RNText
+                style={{
+                  fontSize: 15,
+                  fontWeight: "600",
+                  color: "#64748b",
+                }}
+              >
+                Annuler
+              </RNText>
             </TouchableOpacity>
-            <View className="flex-1">
-              <Button label="Enregistrer" onPress={handleAdd} loading={loading} />
-            </View>
+            <TouchableOpacity
+              onPress={handleAdd}
+              disabled={loading}
+              style={{
+                flex: 2,
+                paddingVertical: 14,
+                borderRadius: 14,
+                alignItems: "center",
+                backgroundColor: "#10b981",
+                opacity: loading ? 0.6 : 1,
+              }}
+            >
+              <RNText
+                style={{
+                  fontSize: 15,
+                  fontWeight: "600",
+                  color: "#fff",
+                }}
+              >
+                {loading ? "..." : "Enregistrer"}
+              </RNText>
+            </TouchableOpacity>
           </View>
         </View>
       </KeyboardAvoidingView>

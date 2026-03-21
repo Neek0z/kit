@@ -1,4 +1,17 @@
-import { useColorScheme } from "react-native";
+import { useColorScheme, type TextStyle } from "react-native";
+
+/** Typographie unique pour le titre en haut à gauche des écrans principaux (onglets). */
+export function screenTitleTextStyle(theme: {
+  textPrimary: string;
+}): TextStyle {
+  return {
+    fontSize: 28,
+    fontWeight: "800",
+    letterSpacing: -1,
+    lineHeight: 32,
+    color: theme.textPrimary,
+  };
+}
 
 export const STATUS_COLORS = {
   new: {
@@ -86,7 +99,7 @@ export function useTheme() {
       lg: 16,
       xl: 18,
       xxl: 22,
-      title: 26,
+      title: 28,
       hero: 28,
     },
     borderRadius: {

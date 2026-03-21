@@ -1,8 +1,7 @@
 import { View, TouchableOpacity, Text as RNText } from "react-native";
 import { router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import { Text } from "../ui";
-import { useTheme } from "../../lib/theme";
+import { useTheme, screenTitleTextStyle } from "../../lib/theme";
 
 interface HeaderProps {
   title: string;
@@ -48,13 +47,7 @@ export function Header({
         )}
         <View className="flex-1">
           <RNText
-            style={{
-              fontSize: 28,
-              fontWeight: "800",
-              letterSpacing: -1,
-              color: theme.textPrimary,
-              lineHeight: 32,
-            }}
+            style={screenTitleTextStyle(theme)}
             numberOfLines={1}
           >
             {title}

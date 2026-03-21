@@ -15,7 +15,10 @@ import { Feather } from "@expo/vector-icons";
 import { Text, Avatar, Card, Divider } from "../../../components/ui";
 import { useAuthContext } from "../../../lib/AuthContext";
 import { useTheme } from "../../../lib/ThemeContext";
-import { useTheme as useDesignTheme } from "../../../lib/theme";
+import {
+  useTheme as useDesignTheme,
+  screenTitleTextStyle,
+} from "../../../lib/theme";
 import { useProfile } from "../../../hooks/useProfile";
 import { useSubscription } from "../../../hooks/useSubscription";
 import { useDashboard } from "../../../hooks/useDashboard";
@@ -193,7 +196,16 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: designTheme.bg }}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="items-center pt-8 pb-6 px-5">
+        <View
+          style={{
+            paddingHorizontal: 20,
+            paddingTop: 20,
+            paddingBottom: 8,
+          }}
+        >
+          <Text style={screenTitleTextStyle(designTheme)}>Profil</Text>
+        </View>
+        <View className="items-center pt-4 pb-6 px-5">
           <TouchableOpacity onPress={handlePickAvatar} className="relative mb-4">
             <Avatar
               name={profile?.full_name ?? user?.email ?? ""}

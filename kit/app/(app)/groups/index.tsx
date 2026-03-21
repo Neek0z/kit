@@ -19,8 +19,8 @@ import { Header } from "../../../components/layout";
 import {
   Card,
   Text as KitText,
-  Button,
 } from "../../../components/ui";
+import { Text as RNText } from "react-native";
 import { GroupBadge } from "../../../components/groups/GroupBadge";
 import { useGroups } from "../../../hooks/useGroups";
 import { useTheme } from "../../../lib/theme";
@@ -350,175 +350,142 @@ export default function GroupsScreen() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1, justifyContent: "flex-end" }}
         >
+          <TouchableOpacity
+            style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.4)" }}
+            onPress={() => setModalVisible(false)}
+            activeOpacity={1}
+          />
           <View
             style={{
-              backgroundColor: theme.surface,
+              backgroundColor: "#fff",
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
-              padding: 20,
-              maxHeight: "80%",
+              paddingBottom: Platform.OS === "ios" ? 34 : 24,
+              maxHeight: "90%",
             }}
           >
-            <View
-              style={{
-                width: 40,
-                height: 4,
-                borderRadius: 2,
-                backgroundColor: theme.border,
-                alignSelf: "center",
-                marginBottom: 16,
-              }}
-            />
+            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: "#e2e8f0", alignSelf: "center", marginTop: 12, marginBottom: 4 }} />
 
-            <KitText variant="h3" style={{ marginBottom: 16 }}>
-              {mode === "create" ? "Créer un groupe" : "Modifier le groupe"}
-            </KitText>
+            <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+              <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 }}>
+                <RNText style={{ fontSize: 18, fontWeight: "700", color: "#0f172a" }}>
+                  {mode === "create" ? "Créer un groupe" : "Modifier le groupe"}
+                </RNText>
+              </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
-              <View style={{ gap: 10 }}>
-                <KitText variant="muted" className="text-xs uppercase tracking-wider">
-                  Emoji
-                </KitText>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                  {EMOJIS.map((e) => (
-                    <TouchableOpacity
-                      key={e}
-                      onPress={() => setDraft((d) => ({ ...d, emoji: e }))}
-                      style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 12,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        backgroundColor:
-                          draft.emoji === e ? `${draft.color}20` : "transparent",
-                        borderWidth: draft.emoji === e ? 1 : 0,
-                        borderColor: draft.color,
-                      }}
-                    >
-                      <KitText style={{ fontSize: 18 }}>{e}</KitText>
-                    </TouchableOpacity>
-                  ))}
+              <View style={{ paddingHorizontal: 20, gap: 16 }}>
+                <View>
+                  <RNText style={{ fontSize: 12, fontWeight: "600", color: "#64748b", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    Emoji
+                  </RNText>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                    {EMOJIS.map((e) => (
+                      <TouchableOpacity
+                        key={e}
+                        onPress={() => setDraft((d) => ({ ...d, emoji: e }))}
+                        style={{
+                          width: 44,
+                          height: 44,
+                          borderRadius: 12,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          backgroundColor: draft.emoji === e ? `${draft.color}20` : "transparent",
+                          borderWidth: draft.emoji === e ? 1 : 0,
+                          borderColor: draft.color,
+                        }}
+                      >
+                        <RNText style={{ fontSize: 18 }}>{e}</RNText>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 </View>
-              </View>
 
-              <View style={{ gap: 10 }}>
-                <KitText variant="muted" className="text-xs uppercase tracking-wider">
-                  Couleur
-                </KitText>
-                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                  {COLORS.map((c) => (
-                    <TouchableOpacity
-                      key={c}
-                      onPress={() => setDraft((d) => ({ ...d, color: c }))}
-                      style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: 16,
-                        backgroundColor: c,
-                        borderWidth: draft.color === c ? 2 : 0,
-                        borderColor: "#fff",
-                      }}
-                    />
-                  ))}
+                <View>
+                  <RNText style={{ fontSize: 12, fontWeight: "600", color: "#64748b", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    Couleur
+                  </RNText>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+                    {COLORS.map((c) => (
+                      <TouchableOpacity
+                        key={c}
+                        onPress={() => setDraft((d) => ({ ...d, color: c }))}
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: 16,
+                          backgroundColor: c,
+                          borderWidth: draft.color === c ? 2 : 0,
+                          borderColor: "#fff",
+                        }}
+                      />
+                    ))}
+                  </View>
                 </View>
-              </View>
 
-              <View style={{ gap: 10 }}>
-                <KitText variant="muted" className="text-xs uppercase tracking-wider">
-                  Nom
-                </KitText>
-                <TextInput
-                  value={draft.name}
-                  onChangeText={(v) => setDraft((d) => ({ ...d, name: v }))}
-                  placeholder="Nom du groupe..."
-                  placeholderTextColor={theme.textHint}
-                  style={{
-                    backgroundColor: theme.surface,
-                    borderWidth: 1,
-                    borderColor: theme.border,
-                    borderRadius: 12,
-                    padding: 12,
-                    fontSize: 14,
-                    color: theme.textPrimary,
-                  }}
-                />
-              </View>
-
-              <View style={{ gap: 10 }}>
-                <KitText variant="muted" className="text-xs uppercase tracking-wider">
-                  Description
-                </KitText>
-                <TextInput
-                  value={draft.description}
-                  onChangeText={(v) => setDraft((d) => ({ ...d, description: v }))}
-                  placeholder="Optionnel"
-                  placeholderTextColor={theme.textHint}
-                  multiline
-                  numberOfLines={3}
-                  style={{
-                    backgroundColor: theme.surface,
-                    borderWidth: 1,
-                    borderColor: theme.border,
-                    borderRadius: 12,
-                    padding: 12,
-                    fontSize: 14,
-                    color: theme.textPrimary,
-                    textAlignVertical: "top",
-                  }}
-                />
-              </View>
-
-              <View style={{ flexDirection: "row", gap: 10, marginTop: 6 }}>
-                <TouchableOpacity
-                  onPress={() => setModalVisible(false)}
-                  style={{
-                    flex: 1,
-                    padding: 12,
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: theme.border,
-                    alignItems: "center",
-                  }}
-                >
-                  <KitText style={{ color: theme.textMuted, fontSize: 13 }}>
-                    Annuler
-                  </KitText>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={handleSave}
-                  disabled={!draft.name.trim()}
-                  style={{
-                    flex: 1,
-                    padding: 12,
-                    borderRadius: 14,
-                    backgroundColor: draft.name.trim() ? `${draft.color}20` : theme.bg,
-                    borderWidth: 1,
-                    borderColor: draft.name.trim() ? `${draft.color}40` : theme.border,
-                    alignItems: "center",
-                    opacity: draft.name.trim() ? 1 : 0.8,
-                  }}
-                >
-                  <KitText
+                <View>
+                  <RNText style={{ fontSize: 12, fontWeight: "600", color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    Nom
+                  </RNText>
+                  <TextInput
+                    value={draft.name}
+                    onChangeText={(v) => setDraft((d) => ({ ...d, name: v }))}
+                    placeholder="Nom du groupe..."
+                    placeholderTextColor="#94a3b8"
                     style={{
-                      color: draft.name.trim() ? draft.color : theme.textHint,
-                      fontSize: 13,
-                      fontWeight: "700",
+                      backgroundColor: "#f8fafc",
+                      borderWidth: 1,
+                      borderColor: "#e2e8f0",
+                      borderRadius: 12,
+                      padding: 14,
+                      fontSize: 15,
+                      color: "#0f172a",
                     }}
-                  >
-                    {mode === "create" ? "Créer" : "Enregistrer"}
-                  </KitText>
-                </TouchableOpacity>
+                  />
+                </View>
+
+                <View>
+                  <RNText style={{ fontSize: 12, fontWeight: "600", color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                    Description
+                  </RNText>
+                  <TextInput
+                    value={draft.description}
+                    onChangeText={(v) => setDraft((d) => ({ ...d, description: v }))}
+                    placeholder="Optionnel"
+                    placeholderTextColor="#94a3b8"
+                    multiline
+                    numberOfLines={3}
+                    style={{
+                      backgroundColor: "#f8fafc",
+                      borderWidth: 1,
+                      borderColor: "#e2e8f0",
+                      borderRadius: 12,
+                      padding: 14,
+                      fontSize: 15,
+                      color: "#0f172a",
+                      textAlignVertical: "top",
+                    }}
+                  />
+                </View>
               </View>
             </ScrollView>
 
-            <Button
-              label="Fermer"
-              variant="ghost"
-              onPress={() => setModalVisible(false)}
-              disabled={false}
-            />
+            <View style={{ flexDirection: "row", gap: 10, paddingHorizontal: 20, paddingTop: 16 }}>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={{ flex: 1, paddingVertical: 14, borderRadius: 14, alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1, borderColor: "#e2e8f0" }}
+              >
+                <RNText style={{ fontSize: 15, fontWeight: "600", color: "#64748b" }}>Annuler</RNText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleSave}
+                disabled={!draft.name.trim()}
+                style={{ flex: 2, paddingVertical: 14, borderRadius: 14, alignItems: "center", backgroundColor: "#10b981", opacity: !draft.name.trim() ? 0.5 : 1 }}
+              >
+                <RNText style={{ fontSize: 15, fontWeight: "600", color: "#fff" }}>
+                  {mode === "create" ? "Créer" : "Enregistrer"}
+                </RNText>
+              </TouchableOpacity>
+            </View>
           </View>
         </KeyboardAvoidingView>
       </Modal>

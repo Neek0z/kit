@@ -10,7 +10,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import { useTheme, STATUS_COLORS, StatusKey } from "../../lib/theme";
+import {
+  useTheme,
+  STATUS_COLORS,
+  StatusKey,
+  screenTitleTextStyle,
+} from "../../lib/theme";
 import { useDashboard } from "../../hooks/useDashboard";
 import { useAuthContext } from "../../lib/AuthContext";
 import { useSubscription } from "../../hooks/useSubscription";
@@ -138,14 +143,7 @@ export default function DashboardScreen() {
             >
               {getGreeting()}, {firstName}
             </Text>
-            <Text
-              style={{
-                fontSize: 30,
-                fontWeight: "800",
-                color: theme.textPrimary,
-                letterSpacing: -1,
-              }}
-            >
+            <Text style={screenTitleTextStyle(theme)}>
               Tableau de bord
             </Text>
           </View>

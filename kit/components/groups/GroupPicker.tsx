@@ -7,13 +7,11 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  Text,
+  Text as RNText,
 } from "react-native";
-import { Button, Text as KitText } from "../ui";
-import { GroupBadge } from "./GroupBadge";
+import { Feather } from "@expo/vector-icons";
 import { useGroups } from "../../hooks/useGroups";
 import { Group, MLM_GROUP_PRESETS } from "../../types";
-import { useTheme } from "../../lib/theme";
 
 const COLORS = [
   "#10b981",
@@ -42,7 +40,6 @@ export function GroupPicker({
   onRemove,
   onClose,
 }: GroupPickerProps) {
-  const theme = useTheme();
   const { groups, createGroup } = useGroups("contact");
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
@@ -74,33 +71,59 @@ export function GroupPicker({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1, justifyContent: "flex-end" }}
       >
+        <TouchableOpacity
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.4)",
+          }}
+          onPress={onClose}
+          activeOpacity={1}
+        />
+
         <View
           style={{
-            backgroundColor: theme.surface,
+            backgroundColor: "#fff",
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
-            padding: 20,
-            maxHeight: "80%",
+            paddingBottom: Platform.OS === "ios" ? 34 : 24,
+            maxHeight: "90%",
           }}
         >
-          {/* Handle */}
           <View
             style={{
               width: 40,
               height: 4,
               borderRadius: 2,
-              backgroundColor: theme.border,
+              backgroundColor: "#e2e8f0",
               alignSelf: "center",
-              marginBottom: 16,
+              marginTop: 12,
+              marginBottom: 4,
             }}
           />
 
-          <KitText variant="h3" style={{ marginBottom: 16 }}>
-            Groupes
-          </KitText>
+          <View
+            style={{
+              paddingHorizontal: 20,
+              paddingTop: 8,
+              paddingBottom: 16,
+            }}
+          >
+            <RNText
+              style={{ fontSize: 18, fontWeight: "700", color: "#0f172a" }}
+            >
+              Ajouter à un groupe
+            </RNText>
+          </View>
 
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {/* Groupes existants */}
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingHorizontal: 20 }}
+          >
             <View style={{ gap: 8, marginBottom: 16 }}>
               {groups.map((group) => {
                 const isSelected = selectedIds.has(group.id);
@@ -113,74 +136,58 @@ export function GroupPicker({
                     style={{
                       flexDirection: "row",
                       alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: 12,
-                      borderRadius: 14,
-                      backgroundColor: isSelected ? `${group.color}12` : theme.bg,
-                      borderWidth: 1,
-                      borderColor: isSelected
-                        ? `${group.color}35`
-                        : theme.border,
+                      paddingVertical: 14,
+                      paddingHorizontal: 4,
+                      gap: 12,
                     }}
                   >
                     <View
                       style={{
-                        flexDirection: "row",
+                        width: 36,
+                        height: 36,
+                        borderRadius: 10,
+                        backgroundColor: isSelected
+                          ? "#f0fdf4"
+                          : "#f8fafc",
                         alignItems: "center",
-                        gap: 10,
+                        justifyContent: "center",
                       }}
                     >
-                      <Text style={{ fontSize: 20 }}>{group.emoji}</Text>
-                      <View>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            fontWeight: "600",
-                            color: theme.textPrimary,
-                          }}
-                        >
-                          {group.name}
-                        </Text>
-                        {group.description && (
-                          <Text
-                            style={{
-                              fontSize: 11,
-                              color: theme.textMuted,
-                            }}
-                          >
-                            {group.description}
-                          </Text>
-                        )}
-                      </View>
+                      <RNText style={{ fontSize: 18 }}>
+                        {group.emoji}
+                      </RNText>
                     </View>
-                    {isSelected && (
-                      <View
+                    <View style={{ flex: 1 }}>
+                      <RNText
                         style={{
-                          width: 22,
-                          height: 22,
-                          borderRadius: 11,
-                          backgroundColor: group.color,
-                          alignItems: "center",
-                          justifyContent: "center",
+                          fontSize: 15,
+                          color: "#0f172a",
+                          fontWeight: "500",
                         }}
                       >
-                        <Text
+                        {group.name}
+                      </RNText>
+                      {group.description && (
+                        <RNText
                           style={{
-                            color: theme.textPrimary,
-                            fontSize: 13,
-                            fontWeight: "800",
+                            fontSize: 12,
+                            color: "#94a3b8",
+                            marginTop: 1,
                           }}
                         >
-                          ✓
-                        </Text>
-                      </View>
+                          {group.description}
+                        </RNText>
+                      )}
+                    </View>
+                    {isSelected && (
+                      <Feather name="check" size={18} color="#10b981" />
                     )}
                   </TouchableOpacity>
                 );
               })}
             </View>
 
-            {/* Créer un nouveau groupe */}
+            {/* Create a new group */}
             {!creating ? (
               <TouchableOpacity
                 onPress={() => setCreating(true)}
@@ -188,32 +195,44 @@ export function GroupPicker({
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 10,
-                  padding: 12,
-                  borderRadius: 14,
-                  borderWidth: 1,
-                  borderColor: theme.border,
-                  borderStyle: "dashed",
+                  paddingVertical: 14,
+                  paddingHorizontal: 4,
                 }}
               >
-                <Text style={{ fontSize: 20 }}>+</Text>
-                <Text
-                  style={{ fontSize: 14, color: theme.textMuted }}
+                <View
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    backgroundColor: "#f0fdf4",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="plus" size={16} color="#10b981" />
+                </View>
+                <RNText
+                  style={{
+                    fontSize: 15,
+                    color: "#10b981",
+                    fontWeight: "500",
+                  }}
                 >
                   Créer un groupe
-                </Text>
+                </RNText>
               </TouchableOpacity>
             ) : (
               <View
                 style={{
                   padding: 14,
                   borderRadius: 14,
-                  backgroundColor: theme.bg,
+                  backgroundColor: "#f8fafc",
                   borderWidth: 1,
-                  borderColor: theme.border,
+                  borderColor: "#e2e8f0",
                   gap: 12,
+                  marginBottom: 8,
                 }}
               >
-                {/* Emoji picker */}
                 <View
                   style={{
                     flexDirection: "row",
@@ -237,29 +256,27 @@ export function GroupPicker({
                         borderColor: newColor,
                       }}
                     >
-                      <Text style={{ fontSize: 18 }}>{e}</Text>
+                      <RNText style={{ fontSize: 18 }}>{e}</RNText>
                     </TouchableOpacity>
                   ))}
                 </View>
 
-                {/* Nom */}
                 <TextInput
                   value={newName}
                   onChangeText={setNewName}
                   placeholder="Nom du groupe..."
-                  placeholderTextColor={theme.textHint}
+                  placeholderTextColor="#94a3b8"
                   style={{
-                    backgroundColor: theme.surface,
+                    backgroundColor: "#fff",
                     borderWidth: 1,
-                    borderColor: theme.border,
-                    borderRadius: 10,
-                    padding: 10,
-                    fontSize: 14,
-                    color: theme.textPrimary,
+                    borderColor: "#e2e8f0",
+                    borderRadius: 12,
+                    padding: 14,
+                    fontSize: 15,
+                    color: "#0f172a",
                   }}
                 />
 
-                {/* Couleur picker */}
                 <View
                   style={{
                     flexDirection: "row",
@@ -283,67 +300,67 @@ export function GroupPicker({
                   ))}
                 </View>
 
-                <View style={{ flexDirection: "row", gap: 8 }}>
+                <View style={{ flexDirection: "row", gap: 10 }}>
                   <TouchableOpacity
                     onPress={() => setCreating(false)}
                     style={{
                       flex: 1,
-                      padding: 10,
-                      borderRadius: 10,
+                      paddingVertical: 12,
+                      borderRadius: 14,
                       borderWidth: 1,
-                      borderColor: theme.border,
+                      borderColor: "#e2e8f0",
                       alignItems: "center",
+                      backgroundColor: "#f8fafc",
                     }}
                   >
-                    <Text
+                    <RNText
                       style={{
-                        color: theme.textMuted,
-                        fontSize: 13,
+                        color: "#64748b",
+                        fontSize: 14,
+                        fontWeight: "600",
                       }}
                     >
                       Annuler
-                    </Text>
+                    </RNText>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={handleCreate}
                     style={{
                       flex: 1,
-                      padding: 10,
-                      borderRadius: 10,
-                      backgroundColor: `${newColor}20`,
-                      borderWidth: 1,
-                      borderColor: `${newColor}40`,
+                      paddingVertical: 12,
+                      borderRadius: 14,
+                      backgroundColor: "#10b981",
                       alignItems: "center",
                     }}
                   >
-                    <Text
+                    <RNText
                       style={{
-                        color: newColor,
-                        fontSize: 13,
+                        color: "#fff",
+                        fontSize: 14,
                         fontWeight: "600",
                       }}
                     >
                       Créer
-                    </Text>
+                    </RNText>
                   </TouchableOpacity>
                 </View>
               </View>
             )}
 
-            {/* Suggestions MLM si aucun groupe */}
             {groups.length === 0 && !creating && (
               <View style={{ marginTop: 16 }}>
-                <Text
+                <RNText
                   style={{
-                    fontSize: 11,
-                    color: theme.textMuted,
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: "#64748b",
                     marginBottom: 8,
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
                   }}
                 >
                   Suggestions MLM
-                </Text>
+                </RNText>
                 <View
                   style={{
                     flexDirection: "row",
@@ -361,24 +378,26 @@ export function GroupPicker({
                         flexDirection: "row",
                         alignItems: "center",
                         gap: 6,
-                        paddingHorizontal: 12,
-                        paddingVertical: 6,
+                        paddingHorizontal: 14,
+                        paddingVertical: 8,
                         borderRadius: 100,
-                        backgroundColor: `${preset.color}15`,
+                        backgroundColor: "#f0fdf4",
                         borderWidth: 1,
-                        borderColor: `${preset.color}30`,
+                        borderColor: "#10b981",
                       }}
                     >
-                      <Text style={{ fontSize: 13 }}>{preset.emoji}</Text>
-                      <Text
+                      <RNText style={{ fontSize: 13 }}>
+                        {preset.emoji}
+                      </RNText>
+                      <RNText
                         style={{
-                          fontSize: 12,
-                          color: preset.color,
-                          fontWeight: "500",
+                          fontSize: 13,
+                          color: "#10b981",
+                          fontWeight: "600",
                         }}
                       >
                         {preset.name}
-                      </Text>
+                      </RNText>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -386,22 +405,29 @@ export function GroupPicker({
             )}
           </ScrollView>
 
-          <TouchableOpacity
-            onPress={onClose}
-            style={{
-              marginTop: 16,
-              padding: 14,
-              borderRadius: 14,
-              borderWidth: 1,
-              borderColor: theme.border,
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: theme.textMuted, fontSize: 14 }}>Fermer</Text>
-          </TouchableOpacity>
+          <View style={{ paddingHorizontal: 20, paddingTop: 16 }}>
+            <TouchableOpacity
+              onPress={onClose}
+              style={{
+                paddingVertical: 14,
+                borderRadius: 14,
+                alignItems: "center",
+                backgroundColor: "#10b981",
+              }}
+            >
+              <RNText
+                style={{
+                  fontSize: 15,
+                  fontWeight: "600",
+                  color: "#fff",
+                }}
+              >
+                Confirmer
+              </RNText>
+            </TouchableOpacity>
+          </View>
         </View>
       </KeyboardAvoidingView>
     </Modal>
   );
 }
-
