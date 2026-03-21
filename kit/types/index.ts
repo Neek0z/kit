@@ -80,6 +80,9 @@ export interface Appointment {
   updated_at: string;
 }
 
+/** Parrain = ton accompagnement ; client_arrival = checklist « côté client » (arrivée). */
+export type WorkflowRole = "parrain" | "client_arrival";
+
 export interface WorkflowStep {
   id: string;
   user_id: string;
@@ -89,6 +92,8 @@ export interface WorkflowStep {
   interaction_type: InteractionType;
   is_active: boolean;
   sort_order: number;
+  /** Présent après migration SQL `workflow_roles_parrain_client.sql` ; défaut logique `parrain`. */
+  workflow_role?: WorkflowRole;
   created_at: string;
 }
 
@@ -103,6 +108,8 @@ export interface WorkflowTask {
   due_date: string;
   completed_at?: string;
   notification_id?: string;
+  /** Aligné sur l’étape source ; défaut logique `parrain`. */
+  workflow_role?: WorkflowRole;
   created_at: string;
 }
 
@@ -199,13 +206,31 @@ export interface Contact {
   updated_at: string;
 }
 
+/** Relance planifiée (remplace l’ancien couple tâches + seule next_follow_up). */
+export interface ContactRelance {
+  id: string;
+  user_id: string;
+  contact_id: string;
+  scheduled_at: string;
+  note?: string | null;
+  notification_id?: string | null;
+  done_at?: string | null;
+  created_at: string;
+  updated_at?: string;
+}
+
 export type ConversationId = string;
 export type MessageId = string;
+
+export type ConversationKind = "direct" | "group";
 
 export interface Conversation {
   id: ConversationId;
   created_at: string;
   updated_at: string;
+  kind?: ConversationKind;
+  /** Groupe de contacts source (messagerie de groupe). */
+  source_group_id?: string | null;
   participants?: { user_id: UserId; profile?: UserProfile }[];
   last_message?: Message;
   unread_count?: number;

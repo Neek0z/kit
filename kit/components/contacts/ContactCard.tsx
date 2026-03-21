@@ -3,7 +3,7 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Text, Avatar, StatusPill } from "../ui";
 import { Contact, PipelineStatus } from "../../types";
-import { useContactTasks } from "../../hooks/useContactTasks";
+import { usePendingRelancesCount } from "../../hooks/useContactRelances";
 import { useTheme, STATUS_COLORS, StatusKey } from "../../lib/theme";
 
 const STATUS_PROGRESS: Record<PipelineStatus, number> = {
@@ -22,7 +22,7 @@ interface ContactCardProps {
 }
 
 export function ContactCard({ contact }: ContactCardProps) {
-  const { pendingCount } = useContactTasks(contact.id);
+  const { pendingCount } = usePendingRelancesCount(contact.id);
   const theme = useTheme();
   const progress = STATUS_PROGRESS[contact.status as PipelineStatus] ?? 0;
   const progressPercent = (progress / TOTAL_STEPS) * 100;

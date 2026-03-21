@@ -30,6 +30,7 @@ import type { GroupType } from "../../../types";
 import { useContacts } from "../../../hooks/useContacts";
 import { useGroupMembers } from "../../../hooks/useGroupMembers";
 import { useGroups } from "../../../hooks/useGroups";
+import { useStartGroupConversation } from "../../../hooks/useStartGroupConversation";
 
 function RenameGroupModal({
   visible,
@@ -179,6 +180,9 @@ export default function GroupMembersScreen() {
 
   const [search, setSearch] = useState("");
   const [renameVisible, setRenameVisible] = useState(false);
+  const [openingChat, setOpeningChat] = useState(false);
+
+  const { startGroupChatFromContactGroup } = useStartGroupConversation();
 
   useEffect(() => {
     refetchGroups();
@@ -197,6 +201,28 @@ export default function GroupMembersScreen() {
       return inName || inPhone || inEmail;
     });
   }, [contacts, memberIds, search]);
+
+  const openGroupInbox = async () => {
+    if (!group) return;
+    setOpeningChat(true);
+    try {
+      const res = await startGroupChatFromContactGroup(group.id);
+      if (res.error) {
+        Alert.alert("Messagerie de groupe", res.error);
+        return;
+      }
+      if (res.conversationId) {
+        if (res.skipped && res.skipped.length > 0) {
+          showToast(
+            `${res.skipped.length} contact(s) sans compte KIT ou sans email`
+          );
+        }
+        router.push(`/(app)/messages/${res.conversationId}`);
+      }
+    } finally {
+      setOpeningChat(false);
+    }
+  };
 
   const handleDelete = () => {
     if (!group) return;
@@ -279,6 +305,59 @@ export default function GroupMembersScreen() {
                 </TouchableOpacity>
               </View>
             </View>
+          </Card>
+        ) : null}
+
+        {group ? (
+          <Card style={{ marginTop: 12 }}>
+            <TouchableOpacity
+              onPress={openGroupInbox}
+              disabled={openingChat}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 14,
+                opacity: openingChat ? 0.7 : 1,
+              }}
+              accessibilityLabel="Ouvrir la messagerie du groupe"
+            >
+              {openingChat ? (
+                <ActivityIndicator color={theme.primary} />
+              ) : (
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 14,
+                    backgroundColor: theme.primaryBg,
+                    borderWidth: 1,
+                    borderColor: theme.primaryBorder,
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="message-circle" size={20} color={theme.primary} />
+                </View>
+              )}
+              <View style={{ flex: 1 }}>
+                <KitText
+                  style={{
+                    fontSize: 15,
+                    fontWeight: "700",
+                    color: theme.textPrimary,
+                  }}
+                >
+                  Messagerie du groupe
+                </KitText>
+                <KitText variant="muted" className="text-xs mt-1 leading-relaxed">
+                  Conversation avec tous les membres qui ont un compte KIT (email du
+                  contact).
+                </KitText>
+              </View>
+              {!openingChat && (
+                <Feather name="chevron-right" size={20} color={theme.textMuted} />
+              )}
+            </TouchableOpacity>
           </Card>
         ) : null}
       </View>

@@ -19,11 +19,10 @@ import {
 } from "../../../components/ui";
 import {
   AddInteractionSheet,
-  FollowUpPicker,
   TagsEditor,
   PipelineArc,
   WorkflowTimeline,
-  ContactTasksSection,
+  ContactRelancesSection,
   ContactTabBar,
   type ContactTabKey,
 } from "../../../components/contacts";
@@ -32,22 +31,14 @@ import { useContacts } from "../../../hooks/useContacts";
 import { useConversations } from "../../../hooks/useConversations";
 import { useInteractions } from "../../../hooks/useInteractions";
 import { useAppointments } from "../../../hooks/useAppointments";
-import { useContactTasks } from "../../../hooks/useContactTasks";
+import { usePendingRelancesCount } from "../../../hooks/useContactRelances";
 import type { Appointment } from "../../../types";
 import { useToast } from "../../../lib/ToastContext";
-import {
-  scheduleFollowUpNotification,
-  cancelNotification,
-  scheduleFollowUpNotificationInSeconds,
-  getReminderTime,
-} from "../../../lib/notifications";
 import {
   PipelineStatus,
   INTERACTION_LABELS,
   INTERACTION_ICONS,
   InteractionType,
-  FollowUpRecurrence,
-  FOLLOW_UP_RECURRENCE_LABELS,
 } from "../../../types";
 import { useTheme } from "../../../lib/theme";
 import { useContactGroups } from "../../../hooks/useContactGroups";
@@ -58,7 +49,8 @@ type FeatherName = React.ComponentProps<typeof Feather>["name"];
 export default function ContactDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const theme = useTheme();
-  const { contacts, deleteContact, updateContact } = useContacts();
+  const { contacts, deleteContact, updateContact, refetch: refetchContacts } =
+    useContacts();
   const { conversations } = useConversations();
   const { interactions, addInteraction } = useInteractions(id ?? "");
   const {
@@ -67,7 +59,9 @@ export default function ContactDetailScreen() {
     updateAppointment,
     deleteAppointment,
   } = useAppointments({ contactId: id ?? null });
-  const { pendingCount } = useContactTasks(id ?? "");
+  const { pendingCount: relancePendingCount } = usePendingRelancesCount(
+    id ?? ""
+  );
   const { showToast } = useToast();
   const [showSheet, setShowSheet] = useState(false);
   const [appointmentSheetVisible, setAppointmentSheetVisible] = useState(false);
@@ -152,107 +146,6 @@ export default function ContactDetailScreen() {
         `/(app)/messages/new?email=${encodeURIComponent(contact.email)}`
       );
     }
-  };
-
-  const handleTestNotification = async () => {
-    try {
-      await scheduleFollowUpNotificationInSeconds(
-        contact.full_name,
-        contact.id,
-        60
-      );
-      Alert.alert(
-        "Test rappel",
-        "Un rappel est programmé dans 1 minute. Mets l’app en arrière-plan ou verrouille l’écran pour voir la notification."
-      );
-    } catch {
-      Alert.alert(
-        "Erreur",
-        "Impossible de planifier le test (Expo Go ? Essaie un build de dev)."
-      );
-    }
-  };
-
-  const handleFollowUpChange = async (date: Date | null) => {
-    try {
-      if (contact.notification_id) {
-        await cancelNotification(contact.notification_id);
-      }
-
-      const { hour, minute } = await getReminderTime();
-
-      let notificationId: string | undefined;
-
-      if (date) {
-        const notifDate = new Date(date);
-        notifDate.setHours(hour, minute, 0, 0);
-        notificationId = await scheduleFollowUpNotification(
-          contact.full_name,
-          contact.id,
-          notifDate
-        );
-      }
-
-      const nextDate = date
-        ? (() => {
-            const d = new Date(date);
-            d.setHours(hour, minute, 0, 0);
-            return d.toISOString();
-          })()
-        : null;
-      const result = await updateContact(contact.id, {
-        next_follow_up: nextDate,
-        notification_id: notificationId ?? null,
-      });
-      if (!result.ok) {
-        Alert.alert(
-          "Erreur",
-          result.errorMessage ?? "Impossible d'enregistrer la date de relance."
-        );
-      } else {
-        showToast("Relance programmée");
-      }
-    } catch {
-      Alert.alert("Erreur", "Impossible de planifier le rappel.");
-    }
-  };
-
-  const recurrence =
-    (contact.follow_up_recurrence as FollowUpRecurrence) ?? "none";
-
-  const handleRecurrenceChange = async (value: FollowUpRecurrence) => {
-    const v = value === "none" ? null : value;
-    await updateContact(contact.id, { follow_up_recurrence: v });
-  };
-
-  const handleReprogramByRecurrence = async () => {
-    if (recurrence === "none") return;
-    const { hour, minute } = await getReminderTime();
-    const d = new Date();
-    d.setHours(hour, minute, 0, 0);
-    if (recurrence === "weekly") d.setDate(d.getDate() + 7);
-    else if (recurrence === "biweekly") d.setDate(d.getDate() + 14);
-    else if (recurrence === "monthly") d.setMonth(d.getMonth() + 1);
-    handleFollowUpChange(d);
-  };
-
-  const handleMarkAsFollowedUp = async () => {
-    if (contact.notification_id) {
-      await cancelNotification(contact.notification_id);
-    }
-    const result = await updateContact(contact.id, {
-      next_follow_up: null,
-      notification_id: null,
-    });
-    if (!result.ok) {
-      Alert.alert(
-        "Erreur",
-        result.errorMessage ?? "Impossible de mettre à jour le contact."
-      );
-      return;
-    }
-    await addInteraction(contact.id, "note", "Relance effectuée");
-    showToast("Marqué comme relancé");
   };
 
   const upcomingAppointments = (contactAppointments as Appointment[]).filter(
@@ -458,7 +351,8 @@ export default function ContactDetailScreen() {
         onTabChange={setActiveTab}
         showWorkflow={isClient}
         badges={{
-          taches: pendingCount > 0 ? pendingCount : undefined,
+          relance:
+            relancePendingCount > 0 ? relancePendingCount : undefined,
           historique:
             interactions.length > 0 ? interactions.length : undefined,
         }}
@@ -763,163 +657,30 @@ export default function ContactDetailScreen() {
           </View>
         )}
 
-        {/* ─── ONGLET TÂCHES ─── */}
-        {activeTab === "taches" && (
-          <ContactTasksSection contactId={contact.id} />
-        )}
-
         {/* ─── ONGLET WORKFLOW ─── */}
         {activeTab === "workflow" && isClient && (
-          <View style={{ gap: 10 }}>
-            <WorkflowTimeline contactId={contact.id} />
+          <View style={{ gap: 12 }}>
+            <WorkflowTimeline
+              contactId={contact.id}
+              workflowRole="parrain"
+              sectionTitle="Workflow parrain"
+            />
+            <WorkflowTimeline
+              contactId={contact.id}
+              workflowRole="client_arrival"
+              sectionTitle="Arrivée client (checklist)"
+            />
           </View>
         )}
 
-        {/* ─── ONGLET RELANCE ─── */}
+        {/* ─── ONGLET RELANCES ─── */}
         {activeTab === "relance" && (
-          <View style={{ gap: 10 }}>
-            <Card>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 8,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 10,
-                    color: theme.textHint,
-                    textTransform: "uppercase",
-                    letterSpacing: 0.8,
-                    fontWeight: "600",
-                  }}
-                >
-                  Prochaine relance
-                </Text>
-                {contact.next_follow_up && (
-                  <TouchableOpacity onPress={() => handleFollowUpChange(null)}>
-                    <Text style={{ fontSize: 11, color: theme.primary }}>
-                      Supprimer
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {contact.next_follow_up && (
-                <Card
-                  style={{
-                    backgroundColor: theme.primaryBg,
-                    borderColor: theme.primaryBorder,
-                    marginBottom: 12,
-                  }}
-                >
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                    }}
-                  >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 8,
-                        flex: 1,
-                      }}
-                    >
-                      <Feather name="calendar" size={15} color={theme.primary} />
-                      <Text
-                        style={{
-                          fontSize: 14,
-                          fontWeight: "600",
-                          color: theme.primary,
-                          flex: 1,
-                        }}
-                      >
-                        {new Date(contact.next_follow_up).toLocaleDateString(
-                          "fr-FR",
-                          {
-                            weekday: "long",
-                            day: "numeric",
-                            month: "long",
-                          }
-                        )}
-                      </Text>
-                    </View>
-                  </View>
-                </Card>
-              )}
-
-              <FollowUpPicker
-                value={contact.next_follow_up}
-                onChange={handleFollowUpChange}
-              />
-
-              <View style={{ marginTop: 12 }}>
-                <KitText variant="muted" className="text-sm font-medium mb-2">
-                  Répéter
-                </KitText>
-                <View className="flex-row flex-wrap gap-2">
-                  {(
-                    ["none", "weekly", "biweekly", "monthly"] as FollowUpRecurrence[]
-                  ).map((r) => (
-                    <TouchableOpacity
-                      key={r}
-                      onPress={() => handleRecurrenceChange(r)}
-                      className={`px-3 py-2 rounded-lg border ${
-                        recurrence === r
-                          ? "bg-primary border-primary"
-                          : "bg-surface dark:bg-surface-dark border-border dark:border-border-dark"
-                      }`}
-                    >
-                      <Text
-                        className={`text-sm ${
-                          recurrence === r
-                            ? "text-onPrimary font-medium"
-                            : "text-textMuted dark:text-textMuted-dark"
-                        }`}
-                      >
-                        {FOLLOW_UP_RECURRENCE_LABELS[r]}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              {recurrence !== "none" && (
-                <TouchableOpacity
-                  onPress={handleReprogramByRecurrence}
-                  className="mt-3 py-2 flex-row items-center gap-2"
-                >
-                  <Feather name="refresh-cw" size={14} color={theme.primary} />
-                  <Text className="text-primary text-sm font-medium">
-                    Reprogrammer selon la récurrence
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              {contact.next_follow_up && (
-                <TouchableOpacity
-                  onPress={handleMarkAsFollowedUp}
-                  className="mt-3 py-2 flex-row items-center gap-2"
-                >
-                  <Feather name="check-circle" size={14} color={theme.primary} />
-                  <Text className="text-primary text-sm font-medium">
-                    Marquer comme relancé
-                  </Text>
-                </TouchableOpacity>
-              )}
-
-              <TouchableOpacity onPress={handleTestNotification} className="mt-3 py-2">
-                <KitText variant="muted" className="text-xs">
-                  Test : rappel dans 1 min →
-                </KitText>
-              </TouchableOpacity>
-            </Card>
-          </View>
+          <ContactRelancesSection
+            contact={contact}
+            updateContact={updateContact}
+            addInteraction={addInteraction}
+            refetchContacts={refetchContacts}
+          />
         )}
 
         {/* ─── ONGLET HISTORIQUE ─── */}

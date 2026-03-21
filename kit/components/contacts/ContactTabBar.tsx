@@ -4,7 +4,6 @@ import { useTheme } from "../../lib/theme";
 export type ContactTabKey =
   | "infos"
   | "groupes"
-  | "taches"
   | "workflow"
   | "relance"
   | "historique";
@@ -33,7 +32,6 @@ export function ContactTabBar({
   const tabs: Tab[] = [
     { key: "infos", label: "Infos" },
     { key: "groupes", label: "Groupes" },
-    { key: "taches", label: "Tâches", badge: badges.taches },
     ...(showWorkflow
       ? [
           {
@@ -43,7 +41,7 @@ export function ContactTabBar({
           },
         ]
       : []),
-    { key: "relance", label: "Relance" },
+    { key: "relance", label: "Relances", badge: badges.relance },
     { key: "historique", label: "Historique", badge: badges.historique },
   ];
 

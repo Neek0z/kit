@@ -7,6 +7,9 @@ import {
   TextInput,
   TouchableOpacity,
   RefreshControl,
+  Alert,
+  Platform,
+  ActionSheetIOS,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -27,11 +30,38 @@ export default function MessagesScreen() {
     const q = search.trim().toLowerCase();
     if (!q) return conversations;
     return conversations.filter((c) => {
+      if (c.kind === "group") {
+        const name = c.groupPreview?.name?.toLowerCase() ?? "";
+        return name.includes(q);
+      }
       const name = c.otherParticipant?.full_name?.toLowerCase() ?? "";
       const email = c.otherParticipant?.email?.toLowerCase() ?? "";
       return name.includes(q) || email.includes(q);
     });
   }, [conversations, search]);
+
+  const openNewConversationMenu = () => {
+    const goDirect = () => router.push("/(app)/messages/new");
+    const goGroup = () => router.push("/(app)/messages/group-pick");
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ["Annuler", "Conversation 1-1", "Groupe de contacts"],
+          cancelButtonIndex: 0,
+        },
+        (i) => {
+          if (i === 1) goDirect();
+          if (i === 2) goGroup();
+        }
+      );
+    } else {
+      Alert.alert("Nouveau", "Type de conversation", [
+        { text: "Annuler", style: "cancel" },
+        { text: "Conversation 1-1", onPress: goDirect },
+        { text: "Groupe de contacts", onPress: goGroup },
+      ]);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -71,8 +101,8 @@ export default function MessagesScreen() {
         title="Messages"
         rightAction={{
           icon: "plus",
-          onPress: () => router.push("/(app)/messages/new"),
-          accessibilityLabel: "Nouvelle conversation",
+          onPress: openNewConversationMenu,
+          accessibilityLabel: "Nouvelle conversation ou groupe",
         }}
       />
       {error && (
@@ -103,9 +133,9 @@ export default function MessagesScreen() {
       {conversations.length === 0 ? (
         <EmptyState
           title="Aucune conversation"
-          description="Démarre une conversation avec un autre utilisateur KIT en entrant son email."
+          description="Écris en 1-1 avec l’email d’un utilisateur KIT, ou ouvre une messagerie de groupe depuis tes groupes de contacts."
           actionLabel="Nouvelle conversation"
-          onAction={() => router.push("/(app)/messages/new")}
+          onAction={openNewConversationMenu}
         />
       ) : filtered.length === 0 ? (
         <View className="px-5 py-8">

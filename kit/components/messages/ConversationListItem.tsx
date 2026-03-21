@@ -23,8 +23,12 @@ function formatLastMessageTime(iso: string) {
 
 export function ConversationListItem({ conversation }: ConversationListItemProps) {
   const router = useRouter();
+  const isGroup = conversation.kind === "group";
   const other = conversation.otherParticipant;
-  const displayName = other?.full_name || other?.email || "Utilisateur";
+  const gp = conversation.groupPreview;
+  const displayName = isGroup
+    ? gp?.name ?? "Groupe"
+    : other?.full_name || other?.email || "Utilisateur";
   const preview = conversation.lastMessage?.content;
   const trimmedPreview =
     preview && preview.length > 45 ? preview.slice(0, 45) + "…" : preview;
@@ -41,11 +45,24 @@ export function ConversationListItem({ conversation }: ConversationListItemProps
       activeOpacity={1}
     >
       <View className="relative">
-        <Avatar
-          name={displayName}
-          url={other?.avatar_url}
-          size="md"
-        />
+        {isGroup ? (
+          <View
+            className="w-12 h-12 rounded-full items-center justify-center"
+            style={{
+              backgroundColor: gp?.color ? `${gp.color}22` : "#1e293b",
+              borderWidth: 1,
+              borderColor: gp?.color ? `${gp.color}55` : "#334155",
+            }}
+          >
+            <Text className="text-2xl">{gp?.emoji ?? "👥"}</Text>
+          </View>
+        ) : (
+          <Avatar
+            name={displayName}
+            url={other?.avatar_url}
+            size="md"
+          />
+        )}
         {unread > 0 && (
           <View className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-primary items-center justify-center px-1">
             <Text className="text-[10px] font-bold text-onPrimary" numberOfLines={1}>
@@ -56,7 +73,7 @@ export function ConversationListItem({ conversation }: ConversationListItemProps
       </View>
       <View className="flex-1 min-w-0">
         <View className="flex-row items-center justify-between gap-2">
-          <Text className={`text-base font-semibold ${unread > 0 ? "text-textMain dark:text-textMain-dark" : "text-textMain dark:text-textMain-dark"}`} numberOfLines={1}>
+          <Text className={`text-base font-semibold flex-1 ${unread > 0 ? "text-textMain dark:text-textMain-dark" : "text-textMain dark:text-textMain-dark"}`} numberOfLines={1}>
             {displayName}
           </Text>
           {time && (
@@ -65,6 +82,12 @@ export function ConversationListItem({ conversation }: ConversationListItemProps
             </Text>
           )}
         </View>
+        {isGroup && (
+          <Text variant="muted" className="text-xs mt-0.5">
+            Groupe · {conversation.participantCount} participant
+            {conversation.participantCount > 1 ? "s" : ""}
+          </Text>
+        )}
         {trimmedPreview && (
           <Text
             variant="muted"

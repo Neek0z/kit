@@ -3,7 +3,10 @@ import { supabase } from "../lib/supabase";
 import { updateWidgetData } from "../lib/widgetData";
 import { Contact } from "../types";
 import { useAuthContext } from "../lib/AuthContext";
-import { triggerClientWorkflow, cancelClientWorkflow } from "../lib/workflowService";
+import {
+  triggerAllClientWorkflows,
+  cancelClientWorkflow,
+} from "../lib/workflowService";
 import { Alert } from "react-native";
 
 interface UseContactsReturn {
@@ -109,17 +112,21 @@ export function useContacts(): UseContactsReturn {
       prev.map((c) => (c.id === id ? { ...c, ...data } : c))
     );
 
-    // Passage vers Client → proposer de créer le workflow d'accompagnement
+    // Passage vers Client → workflows parrain + checklist arrivée client
     if (data.status === "client" && currentContact?.status !== "client" && user) {
       Alert.alert(
-        "Activer le workflow Client ?",
-        "En passant ce contact en Client, KIT peut créer automatiquement une série de relances planifiées avec notifications. Veux-tu activer ce workflow pour ce contact ?",
+        "Activer les workflows Client ?",
+        "KIT peut créer deux séries de rappels avec notifications : ton accompagnement parrain, et une checklist « arrivée client » (formalités côté client). Tu peux configurer les étapes dans Paramètres.",
         [
           { text: "Non", style: "cancel" },
           {
             text: "Oui",
             onPress: () => {
-              triggerClientWorkflow(user.id, id, currentContact?.full_name ?? "");
+              triggerAllClientWorkflows(
+                user.id,
+                id,
+                currentContact?.full_name ?? ""
+              );
             },
           },
         ]
@@ -134,7 +141,7 @@ export function useContacts(): UseContactsReturn {
     ) {
       Alert.alert(
         "Retirer le statut Client ?",
-        "Le workflow d'accompagnement en cours pour ce contact sera annulé.",
+        "Les workflows en cours (parrain et arrivée client) pour ce contact seront annulés.",
         [
           { text: "Annuler", style: "cancel" },
           {

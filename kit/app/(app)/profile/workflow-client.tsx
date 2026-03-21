@@ -3,15 +3,15 @@ import { Header } from "../../../components/layout";
 import { WorkflowStepsSettingsContent } from "../../../components/profile/WorkflowStepsSettingsContent";
 import { useTheme } from "../../../lib/theme";
 
-export default function WorkflowParrainSettingsScreen() {
+export default function WorkflowClientArrivalSettingsScreen() {
   const theme = useTheme();
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      <Header title="Workflow parrain" showBack />
+      <Header title="Arrivée client" showBack />
       <WorkflowStepsSettingsContent
-        workflowRole="parrain"
-        intro="Ces étapes créent des rappels pour toi (parrain) quand un contact passe en statut « Client ». Active ou désactive chaque étape selon ton mode d'accompagnement."
+        workflowRole="client_arrival"
+        intro="Checklist des actions à suivre « côté client » (formalités, documents, rendez-vous d’arrivée). Tu coches ici ce qui est fait ; les rappels t’aident à piloter l’onboarding du client."
       />
     </SafeAreaView>
   );

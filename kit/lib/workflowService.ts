@@ -3,22 +3,24 @@ import {
   scheduleFollowUpNotification,
   cancelNotification,
 } from "./notifications";
-import type { WorkflowStep, WorkflowTask } from "../types";
+import type { WorkflowRole, WorkflowStep, WorkflowTask } from "../types";
 
-export async function triggerClientWorkflow(
+async function insertTasksForRole(
   userId: string,
   contactId: string,
-  contactName: string
+  contactName: string,
+  role: WorkflowRole
 ): Promise<void> {
   const { data: steps, error } = await supabase
     .from("workflow_steps")
     .select("*")
     .eq("user_id", userId)
+    .eq("workflow_role", role)
     .eq("is_active", true)
     .order("sort_order", { ascending: true });
 
   if (error || !steps || steps.length === 0) {
-    console.warn("Aucune étape de workflow trouvée.");
+    if (error) console.warn(`workflow_steps (${role}):`, error.message);
     return;
   }
 
@@ -26,10 +28,11 @@ export async function triggerClientWorkflow(
     .from("workflow_tasks")
     .select("id")
     .eq("contact_id", contactId)
+    .eq("workflow_role", role)
     .limit(1);
 
   if (existing && existing.length > 0) {
-    console.log("Workflow déjà en cours pour ce contact.");
+    console.log(`Workflow ${role} déjà en cours pour ce contact.`);
     return;
   }
 
@@ -47,6 +50,7 @@ export async function triggerClientWorkflow(
       description: step.description,
       interaction_type: step.interaction_type,
       due_date: dueDate.toISOString(),
+      workflow_role: role,
     };
   });
 
@@ -56,16 +60,19 @@ export async function triggerClientWorkflow(
     .select();
 
   if (insertError || !insertedTasks) {
-    console.error("Erreur création workflow tasks:", insertError);
+    console.error(`Erreur création workflow_tasks (${role}):`, insertError);
     return;
   }
+
+  const label =
+    role === "parrain" ? contactName : `${contactName} — arrivée client`;
 
   for (const task of insertedTasks as WorkflowTask[]) {
     const dueDate = new Date(task.due_date);
     if (dueDate > now) {
       try {
         const notifId = await scheduleFollowUpNotification(
-          `${contactName} — ${task.title}`,
+          `${label} — ${task.title}`,
           contactId,
           dueDate
         );
@@ -79,6 +86,43 @@ export async function triggerClientWorkflow(
       }
     }
   }
+}
+
+/** Accompagnement parrain (relances / actions à faire pour toi). */
+export async function triggerParrainWorkflow(
+  userId: string,
+  contactId: string,
+  contactName: string
+): Promise<void> {
+  await insertTasksForRole(userId, contactId, contactName, "parrain");
+}
+
+/** Checklist « côté client » (arrivée, formalités). */
+export async function triggerClientArrivalWorkflow(
+  userId: string,
+  contactId: string,
+  contactName: string
+): Promise<void> {
+  await insertTasksForRole(userId, contactId, contactName, "client_arrival");
+}
+
+/** @deprecated Utiliser triggerParrainWorkflow */
+export async function triggerClientWorkflow(
+  userId: string,
+  contactId: string,
+  contactName: string
+): Promise<void> {
+  return triggerParrainWorkflow(userId, contactId, contactName);
+}
+
+/** Au passage en client : les deux workflows si des étapes actives existent. */
+export async function triggerAllClientWorkflows(
+  userId: string,
+  contactId: string,
+  contactName: string
+): Promise<void> {
+  await triggerParrainWorkflow(userId, contactId, contactName);
+  await triggerClientArrivalWorkflow(userId, contactId, contactName);
 }
 
 export async function cancelClientWorkflow(
@@ -111,4 +155,3 @@ export async function completeWorkflowTask(taskId: string): Promise<void> {
     .update({ completed_at: new Date().toISOString() })
     .eq("id", taskId);
 }
-

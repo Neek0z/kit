@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { useLocalSearchParams } from "expo-router";
 import {
   View,
@@ -27,16 +27,33 @@ export default function ConversationScreen() {
   const { user } = useAuthContext();
   const listRef = useRef<FlatList>(null);
   const theme = useTheme();
-  const { otherParticipant, loading: detailsLoading } = useConversationDetails(id ?? null);
-  const { messages, loading: messagesLoading, sending, sendMessage } = useMessages(id ?? null);
+  const { showToast } = useToast();
+  const {
+    otherParticipant,
+    isGroup,
+    groupPreview,
+    participants,
+    loading: detailsLoading,
+  } = useConversationDetails(id ?? null);
+  const { messages, loading: messagesLoading, sending, sendMessage } =
+    useMessages(id ?? null);
   const { contacts } = useContacts();
-  const contactMatch = otherParticipant?.email
-    ? contacts.find(
-        (c) =>
-          c.email?.toLowerCase() === otherParticipant.email?.toLowerCase()
-      )
-    : null;
+  const contactMatch =
+    !isGroup && otherParticipant?.email
+      ? contacts.find(
+          (c) =>
+            c.email?.toLowerCase() === otherParticipant.email?.toLowerCase()
+        )
+      : null;
   const { addInteraction } = useInteractions(contactMatch?.id ?? "");
+
+  const senderLabelByUserId = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const p of participants) {
+      m.set(p.id, p.full_name?.trim() || p.email || "Membre");
+    }
+    return m;
+  }, [participants]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -44,12 +61,23 @@ export default function ConversationScreen() {
     }
   }, [messages.length]);
 
-  const displayName = otherParticipant?.full_name || otherParticipant?.email || "Conversation";
+  const displayName = isGroup
+    ? groupPreview?.name ?? "Groupe"
+    : otherParticipant?.full_name || otherParticipant?.email || "Conversation";
 
-  if (detailsLoading && !otherParticipant) {
+  const subtitle = isGroup
+    ? `${participants.length} participant${participants.length > 1 ? "s" : ""}`
+    : otherParticipant?.email;
+
+  if (detailsLoading) {
     return (
       <SafeAreaView
-        style={{ flex: 1, backgroundColor: theme.bg, alignItems: "center", justifyContent: "center" }}
+        style={{
+          flex: 1,
+          backgroundColor: theme.bg,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
         <ActivityIndicator color={theme.primary} />
       </SafeAreaView>
@@ -58,7 +86,6 @@ export default function ConversationScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Ligne décorative */}
       <View
         style={{
           height: 1,
@@ -70,7 +97,7 @@ export default function ConversationScreen() {
       <Header
         title={displayName}
         showBack
-        subtitle={otherParticipant?.email}
+        subtitle={subtitle}
         rightAction={
           contactMatch
             ? {
@@ -81,10 +108,21 @@ export default function ConversationScreen() {
             : undefined
         }
       />
-      {contactMatch && (
+      {isGroup && !groupPreview && (
+        <View className="mx-5 py-2 border-b border-border dark:border-border-dark">
+          <Text variant="muted" className="text-xs">
+            Le groupe source a été supprimé — la conversation reste disponible.
+          </Text>
+        </View>
+      )}
+      {contactMatch && !isGroup && (
         <TouchableOpacity
           onPress={async () => {
-            const ok = await addInteraction(contactMatch.id, "message", "Conversation KIT");
+            const ok = await addInteraction(
+              contactMatch.id,
+              "message",
+              "Conversation KIT"
+            );
             if (ok) {
               showToast("Interaction ajoutée");
               router.push(`/(app)/contacts/${contactMatch.id}`);
@@ -123,6 +161,11 @@ export default function ConversationScreen() {
                 <MessageBubble
                   message={item}
                   isOwn={item.sender_id === user?.id}
+                  senderLabel={
+                    isGroup && item.sender_id !== user?.id
+                      ? senderLabelByUserId.get(item.sender_id) ?? "Membre"
+                      : undefined
+                  }
                 />
               </View>
             )}

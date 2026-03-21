@@ -4,17 +4,28 @@ import { Feather } from "@expo/vector-icons";
 import { supabase } from "../../lib/supabase";
 import { completeWorkflowTask } from "../../lib/workflowService";
 import { Text, Card } from "../ui";
-import { WorkflowTask, INTERACTION_ICONS, InteractionType } from "../../types";
+import {
+  WorkflowTask,
+  INTERACTION_ICONS,
+  InteractionType,
+  type WorkflowRole,
+} from "../../types";
 import { useTheme } from "../../lib/theme";
 
 interface WorkflowTimelineProps {
   contactId: string;
+  /** Filtre les tâches : parrain (ton suivi) ou client_arrival (checklist arrivée). */
+  workflowRole: WorkflowRole;
+  /** Titre de la carte (ex. « Workflow parrain »). */
+  sectionTitle: string;
   expanded?: boolean;
   onToggle?: () => void;
 }
 
 export function WorkflowTimeline({
   contactId,
+  workflowRole,
+  sectionTitle,
   expanded = true,
   onToggle,
 }: WorkflowTimelineProps) {
@@ -31,6 +42,7 @@ export function WorkflowTimeline({
         .from("workflow_tasks")
         .select("*")
         .eq("contact_id", contactId)
+        .eq("workflow_role", workflowRole)
         .order("due_date", { ascending: true });
 
       if (cancelled) return;
@@ -54,7 +66,7 @@ export function WorkflowTimeline({
       cancelled = true;
       if (retryTimeout) clearTimeout(retryTimeout);
     };
-  }, [contactId]);
+  }, [contactId, workflowRole]);
 
   const handleComplete = (task: WorkflowTask) => {
     Alert.alert("Marquer comme fait", `Valider "${task.title}" ?`, [
@@ -93,7 +105,7 @@ export function WorkflowTimeline({
           color: theme.textHint,
         }}
       >
-        Workflow client
+        {sectionTitle}
       </Text>
 
       <View className="flex-row items-center" style={{ gap: 6 }}>

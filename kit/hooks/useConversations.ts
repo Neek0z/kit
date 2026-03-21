@@ -4,10 +4,21 @@ import { supabase } from "../lib/supabase";
 import { useAuthContext } from "../lib/AuthContext";
 import type { Conversation, Message, UserProfile } from "../types";
 
+export interface GroupChatPreview {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+}
+
 export interface ConversationWithDetails extends Conversation {
   otherParticipant: UserProfile | null;
   lastMessage: Message | null;
   unread_count: number;
+  /** Présent si kind === "group" */
+  groupPreview: GroupChatPreview | null;
+  kind: "direct" | "group";
+  participantCount: number;
 }
 
 export function useConversations() {
@@ -38,7 +49,7 @@ export function useConversations() {
 
       const { data: convos, error: err2 } = await supabase
         .from("conversations")
-        .select("id, created_at, updated_at")
+        .select("id, created_at, updated_at, kind, source_group_id")
         .in("id", convoIds)
         .order("updated_at", { ascending: false });
 
@@ -70,6 +81,30 @@ export function useConversations() {
       const profileMap = new Map<string, UserProfile>(
         (profiles || []).map((p) => [p.id, p as UserProfile])
       );
+
+      const groupIds = [
+        ...new Set(
+          (convos || [])
+            .filter(
+              (c: { kind?: string; source_group_id?: string | null }) =>
+                c.kind === "group" && c.source_group_id
+            )
+            .map(
+              (c: { source_group_id: string }) => c.source_group_id as string
+            )
+        ),
+      ];
+
+      const groupMap = new Map<string, GroupChatPreview>();
+      if (groupIds.length > 0) {
+        const { data: groupRows } = await supabase
+          .from("groups")
+          .select("id, name, emoji, color")
+          .in("id", groupIds);
+        (groupRows || []).forEach((g: GroupChatPreview) =>
+          groupMap.set(g.id, g)
+        );
+      }
 
       const { data: recentMessages } = await supabase
         .from("messages")
@@ -106,21 +141,43 @@ export function useConversations() {
       });
 
       const result: ConversationWithDetails[] = convos.map((c) => {
+        const row = c as {
+          id: string;
+          created_at: string;
+          updated_at: string;
+          kind?: string | null;
+          source_group_id?: string | null;
+        };
         const participants = participantsByConvo.get(c.id) || [];
+        const kind: "direct" | "group" =
+          row.kind === "group" ? "group" : "direct";
+        const participantCount = participants.length;
+
         const other = participants.find((p) => p.user_id !== user.id);
-        const otherProfile = other
-          ? profileMap.get(other.user_id) || null
-          : null;
+        const otherProfile =
+          kind === "direct" && other
+            ? profileMap.get(other.user_id) || null
+            : null;
+
         const lastMessage = lastByConvo.get(c.id) || null;
         const unread_count = unreadByConvo.get(c.id) ?? 0;
+
+        const groupPreview =
+          kind === "group" && row.source_group_id
+            ? groupMap.get(row.source_group_id) ?? null
+            : null;
 
         return {
           id: c.id,
           created_at: c.created_at,
           updated_at: c.updated_at,
+          kind,
+          source_group_id: row.source_group_id ?? null,
           otherParticipant: otherProfile,
           lastMessage,
           unread_count,
+          groupPreview,
+          participantCount,
         };
       });
 

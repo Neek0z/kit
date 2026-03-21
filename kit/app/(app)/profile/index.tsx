@@ -423,9 +423,43 @@ export default function ProfileScreen() {
                 >
                   <Feather name="git-branch" size={18} color="#6ee7b7" />
                 </View>
-                <Text className="text-sm">Workflow client</Text>
+                <View style={{ flex: 1 }}>
+                  <Text className="text-sm">Workflow parrain</Text>
+                  <Text variant="muted" className="text-xs">
+                    Tes relances quand un contact devient client
+                  </Text>
+                </View>
               </View>
               <Feather name="chevron-right" size={16} color="#6ee7b7" />
+            </TouchableOpacity>
+
+            <Divider />
+
+            <TouchableOpacity
+              onPress={() => router.push("/(app)/profile/workflow-client")}
+              className="flex-row items-center justify-between py-3 px-1"
+            >
+              <View className="flex-row items-center gap-3">
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    backgroundColor: "rgba(125,211,252,0.14)",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="user-check" size={18} color="#7dd3fc" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text className="text-sm">Arrivée client</Text>
+                  <Text variant="muted" className="text-xs">
+                    Checklist formalités & onboarding côté client
+                  </Text>
+                </View>
+              </View>
+              <Feather name="chevron-right" size={16} color="#7dd3fc" />
             </TouchableOpacity>
           </Card>
 

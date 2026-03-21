@@ -1,8 +1,10 @@
 import { View, Text, TouchableOpacity, ViewProps } from "react-native";
 import type { Group } from "../../types";
 
+type GroupBadgeSource = Pick<Group, "name" | "emoji" | "color">;
+
 interface GroupBadgeProps extends ViewProps {
-  group: Group;
+  group: GroupBadgeSource;
   onRemove?: () => void;
   size?: "sm" | "md";
 }

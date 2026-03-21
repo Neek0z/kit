@@ -6,6 +6,8 @@ import type { Message } from "../../types";
 interface MessageBubbleProps {
   message: Message;
   isOwn: boolean;
+  /** Affiché au-dessus du texte en conversation de groupe (messages des autres). */
+  senderLabel?: string;
 }
 
 function formatTime(iso: string) {
@@ -26,7 +28,11 @@ function formatTime(iso: string) {
   });
 }
 
-export function MessageBubble({ message, isOwn }: MessageBubbleProps) {
+export function MessageBubble({
+  message,
+  isOwn,
+  senderLabel,
+}: MessageBubbleProps) {
   const isRead = !!message.read_at;
 
   return (
@@ -37,6 +43,11 @@ export function MessageBubble({ message, isOwn }: MessageBubbleProps) {
           : "self-start bg-surface border border-border rounded-bl-md"
       }`}
     >
+      {!isOwn && senderLabel ? (
+        <Text className="text-xs font-semibold text-primary mb-1">
+          {senderLabel}
+        </Text>
+      ) : null}
       <Text
         className={`text-sm ${isOwn ? "text-background" : "text-textMain"}`}
       >
