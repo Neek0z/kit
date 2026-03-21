@@ -4,6 +4,7 @@ import { Appointment } from "../types";
 import { useAuthContext } from "../lib/AuthContext";
 
 export interface AppointmentWithContact extends Appointment {
+  /** Joined contact name for the primary contact_id (legacy) */
   contacts: { full_name: string } | null;
 }
 
@@ -14,12 +15,11 @@ interface UseAppointmentsOptions {
 }
 
 interface UseAppointmentsReturn {
-  /** When withContactName is true, each item has contacts: { full_name } */
   appointments: Appointment[] | AppointmentWithContact[];
   loading: boolean;
   refetch: () => Promise<void>;
   createAppointment: (params: {
-    contact_id: string;
+    contact_ids: string[];
     scheduled_at: string;
     title?: string;
     notes?: string;
@@ -42,19 +42,21 @@ export function useAppointments(
   const refetch = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const selectStr = contactId
-      ? "*"
-      : withContactName
-        ? "*, contacts(full_name)"
-        : "*";
+    const selectStr = withContactName && !contactId
+      ? "*, contacts(full_name)"
+      : "*";
     let query = supabase
       .from("appointments")
       .select(selectStr)
       .eq("user_id", user.id)
       .order("scheduled_at", { ascending: true });
-    if (contactId) query = query.eq("contact_id", contactId);
+
+    if (contactId) {
+      query = query.contains("contact_ids", JSON.stringify([contactId]));
+    }
+
     const { data } = await query;
-    const list = (data ?? []) as Appointment[] & { contacts?: { full_name: string } | null }[];
+    const list = (data ?? []) as (Appointment & { contacts?: { full_name: string } | null })[];
     setAppointments(list);
     setLoading(false);
   }, [user, contactId, withContactName]);
@@ -64,17 +66,18 @@ export function useAppointments(
   }, [refetch]);
 
   const createAppointment = async (params: {
-    contact_id: string;
+    contact_ids: string[];
     scheduled_at: string;
     title?: string;
     notes?: string;
   }): Promise<Appointment | null> => {
-    if (!user) return null;
+    if (!user || params.contact_ids.length === 0) return null;
     const { data, error } = await supabase
       .from("appointments")
       .insert({
         user_id: user.id,
-        contact_id: params.contact_id,
+        contact_id: params.contact_ids[0],
+        contact_ids: params.contact_ids,
         scheduled_at: params.scheduled_at,
         title: params.title ?? null,
         notes: params.notes ?? null,

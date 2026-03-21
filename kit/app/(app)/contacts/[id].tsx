@@ -506,6 +506,10 @@ export default function ContactDetailScreen() {
                 <View style={{ gap: 8 }}>
                   {upcomingAppointments.map((a) => {
                     const at = new Date(a.scheduled_at);
+                    const otherNames = (a.contact_ids ?? [])
+                      .filter((cid: string) => cid !== id)
+                      .map((cid: string) => contacts.find((c) => c.id === cid)?.full_name)
+                      .filter(Boolean);
                     return (
                       <TouchableOpacity
                         key={a.id}
@@ -565,6 +569,18 @@ export default function ContactDetailScreen() {
                               minute: "2-digit",
                             })}
                           </Text>
+                          {otherNames.length > 0 && (
+                            <Text
+                              style={{
+                                fontSize: 11,
+                                color: theme.textHint,
+                                marginTop: 2,
+                              }}
+                              numberOfLines={1}
+                            >
+                              avec {otherNames.join(", ")}
+                            </Text>
+                          )}
                         </View>
                         <Feather
                           name="chevron-right"

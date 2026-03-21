@@ -46,6 +46,12 @@ export default function CalendarScreen() {
   } = useAppointments({ withContactName: true });
   const list = appointments as AppointmentWithContact[];
 
+  const contactMap = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of contacts) m.set(c.id, c.full_name);
+    return m;
+  }, [contacts]);
+
   const agendaScrollRef = useRef<ScrollView>(null);
   const dayHeaderHeightRef = useRef(0);
   const firstApptRowYRef = useRef<number | null>(null);
@@ -536,8 +542,13 @@ export default function CalendarScreen() {
                     <View style={{ flex: 1, gap: 6, paddingVertical: 4 }}>
                       {hourAppts.map((apt) => {
                         const startTime = new Date(apt.scheduled_at);
+                        const participantNames = (apt.contact_ids ?? [])
+                          .map((cid: string) => contactMap.get(cid))
+                          .filter(Boolean);
                         const contactName =
-                          apt.contacts?.full_name ?? "";
+                          participantNames.length > 0
+                            ? participantNames.join(", ")
+                            : (apt as AppointmentWithContact).contacts?.full_name ?? "";
                         const endTime = new Date(
                           startTime.getTime() + 60 * 60 * 1000
                         );

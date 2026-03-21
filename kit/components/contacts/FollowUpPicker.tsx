@@ -7,6 +7,7 @@ import {
   Text as RNText,
 } from "react-native";
 import DateTimePicker, {
+  DateTimePickerAndroid,
   type DateTimePickerEvent,
 } from "@react-native-community/datetimepicker";
 import { Feather } from "@expo/vector-icons";
@@ -38,6 +39,21 @@ export function FollowUpPicker({ value, onChange }: FollowUpPickerProps) {
     } else {
       if (date) setTempDate(date);
     }
+  };
+
+  const openAndroidDatePicker = async () => {
+    try {
+      const { action, year, month, day } =
+        await DateTimePickerAndroid.open({
+          value: tempDate,
+          mode: "date",
+          minimumDate: new Date(),
+        });
+      if (action === "dismissedAction") return;
+      const d = new Date(year!, month!, day!);
+      d.setHours(12, 0, 0, 0);
+      onChange(d);
+    } catch {}
   };
 
   const QUICK_OPTIONS = [
@@ -97,7 +113,13 @@ export function FollowUpPicker({ value, onChange }: FollowUpPickerProps) {
       </View>
 
       <TouchableOpacity
-        onPress={() => setShowPicker(true)}
+        onPress={() => {
+          if (Platform.OS === "android") {
+            openAndroidDatePicker();
+          } else {
+            setShowPicker(true);
+          }
+        }}
         style={{
           flexDirection: "row",
           alignItems: "center",
@@ -253,15 +275,7 @@ export function FollowUpPicker({ value, onChange }: FollowUpPickerProps) {
         </Modal>
       )}
 
-      {Platform.OS === "android" && showPicker && (
-        <DateTimePicker
-          value={tempDate}
-          mode="date"
-          display="default"
-          onChange={handleChange}
-          minimumDate={new Date()}
-        />
-      )}
+      
     </View>
   );
 }

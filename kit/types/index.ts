@@ -95,6 +95,8 @@ export interface Appointment {
   id: string;
   user_id: string;
   contact_id: string;
+  /** All participant contact IDs (includes contact_id for backward compat) */
+  contact_ids: string[];
   scheduled_at: string;
   title?: string;
   notes?: string;
