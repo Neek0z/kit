@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import {
   View,
   ScrollView,
@@ -32,6 +32,54 @@ function avatarDisplayUrl(
   if (avatarUrl.startsWith("file://") || avatarUrl.startsWith("content://")) return undefined;
   const sep = avatarUrl.includes("?") ? "&" : "?";
   return `${avatarUrl}${sep}t=${updatedAt || ""}${refreshKey != null ? `&k=${refreshKey}` : ""}`;
+}
+
+interface ProfileRowProps {
+  icon: FeatherName;
+  label: string;
+  subtitle?: string;
+  value?: string;
+  color: string;
+  onPress?: () => void;
+  rightElement?: React.ReactNode;
+  danger?: boolean;
+}
+
+function ProfileRow({ icon, label, subtitle, value, color, onPress, rightElement, danger }: ProfileRowProps) {
+  const designTheme = useDesignTheme();
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={!onPress}
+      activeOpacity={onPress ? 0.7 : 1}
+      style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 13, paddingHorizontal: 4 }}
+    >
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 10,
+          backgroundColor: danger ? designTheme.dangerBg : `${color}1F`,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <Feather name={icon} size={15} color={danger ? designTheme.danger : color} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontSize: 14, color: danger ? designTheme.danger : designTheme.textPrimary }}>
+          {label}
+        </Text>
+        {subtitle && (
+          <Text variant="muted" style={{ fontSize: 12, marginTop: 2 }}>
+            {subtitle}
+          </Text>
+        )}
+      </View>
+      {value && <Text style={{ fontSize: 13, color: designTheme.textMuted }}>{value}</Text>}
+      {rightElement ?? (onPress && <Feather name="chevron-right" size={15} color={designTheme.textHint} />)}
+    </TouchableOpacity>
+  );
 }
 
 export default function ProfileScreen() {
@@ -185,21 +233,21 @@ export default function ProfileScreen() {
               flexDirection: "row",
               alignItems: "center",
               gap: 6,
-              backgroundColor: isPro ? "rgba(251,191,36,0.1)" : designTheme.primaryBg,
+              backgroundColor: isPro ? designTheme.warningBg : designTheme.primaryBg,
               borderWidth: 1,
-              borderColor: isPro ? "rgba(251,191,36,0.25)" : designTheme.primaryBorder,
+              borderColor: isPro ? designTheme.warningBorder : designTheme.primaryBorder,
             }}
           >
             <Feather
               name={isPro ? "star" : "zap"}
               size={12}
-              color={isPro ? "#fbbf24" : designTheme.primary}
+              color={isPro ? designTheme.warning : designTheme.primary}
             />
             <Text
               style={{
                 fontSize: 12,
                 fontWeight: "700",
-                color: isPro ? "#fbbf24" : designTheme.primary,
+                color: isPro ? designTheme.warning : designTheme.primary,
               }}
             >
               {isPro ? "Plan Pro ✨" : "Plan Free · Passer à Pro"}
@@ -212,12 +260,12 @@ export default function ProfileScreen() {
         <View style={{ flexDirection: "row", gap: 8, marginHorizontal: 20, marginBottom: 20 }}>
           {[
             { label: "Contacts", value: totalContacts, icon: "users" as const, color: designTheme.primary },
-            { label: "Clients", value: byStatus.client ?? 0, icon: "star" as const, color: "#fbbf24" },
+            { label: "Clients", value: byStatus.client ?? 0, icon: "star" as const, color: designTheme.warning },
             {
               label: "Interactions",
               value: totalInteractions,
               icon: "activity" as const,
-              color: "#818cf8",
+              color: designTheme.accent,
             },
           ].map((stat) => (
             <View
@@ -253,88 +301,31 @@ export default function ProfileScreen() {
               Mon compte
             </Text>
             <Divider />
-            <TouchableOpacity
+            <ProfileRow
+              icon="user"
+              label="Modifier le profil"
+              color={designTheme.textHint}
               onPress={() => router.push("/(app)/profile/edit")}
-              className="flex-row items-center justify-between py-3 px-1"
-            >
-              <View className="flex-row items-center gap-3">
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: "rgba(71,85,105,0.12)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Feather name="user" size={18} color="#475569" />
-                </View>
-                <Text className="text-sm">Modifier le profil</Text>
-              </View>
-              <Feather name="chevron-right" size={16} color="#475569" />
-            </TouchableOpacity>
+            />
 
             <Divider />
 
-            <TouchableOpacity
+            <ProfileRow
+              icon={isPro ? "star" : "zap"}
+              label="Abonnement"
+              color={isPro ? designTheme.primary : designTheme.textHint}
+              value={isPro ? "Pro ✨" : "Free"}
               onPress={() => router.push("/(app)/subscription")}
-              className="flex-row items-center justify-between py-3 px-1"
-            >
-              <View className="flex-row items-center gap-3">
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: isPro
-                      ? "rgba(110,231,183,0.12)"
-                      : "rgba(71,85,105,0.12)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Feather
-                    name={isPro ? "star" : "zap"}
-                    size={18}
-                    color={isPro ? "#6ee7b7" : "#475569"}
-                  />
-                </View>
-                <Text className="text-sm">Abonnement</Text>
-              </View>
-              <View className="flex-row items-center gap-2">
-                <Text
-                  className={`text-xs font-semibold ${isPro ? "text-primary" : "text-textMuted dark:text-textMuted-dark"}`}
-                >
-                  {isPro ? "Pro ✨" : "Free"}
-                </Text>
-                <Feather name="chevron-right" size={16} color="#475569" />
-              </View>
-            </TouchableOpacity>
+            />
 
             <Divider />
 
-            <TouchableOpacity
+            <ProfileRow
+              icon="users"
+              label="Mes groupes"
+              color={designTheme.accent}
               onPress={() => router.push("/(app)/groups")}
-              className="flex-row items-center justify-between py-3 px-1"
-            >
-              <View className="flex-row items-center gap-3">
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: "rgba(129,140,248,0.12)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Feather name="users" size={18} color="#818cf8" />
-                </View>
-                <Text className="text-sm">Mes groupes</Text>
-              </View>
-              <Feather name="chevron-right" size={16} color="#818cf8" />
-            </TouchableOpacity>
+            />
           </Card>
 
           <Card>
@@ -345,33 +336,20 @@ export default function ProfileScreen() {
               Apparence
             </Text>
             <Divider />
-            <View className="flex-row items-center justify-between py-3 px-1">
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
-                  backgroundColor: "rgba(129,140,248,0.12)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginRight: 12,
-                }}
-              >
-                <Feather name="moon" size={18} color="#818cf8" />
-              </View>
-              <View className="flex-1 mr-4">
-                <Text className="text-sm">Mode sombre</Text>
-                <Text variant="muted" className="text-xs mt-0.5">
-                  Utiliser le thème sombre
-                </Text>
-              </View>
-              <Switch
-                value={isDark}
-                onValueChange={(v) => setPreference(v ? "dark" : "light")}
-                trackColor={{ true: designTheme.primary, false: designTheme.border }}
-                thumbColor="#fff"
-              />
-            </View>
+            <ProfileRow
+              icon="moon"
+              label="Mode sombre"
+              subtitle="Utiliser le thème sombre"
+              color={designTheme.accent}
+              rightElement={
+                <Switch
+                  value={isDark}
+                  onValueChange={(v) => setPreference(v ? "dark" : "light")}
+                  trackColor={{ true: designTheme.primary, false: designTheme.border }}
+                  thumbColor="#fff"
+                />
+              }
+            />
           </Card>
 
           <Card>
@@ -382,85 +360,32 @@ export default function ProfileScreen() {
               Notifications & workflow
             </Text>
             <Divider />
-            <TouchableOpacity
+            <ProfileRow
+              icon="bell"
+              label="Paramètres de rappels"
+              color={designTheme.warning}
               onPress={() => router.push("/(app)/profile/notifications")}
-              className="flex-row items-center justify-between py-3 px-1"
-            >
-              <View className="flex-row items-center gap-3">
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: "rgba(251,191,36,0.12)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Feather name="bell" size={18} color="#fbbf24" />
-                </View>
-                <Text className="text-sm">Paramètres de rappels</Text>
-              </View>
-              <Feather name="chevron-right" size={16} color="#fbbf24" />
-            </TouchableOpacity>
+            />
 
             <Divider />
 
-            <TouchableOpacity
+            <ProfileRow
+              icon="git-branch"
+              label="Workflow parrain"
+              subtitle="Tes relances quand un contact devient client"
+              color={designTheme.primary}
               onPress={() => router.push("/(app)/profile/workflow")}
-              className="flex-row items-center justify-between py-3 px-1"
-            >
-              <View className="flex-row items-center gap-3">
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: "rgba(110,231,183,0.12)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Feather name="git-branch" size={18} color="#6ee7b7" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text className="text-sm">Workflow parrain</Text>
-                  <Text variant="muted" className="text-xs">
-                    Tes relances quand un contact devient client
-                  </Text>
-                </View>
-              </View>
-              <Feather name="chevron-right" size={16} color="#6ee7b7" />
-            </TouchableOpacity>
+            />
 
             <Divider />
 
-            <TouchableOpacity
+            <ProfileRow
+              icon="user-check"
+              label="Arrivée client"
+              subtitle="Checklist formalités & onboarding côté client"
+              color="#7dd3fc"
               onPress={() => router.push("/(app)/profile/workflow-client")}
-              className="flex-row items-center justify-between py-3 px-1"
-            >
-              <View className="flex-row items-center gap-3">
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: "rgba(125,211,252,0.14)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Feather name="user-check" size={18} color="#7dd3fc" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text className="text-sm">Arrivée client</Text>
-                  <Text variant="muted" className="text-xs">
-                    Checklist formalités & onboarding côté client
-                  </Text>
-                </View>
-              </View>
-              <Feather name="chevron-right" size={16} color="#7dd3fc" />
-            </TouchableOpacity>
+            />
           </Card>
 
           <Card>
@@ -471,34 +396,13 @@ export default function ProfileScreen() {
               Mes données
             </Text>
             <Divider />
-            <TouchableOpacity
+            <ProfileRow
+              icon="download"
+              label="Exporter mes contacts"
+              subtitle={isPro ? undefined : "Pro uniquement"}
+              color={designTheme.primary}
               onPress={() => router.push("/(app)/profile/export")}
-              className="flex-row items-center justify-between py-3 px-1"
-            >
-              <View className="flex-row items-center gap-3">
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: designTheme.primaryBg,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Feather name="download" size={18} color={designTheme.primary} />
-                </View>
-                <View>
-                  <Text className="text-sm">Exporter mes contacts</Text>
-                  {!isPro && (
-                    <Text variant="muted" className="text-xs">
-                      Pro uniquement
-                    </Text>
-                  )}
-                </View>
-              </View>
-              <Feather name="chevron-right" size={16} color={designTheme.primary} />
-            </TouchableOpacity>
+            />
           </Card>
 
           <Card>
@@ -509,117 +413,40 @@ export default function ProfileScreen() {
               À propos
             </Text>
             <Divider />
-            <View className="flex-row items-center justify-between py-3 px-1">
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
-                  backgroundColor: "rgba(148,163,184,0.12)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginRight: 12,
-                }}
-              >
-                <Feather name="info" size={18} color="#94a3b8" />
-              </View>
-              <Text variant="muted" className="text-sm flex-1">
-                Version
-              </Text>
-              <Text variant="muted" className="text-sm">
-                1.0.0
-              </Text>
-            </View>
+            <ProfileRow icon="info" label="Version" color={designTheme.textHint} value="1.0.0" />
             <Divider />
-            <TouchableOpacity
+            <ProfileRow
+              icon="shield"
+              label="Politique de confidentialité"
+              color={designTheme.textHint}
               onPress={() => Linking.openURL("https://kit.app/privacy")}
-              className="flex-row items-center justify-between py-3 px-1"
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: "rgba(148,163,184,0.12)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Feather name="shield" size={18} color="#94a3b8" />
-                </View>
-                <Text variant="muted" className="text-sm">
-                  Politique de confidentialité
-                </Text>
-              </View>
-              <Feather name="external-link" size={14} color="#94a3b8" />
-            </TouchableOpacity>
+              rightElement={<Feather name="external-link" size={14} color={designTheme.textHint} />}
+            />
             <Divider />
-            <TouchableOpacity
+            <ProfileRow
+              icon="file-text"
+              label="Conditions d'utilisation"
+              color={designTheme.textHint}
               onPress={() => Linking.openURL("https://kit.app/terms")}
-              className="flex-row items-center justify-between py-3 px-1"
-            >
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 12, flex: 1 }}>
-                <View
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    backgroundColor: "rgba(148,163,184,0.12)",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Feather name="file-text" size={18} color="#94a3b8" />
-                </View>
-                <Text variant="muted" className="text-sm">
-                  Conditions d'utilisation
-                </Text>
-              </View>
-              <Feather name="external-link" size={14} color="#94a3b8" />
-            </TouchableOpacity>
+              rightElement={<Feather name="external-link" size={14} color={designTheme.textHint} />}
+            />
           </Card>
 
           <Card>
-            <TouchableOpacity
+            <ProfileRow
+              icon="log-out"
+              label="Se déconnecter"
+              color={designTheme.danger}
+              danger
               onPress={handleSignOut}
-              className="flex-row items-center gap-3 py-3 px-1"
-            >
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
-                  backgroundColor: "rgba(248,113,113,0.12)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Feather name="log-out" size={18} color="#f87171" />
-              </View>
-              <Text className="text-sm text-danger">Se déconnecter</Text>
-            </TouchableOpacity>
+            />
             <Divider />
-            <TouchableOpacity
+            <ProfileRow
+              icon="trash-2"
+              label="Supprimer mon compte"
+              color={designTheme.textHint}
               onPress={handleDeleteAccount}
-              className="flex-row items-center gap-3 py-3 px-1"
-            >
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 10,
-                  backgroundColor: "rgba(71,85,105,0.12)",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Feather name="trash-2" size={18} color="#475569" />
-              </View>
-              <Text variant="muted" className="text-sm">
-                Supprimer mon compte
-              </Text>
-            </TouchableOpacity>
+            />
           </Card>
         </View>
       </ScrollView>

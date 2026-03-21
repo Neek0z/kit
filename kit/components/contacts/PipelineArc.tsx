@@ -8,17 +8,9 @@ import {
   type PanResponderGestureState,
 } from "react-native";
 import { PipelineStatus, PIPELINE_LABELS } from "../../types";
+import { STATUS_COLORS, useTheme } from "../../lib/theme";
 
 const STEPS: PipelineStatus[] = ["new", "contacted", "interested", "follow_up", "client"];
-
-const STEP_COLORS: Record<PipelineStatus, string> = {
-  new: "#64748b",
-  contacted: "#378ADD",
-  interested: "#1D9E75",
-  follow_up: "#BA7517",
-  client: "#639922",
-  inactive: "#334155",
-};
 
 const THUMB_SIZE = 28;
 const TRACK_HEIGHT = 8;
@@ -29,8 +21,9 @@ interface PipelineArcProps {
 }
 
 export function PipelineArc({ status, onChange }: PipelineArcProps) {
+  const theme = useTheme();
   const currentIndex = Math.max(0, STEPS.indexOf(status));
-  const color = STEP_COLORS[status] ?? STEP_COLORS.new;
+  const color = STATUS_COLORS[status]?.text ?? STATUS_COLORS.new.text;
   const [trackWidth, setTrackWidth] = useState(0);
   const trackWidthRef = useRef(0);
   const currentIndexRef = useRef(currentIndex);
@@ -107,7 +100,7 @@ export function PipelineArc({ status, onChange }: PipelineArcProps) {
           style={{
             height: TRACK_HEIGHT,
             borderRadius: TRACK_HEIGHT / 2,
-            backgroundColor: "#334155",
+            backgroundColor: theme.textHint,
             // on garde la largeur réelle, mais on enlève le décalage visuel
             marginHorizontal: THUMB_SIZE / 2,
             marginTop: (THUMB_SIZE - TRACK_HEIGHT) / 2,
@@ -188,7 +181,7 @@ export function PipelineArc({ status, onChange }: PipelineArcProps) {
                 fontSize: 10,
                 maxWidth: `${100 / STEPS.length}%`,
                 textAlign: "center",
-                color: isCurrent ? color : "#64748b",
+                color: isCurrent ? color : theme.textMuted,
                 fontWeight: isCurrent ? "600" : "400",
               }}
             >

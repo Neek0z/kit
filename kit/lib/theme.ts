@@ -56,6 +56,46 @@ export function useTheme() {
     accentLine: isDark
       ? "linear-gradient(90deg, transparent, rgba(110,231,183,0.4), transparent)"
       : "linear-gradient(90deg, transparent, rgba(5,150,105,0.35), transparent)",
+
+    danger: "#f87171",
+    dangerBg: "rgba(248,113,113,0.1)",
+    dangerBorder: "rgba(248,113,113,0.25)",
+    warning: "#fbbf24",
+    warningBg: "rgba(251,191,36,0.1)",
+    warningBorder: "rgba(251,191,36,0.25)",
+    accent: "#818cf8",
+    accentBg: "rgba(129,140,248,0.1)",
+    accentBorder: "rgba(129,140,248,0.25)",
+    success: "#22c55e",
+    successBg: "rgba(34,197,94,0.1)",
+    successBorder: "rgba(34,197,94,0.25)",
+
+    spacing: {
+      xs: 4,
+      sm: 8,
+      md: 12,
+      lg: 16,
+      xl: 20,
+      xxl: 24,
+      xxxl: 32,
+    },
+    fontSize: {
+      xs: 10,
+      sm: 12,
+      md: 14,
+      lg: 16,
+      xl: 18,
+      xxl: 22,
+      title: 26,
+      hero: 28,
+    },
+    borderRadius: {
+      sm: 8,
+      md: 12,
+      lg: 16,
+      xl: 18,
+      full: 100,
+    },
   };
 }
 

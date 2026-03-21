@@ -157,8 +157,8 @@ function PromptCard({
               style={{
                 marginHorizontal: 14,
                 marginBottom: 10,
-                backgroundColor: "rgba(251,191,36,0.08)",
-                borderRadius: 10,
+                backgroundColor: theme.warningBg,
+                borderRadius: 12,
                 padding: 10,
                 flexDirection: "row",
                 gap: 8,
@@ -168,7 +168,7 @@ function PromptCard({
               <RNText
                 style={{
                   fontSize: 11,
-                  color: "#fbbf24",
+                  color: theme.warning,
                   lineHeight: 16,
                   flex: 1,
                 }}
@@ -195,7 +195,7 @@ function PromptCard({
                 justifyContent: "center",
                 gap: 6,
                 paddingVertical: 10,
-                borderRadius: 10,
+                borderRadius: 12,
                 backgroundColor: copied ? theme.primaryBg : `${theme.primary}12`,
                 borderWidth: 1,
                 borderColor: copied ? theme.primaryBorder : `${theme.primary}25`,
@@ -222,10 +222,10 @@ function PromptCard({
               style={{
                 paddingHorizontal: 14,
                 paddingVertical: 10,
-                borderRadius: 10,
-                backgroundColor: "rgba(129,140,248,0.08)",
+                borderRadius: 12,
+                backgroundColor: theme.accentBg,
                 borderWidth: 1,
-                borderColor: "rgba(129,140,248,0.18)",
+                borderColor: theme.accentBorder,
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 6,
@@ -436,9 +436,9 @@ export default function ContentScreen() {
 
                 <View
                   style={{
-                    backgroundColor: "rgba(251,191,36,0.1)",
+                    backgroundColor: theme.warningBg,
                     borderWidth: 1,
-                    borderColor: "rgba(251,191,36,0.25)",
+                    borderColor: theme.warningBorder,
                     borderRadius: 100,
                     paddingHorizontal: 12,
                     paddingVertical: 6,
@@ -449,8 +449,8 @@ export default function ContentScreen() {
                     alignSelf: "flex-start",
                   }}
                 >
-                  <Feather name="star" size={12} color="#fbbf24" />
-                  <RNText style={{ fontSize: 12, fontWeight: "800", color: "#fbbf24" }}>
+                  <Feather name="star" size={12} color={theme.warning} />
+                  <RNText style={{ fontSize: 12, fontWeight: "800", color: theme.warning }}>
                     Pro
                   </RNText>
                 </View>
@@ -537,7 +537,7 @@ export default function ContentScreen() {
                       style={{
                         width: 36,
                         height: 36,
-                        borderRadius: 10,
+                        borderRadius: 12,
                         backgroundColor: isActive ? `${theme.primary}20` : theme.bg,
                         alignItems: "center",
                         justifyContent: "center",

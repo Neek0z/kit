@@ -194,7 +194,7 @@ export default function GroupsScreen() {
         <FlatList
           data={groups}
           keyExtractor={(g) => g.id}
-          contentContainerStyle={{ padding: 16, paddingBottom: 36, gap: 12 }}
+          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 36, gap: 12 }}
           ListHeaderComponent={
             <View style={{ gap: 10 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
@@ -435,7 +435,7 @@ export default function GroupsScreen() {
                     backgroundColor: theme.surface,
                     borderWidth: 1,
                     borderColor: theme.border,
-                    borderRadius: 10,
+                    borderRadius: 12,
                     padding: 12,
                     fontSize: 14,
                     color: theme.textPrimary,
@@ -458,7 +458,7 @@ export default function GroupsScreen() {
                     backgroundColor: theme.surface,
                     borderWidth: 1,
                     borderColor: theme.border,
-                    borderRadius: 10,
+                    borderRadius: 12,
                     padding: 12,
                     fontSize: 14,
                     color: theme.textPrimary,

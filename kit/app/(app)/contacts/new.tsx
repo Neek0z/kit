@@ -87,7 +87,6 @@ export default function NewContactScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Ligne décorative */}
       <View
         style={{
           height: 1,

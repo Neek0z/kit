@@ -2,7 +2,6 @@ import { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
@@ -10,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { supabase } from "../../lib/supabase";
-import { Button } from "../../components/ui/Button";
+import { Button, Input } from "../../components/ui";
 
 export default function RegisterScreen() {
   const [fullName, setFullName] = useState("");
@@ -60,28 +59,25 @@ export default function RegisterScreen() {
 
           {/* Formulaire */}
           <View className="gap-4">
-            <TextInput
-              className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-4 py-4 text-textMain dark:text-textMain-dark text-base"
+            <Input
+              label="Nom complet"
               placeholder="Nom complet"
-              placeholderTextColor="#94a3b8"
               value={fullName}
               onChangeText={setFullName}
               autoComplete="name"
             />
-            <TextInput
-              className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-4 py-4 text-textMain dark:text-textMain-dark text-base"
+            <Input
+              label="Email"
               placeholder="Email"
-              placeholderTextColor="#94a3b8"
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
               autoComplete="email"
             />
-            <TextInput
-              className="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-4 py-4 text-textMain dark:text-textMain-dark text-base"
+            <Input
+              label="Mot de passe"
               placeholder="Mot de passe (6 caractères min.)"
-              placeholderTextColor="#94a3b8"
               value={password}
               onChangeText={setPassword}
               secureTextEntry

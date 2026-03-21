@@ -16,6 +16,7 @@ import {
   Card,
   Button,
   StatusPill,
+  Divider,
 } from "../../../components/ui";
 import {
   AddInteractionSheet,
@@ -160,7 +161,7 @@ export default function ContactDetailScreen() {
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
-          paddingHorizontal: 18,
+          paddingHorizontal: 20,
           paddingVertical: 12,
         }}
       >
@@ -203,7 +204,7 @@ export default function ContactDetailScreen() {
           flexDirection: "row",
           alignItems: "center",
           gap: 14,
-          paddingHorizontal: 18,
+          paddingHorizontal: 20,
           paddingVertical: 14,
         }}
       >
@@ -237,7 +238,7 @@ export default function ContactDetailScreen() {
               style={{
                 width: 38,
                 height: 38,
-                borderRadius: 11,
+                borderRadius: 12,
                 backgroundColor: theme.surface,
                 borderWidth: 1,
                 borderColor: `${theme.primary}30`,
@@ -254,15 +255,15 @@ export default function ContactDetailScreen() {
               style={{
                 width: 38,
                 height: 38,
-                borderRadius: 11,
+                borderRadius: 12,
                 backgroundColor: theme.surface,
                 borderWidth: 1,
-                borderColor: "rgba(34,197,94,0.25)",
+                borderColor: theme.successBorder,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Feather name="message-circle" size={16} color="#22c55e" />
+              <Feather name="message-circle" size={16} color={theme.success} />
             </TouchableOpacity>
           )}
           {contact.email && (
@@ -271,15 +272,15 @@ export default function ContactDetailScreen() {
               style={{
                 width: 38,
                 height: 38,
-                borderRadius: 11,
+                borderRadius: 12,
                 backgroundColor: theme.surface,
                 borderWidth: 1,
-                borderColor: "rgba(129,140,248,0.25)",
+                borderColor: theme.accentBorder,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Feather name="mail" size={16} color="#818cf8" />
+              <Feather name="mail" size={16} color={theme.accent} />
             </TouchableOpacity>
           )}
           {contact.email && (
@@ -288,7 +289,7 @@ export default function ContactDetailScreen() {
               style={{
                 width: 38,
                 height: 38,
-                borderRadius: 11,
+                borderRadius: 12,
                 backgroundColor: theme.surface,
                 borderWidth: 1,
                 borderColor: `${theme.primary}30`,
@@ -309,21 +310,21 @@ export default function ContactDetailScreen() {
             style={{
               width: 38,
               height: 38,
-              borderRadius: 11,
+              borderRadius: 12,
               backgroundColor: theme.surface,
               borderWidth: 1,
-              borderColor: "rgba(251,191,36,0.35)",
+              borderColor: theme.warningBorder,
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Feather name="calendar" size={16} color="#f59e0b" />
+            <Feather name="calendar" size={16} color={theme.warning} />
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Pipeline (toujours visible sous le hero) */}
-      <View style={{ paddingHorizontal: 16, paddingBottom: 8 }}>
+      <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
         <Card>
           <Text
             style={{
@@ -361,7 +362,7 @@ export default function ContactDetailScreen() {
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 }}
       >
         {/* ─── ONGLET INFOS ─── */}
         {activeTab === "infos" && (
@@ -390,9 +391,7 @@ export default function ContactDetailScreen() {
                   <Feather name="chevron-right" size={12} color={theme.textHint} />
                 </TouchableOpacity>
               )}
-              {contact.phone && contact.email && (
-                <View style={{ height: 1, backgroundColor: theme.border }} />
-              )}
+              {contact.phone && contact.email && <Divider />}
               {contact.email && (
                 <TouchableOpacity
                   onPress={handleEmail}
@@ -811,9 +810,7 @@ export default function ContactDetailScreen() {
                         )}
                       </View>
                     </View>
-                    {index < interactions.length - 1 && (
-                      <View style={{ height: 1, backgroundColor: theme.border }} />
-                    )}
+                    {index < interactions.length - 1 && <Divider />}
                   </View>
                 ))}
               </Card>

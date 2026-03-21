@@ -8,7 +8,7 @@ import { useDashboard } from "../../hooks/useDashboard";
 import { useAuthContext } from "../../lib/AuthContext";
 import { useSubscription } from "../../hooks/useSubscription";
 import { usePricing } from "../../hooks/usePricing";
-import { Card, Avatar } from "../../components/ui";
+import { Card, Avatar, Divider } from "../../components/ui";
 import { formatRelativeTime } from "../../lib/utils";
 import {
   INTERACTION_ICONS,
@@ -149,13 +149,13 @@ export default function DashboardScreen() {
                 {
                   label: "Relance",
                   icon: "bell" as FeatherIconName,
-                  color: "#f87171",
+                  color: theme.danger,
                   route: "/(app)/contacts" as AppRoute,
                 },
                 {
                   label: "Message",
                   icon: "message-circle" as FeatherIconName,
-                  color: "#818cf8",
+                  color: theme.accent,
                   route: "/(app)/messages" as AppRoute,
                 },
               ]).map((btn) => (
@@ -320,7 +320,7 @@ export default function DashboardScreen() {
                   label: "NOUVEAUX CLIENTS",
                   value: monthlyNewClients,
                   icon: "star",
-                  color: "#6ee7b7",
+                  color: theme.primary,
                   sub: "↑ Ce mois",
                 },
               ] as const
@@ -333,7 +333,7 @@ export default function DashboardScreen() {
                   borderWidth: 1,
                   borderColor: theme.border,
                   borderRadius: 18,
-                  padding: 16,
+                  padding: 14,
                 }}
               >
                 <View
@@ -407,9 +407,9 @@ export default function DashboardScreen() {
                   {overdueCount > 0 && (
                     <View
                       style={{
-                        backgroundColor: "rgba(248,113,113,0.12)",
+                        backgroundColor: theme.dangerBg,
                         borderWidth: 1,
-                        borderColor: "rgba(248,113,113,0.3)",
+                        borderColor: theme.dangerBorder,
                         borderRadius: 100,
                         paddingHorizontal: 8,
                         paddingVertical: 3,
@@ -418,7 +418,7 @@ export default function DashboardScreen() {
                         gap: 4,
                       }}
                     >
-                      <Text style={{ fontSize: 10, fontWeight: "700", color: "#f87171" }}>
+                      <Text style={{ fontSize: 10, fontWeight: "700", color: theme.danger }}>
                         {overdueCount} URGENT
                       </Text>
                     </View>
@@ -484,7 +484,7 @@ export default function DashboardScreen() {
                         style={{
                           fontSize: 11,
                           marginTop: 2,
-                          color: overdue ? "#f87171" : theme.textMuted,
+                          color: overdue ? theme.danger : theme.textMuted,
                         }}
                         numberOfLines={1}
                       >
@@ -523,14 +523,14 @@ export default function DashboardScreen() {
                           width: 28,
                           height: 28,
                           borderRadius: 14,
-                          backgroundColor: "rgba(248,113,113,0.1)",
+                          backgroundColor: theme.dangerBg,
                           borderWidth: 1,
-                          borderColor: "rgba(248,113,113,0.3)",
+                          borderColor: theme.dangerBorder,
                           alignItems: "center",
                           justifyContent: "center",
                         }}
                       >
-                        <Feather name="alert-circle" size={14} color="#f87171" />
+                        <Feather name="alert-circle" size={14} color={theme.danger} />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -568,7 +568,7 @@ export default function DashboardScreen() {
                         style={{
                           width: 38,
                           height: 38,
-                          borderRadius: 19,
+                          borderRadius: 18,
                           backgroundColor: theme.primaryBg,
                           borderWidth: 1,
                           borderColor: theme.primaryBorder,
@@ -609,7 +609,7 @@ export default function DashboardScreen() {
                     </TouchableOpacity>
 
                     {i < Math.min(recentActivity.length, 4) - 1 && (
-                      <View style={{ height: 1, backgroundColor: theme.border, marginLeft: 50 }} />
+                      <Divider indent={50} />
                     )}
                   </View>
                 ))

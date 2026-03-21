@@ -55,14 +55,14 @@ function RelanceRow({
         backgroundColor: theme.surface,
         borderRadius: 16,
         borderWidth: 1,
-        borderColor: isLate ? "rgba(248,113,113,0.35)" : theme.border,
+        borderColor: isLate ? theme.dangerBorder : theme.border,
         overflow: "hidden",
       }}
     >
       <View
         style={{
           width: 4,
-          backgroundColor: isLate ? "#f87171" : theme.primary,
+          backgroundColor: isLate ? theme.danger : theme.primary,
         }}
       />
       <View style={{ flex: 1, padding: 14, gap: 6 }}>
@@ -72,7 +72,7 @@ function RelanceRow({
               style={{
                 fontSize: 15,
                 fontWeight: "800",
-                color: isLate ? "#f87171" : theme.textPrimary,
+                color: isLate ? theme.danger : theme.textPrimary,
               }}
             >
               {at.toLocaleDateString("fr-FR", {
@@ -138,15 +138,15 @@ function RelanceRow({
                 width: 36,
                 height: 36,
                 borderRadius: 10,
-                backgroundColor: "rgba(248,113,113,0.08)",
+                backgroundColor: theme.dangerBg,
                 borderWidth: 1,
-                borderColor: "rgba(248,113,113,0.25)",
+                borderColor: theme.dangerBorder,
                 alignItems: "center",
                 justifyContent: "center",
               }}
               accessibilityLabel="Supprimer"
             >
-              <Feather name="trash-2" size={16} color="#f87171" />
+              <Feather name="trash-2" size={16} color={theme.danger} />
             </TouchableOpacity>
           </View>
         </View>
