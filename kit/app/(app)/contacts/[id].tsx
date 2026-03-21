@@ -87,6 +87,14 @@ export default function ContactDetailScreen() {
       )
     : null;
 
+  const upcomingAppointments = useMemo(
+    () =>
+      (contactAppointments as Appointment[]).filter(
+        (a) => new Date(a.scheduled_at) >= new Date()
+      ),
+    [contactAppointments]
+  );
+
   useEffect(() => {
     if (!contact) return;
     if (activeTab === "workflow" && contact.status !== "client") {
@@ -160,14 +168,6 @@ export default function ContactDetailScreen() {
     setEditingAppointment(null);
     setAppointmentSheetVisible(true);
   };
-
-  const upcomingAppointments = useMemo(
-    () =>
-      (contactAppointments as Appointment[]).filter(
-        (a) => new Date(a.scheduled_at) >= new Date()
-      ),
-    [contactAppointments]
-  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#f8f9fb" }}>

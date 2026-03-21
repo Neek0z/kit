@@ -11,22 +11,23 @@ interface TabIconProps {
   name: FeatherName;
   color: string;
   focused: boolean;
-  label: string;
+  activeColor: string;
 }
 
-function TabIcon({ name, color, focused, label }: TabIconProps) {
+function TabIcon({ name, color, focused, activeColor }: TabIconProps) {
   return (
-    <View style={{ alignItems: "center", justifyContent: "center", gap: 3 }}>
+    <View style={{ alignItems: "center", justifyContent: "center", gap: 6 }}>
       <Feather name={name} size={22} color={color} />
-      <Text
-        style={{
-          fontSize: 10,
-          fontWeight: focused ? "600" : "400",
-          color,
-        }}
-      >
-        {label}
-      </Text>
+      {focused && (
+        <View
+          style={{
+            width: 5,
+            height: 5,
+            borderRadius: 2.5,
+            backgroundColor: activeColor,
+          }}
+        />
+      )}
     </View>
   );
 }
@@ -59,7 +60,7 @@ export default function AppLayout() {
         name="index"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="home" color={color} focused={focused} label="Accueil" />
+            <TabIcon name="home" color={color} focused={focused} activeColor={isDark ? "#6ee7b7" : "#10b981"} />
           ),
         }}
       />
@@ -67,16 +68,14 @@ export default function AppLayout() {
         name="contacts"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="users" color={color} focused={focused} label="Contacts" />
+            <TabIcon name="users" color={color} focused={focused} activeColor={isDark ? "#6ee7b7" : "#10b981"} />
           ),
         }}
         listeners={{
           tabPress: (e) => {
-            if (pathname === "/(app)/contacts") {
-              return;
+            if (pathname.startsWith("/(app)/contacts")) {
+              e.preventDefault();
             }
-            e.preventDefault();
-            router.replace("/(app)/contacts");
           },
         }}
       />
@@ -84,7 +83,7 @@ export default function AppLayout() {
         name="calendar"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="calendar" color={color} focused={focused} label="Agenda" />
+            <TabIcon name="calendar" color={color} focused={focused} activeColor={isDark ? "#6ee7b7" : "#10b981"} />
           ),
         }}
       />
@@ -92,7 +91,7 @@ export default function AppLayout() {
         name="messages"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="message-circle" color={color} focused={focused} label="Messages" />
+            <TabIcon name="message-circle" color={color} focused={focused} activeColor={isDark ? "#6ee7b7" : "#10b981"} />
           ),
         }}
       />
@@ -100,7 +99,7 @@ export default function AppLayout() {
         name="content"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="instagram" color={color} focused={focused} label="Contenu" />
+            <TabIcon name="instagram" color={color} focused={focused} activeColor={isDark ? "#6ee7b7" : "#10b981"} />
           ),
         }}
       />
@@ -114,7 +113,7 @@ export default function AppLayout() {
         name="profile"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="user" color={color} focused={focused} label="Profil" />
+            <TabIcon name="user" color={color} focused={focused} activeColor={isDark ? "#6ee7b7" : "#10b981"} />
           ),
         }}
       />
