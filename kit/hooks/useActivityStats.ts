@@ -19,6 +19,7 @@ export function useActivityStats(): ActivityStats & { loading: boolean } {
 
   useEffect(() => {
     if (!user) return;
+    let mounted = true;
 
     const run = async () => {
       setLoading(true);
@@ -55,6 +56,8 @@ export function useActivityStats(): ActivityStats & { loading: boolean } {
           .gte("created_at", isoMonth),
       ]);
 
+      if (!mounted) return;
+
       const contactIds = new Set<string>();
       monthData?.forEach((row) => {
         if (row.contact_id) contactIds.add(row.contact_id);
@@ -70,6 +73,8 @@ export function useActivityStats(): ActivityStats & { loading: boolean } {
     };
 
     run();
+
+    return () => { mounted = false; };
   }, [user?.id]);
 
   return { ...stats, loading };

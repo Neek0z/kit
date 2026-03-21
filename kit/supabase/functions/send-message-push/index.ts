@@ -18,6 +18,12 @@ serve(async (req) => {
     return new Response("Method not allowed", { status: 405 });
   }
 
+  const webhookSecret = Deno.env.get("WEBHOOK_SECRET");
+  const authHeader = req.headers.get("authorization");
+  if (!webhookSecret || authHeader !== `Bearer ${webhookSecret}`) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   let payload: WebhookPayload;
   try {
     payload = await req.json();

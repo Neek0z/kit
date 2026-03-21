@@ -22,12 +22,15 @@ export function useProfile(): UseProfileReturn {
   const fetchProfile = useCallback(async () => {
     if (!user) return;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .single();
 
+    if (error) {
+      console.error("Erreur chargement profil :", error.message);
+    }
     setProfile(data as UserProfile | null);
     setLoading(false);
   }, [user]);

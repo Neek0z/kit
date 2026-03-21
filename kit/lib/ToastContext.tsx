@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 type ToastContextValue = {
@@ -20,6 +20,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       setMessage(null);
       timeoutRef.current = null;
     }, TOAST_DURATION);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, []);
 
   return (

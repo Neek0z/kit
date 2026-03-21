@@ -27,6 +27,8 @@ export default function NotificationSettingsScreen() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
     (async () => {
       try {
         const [r, m, dt, rt] = await Promise.all([
@@ -35,6 +37,7 @@ export default function NotificationSettingsScreen() {
           getMorningDigestTime(),
           getReminderTime(),
         ]);
+        if (!mounted) return;
         if (r !== null) setRemindersEnabled(r === "true");
         if (m !== null) setMorningDigest(m === "true");
         setDigestHour(dt.hour);
@@ -42,9 +45,11 @@ export default function NotificationSettingsScreen() {
         setReminderHour(rt.hour);
         setReminderMinute(rt.minute);
       } finally {
-        setLoaded(true);
+        if (mounted) setLoaded(true);
       }
     })();
+
+    return () => { mounted = false; };
   }, []);
 
   const toggle = async (key: string, value: boolean) => {

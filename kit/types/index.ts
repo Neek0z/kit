@@ -1,5 +1,27 @@
+import type { Feather } from "@expo/vector-icons";
+
 export type UserId = string;
 export type ContactId = string;
+
+export type FeatherIconName = keyof typeof Feather.glyphMap;
+
+export type AppRoute =
+  | "/(app)/contacts"
+  | "/(app)/contacts/new"
+  | "/(app)/messages"
+  | "/(app)/subscription"
+  | "/(app)/content"
+  | "/(app)/groups"
+  | "/(app)/calendar"
+  | "/(app)/profile/edit"
+  | "/(app)/profile/export"
+  | "/(app)/profile/notifications"
+  | "/(app)/profile/workflow"
+  | "/(app)/profile/workflow-client"
+  | `/(app)/contacts/${string}`
+  | `/(app)/contacts/${string}/edit`
+  | `/(app)/messages/${string}`
+  | `/(app)/groups/${string}`;
 
 export interface UserProfile {
   id: UserId;

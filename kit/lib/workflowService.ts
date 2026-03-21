@@ -32,7 +32,6 @@ async function insertTasksForRole(
     .limit(1);
 
   if (existing && existing.length > 0) {
-    console.log(`Workflow ${role} déjà en cours pour ce contact.`);
     return;
   }
 

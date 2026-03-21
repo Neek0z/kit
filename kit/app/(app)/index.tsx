@@ -15,6 +15,8 @@ import {
   INTERACTION_LABELS,
   InteractionType,
   PipelineStatus,
+  type FeatherIconName,
+  type AppRoute,
 } from "../../types";
 
 const FR_QUOTES = [
@@ -137,29 +139,29 @@ export default function DashboardScreen() {
             style={{ paddingHorizontal: 0, paddingBottom: 0 }}
           >
             <View style={{ flexDirection: "row", gap: 8 }}>
-              {[
+              {([
                 {
                   label: "Nouveau contact",
-                  icon: "user-plus",
+                  icon: "user-plus" as FeatherIconName,
                   color: theme.primary,
-                  route: "/(app)/contacts/new",
+                  route: "/(app)/contacts/new" as AppRoute,
                 },
                 {
                   label: "Relance",
-                  icon: "bell",
+                  icon: "bell" as FeatherIconName,
                   color: "#f87171",
-                  route: "/(app)/contacts",
+                  route: "/(app)/contacts" as AppRoute,
                 },
                 {
                   label: "Message",
-                  icon: "message-circle",
+                  icon: "message-circle" as FeatherIconName,
                   color: "#818cf8",
-                  route: "/(app)/messages",
+                  route: "/(app)/messages" as AppRoute,
                 },
-              ].map((btn) => (
+              ]).map((btn) => (
                 <TouchableOpacity
                   key={btn.label}
-                  onPress={() => router.push(btn.route as any)}
+                  onPress={() => router.push(btn.route)}
                   style={{
                     flexDirection: "row",
                     alignItems: "center",
@@ -173,7 +175,7 @@ export default function DashboardScreen() {
                   }}
                 >
                   <Feather
-                    name={btn.icon as any}
+                    name={btn.icon}
                     size={13}
                     color={btn.color}
                   />
@@ -345,7 +347,7 @@ export default function DashboardScreen() {
                     marginBottom: 12,
                   }}
                 >
-                  <Feather name={stat.icon as any} size={18} color={stat.color} />
+                  <Feather name={stat.icon} size={18} color={stat.color} />
                 </View>
 
                 <Text
@@ -577,7 +579,7 @@ export default function DashboardScreen() {
                       >
                         <Feather
                           name={
-                            INTERACTION_ICONS[item.type as InteractionType] as any
+                            INTERACTION_ICONS[item.type as InteractionType] as FeatherIconName
                           }
                           size={15}
                           color={theme.primary}

@@ -187,8 +187,7 @@ export default function GroupMembersScreen() {
   useEffect(() => {
     refetchGroups();
     refetchContacts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refetchGroups, refetchContacts]);
 
   const filteredAddContacts = useMemo(() => {
     const q = search.trim().toLowerCase();

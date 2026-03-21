@@ -8,18 +8,26 @@ export function useContactGroups(contactId: string) {
 
   useEffect(() => {
     if (!contactId) return;
+    let mounted = true;
+
     supabase
       .from("contact_group_members")
       .select("group_id, groups(*)")
       .eq("contact_id", contactId)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (!mounted) return;
+        if (error) {
+          console.error("Erreur chargement groupes du contact :", error.message);
+        }
         setGroups(
           (data ?? [])
-            .map((d: any) => d.groups as Group)
+            .map((d) => (d as Record<string, unknown>).groups as Group)
             .filter(Boolean)
         );
         setLoading(false);
       });
+
+    return () => { mounted = false; };
   }, [contactId]);
 
   const addToGroup = async (groupId: string): Promise<boolean> => {
@@ -27,10 +35,6 @@ export function useContactGroups(contactId: string) {
       .from("contact_group_members")
       .insert({ group_id: groupId, contact_id: contactId });
     if (error) {
-      console.log(
-        "SUPABASE ERROR (addToGroup):",
-        JSON.stringify(error)
-      );
       return false;
     }
     const { data } = await supabase
@@ -49,10 +53,6 @@ export function useContactGroups(contactId: string) {
       .eq("group_id", groupId)
       .eq("contact_id", contactId);
     if (error) {
-      console.log(
-        "SUPABASE ERROR (removeFromGroup):",
-        JSON.stringify(error)
-      );
       return false;
     }
     setGroups((prev) => prev.filter((g) => g.id !== groupId));

@@ -9,6 +9,7 @@ import {
   INTERACTION_ICONS,
   InteractionType,
   type WorkflowRole,
+  type FeatherIconName,
 } from "../../types";
 import { useTheme } from "../../lib/theme";
 
@@ -197,7 +198,7 @@ export function WorkflowTimeline({
                           name={
                             INTERACTION_ICONS[
                               task.interaction_type as InteractionType
-                            ] as any
+                            ] as FeatherIconName
                           }
                           size={11}
                           color={isOverdue ? "#f87171" : "#64748b"}

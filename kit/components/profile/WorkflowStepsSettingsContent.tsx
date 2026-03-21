@@ -27,13 +27,23 @@ export function WorkflowStepsSettingsContent({
 
   useEffect(() => {
     if (!user) return;
+    let mounted = true;
+
     supabase
       .from("workflow_steps")
       .select("*")
       .eq("user_id", user.id)
       .eq("workflow_role", workflowRole)
       .order("sort_order")
-      .then(({ data }) => setSteps((data ?? []) as WorkflowStep[]));
+      .then(({ data, error }) => {
+        if (!mounted) return;
+        if (error) {
+          console.error("Erreur chargement workflow steps :", error.message);
+        }
+        setSteps((data ?? []) as WorkflowStep[]);
+      });
+
+    return () => { mounted = false; };
   }, [user, workflowRole]);
 
   const toggleStep = async (step: WorkflowStep) => {

@@ -24,14 +24,13 @@ export function useGroupMembers(groupId: string) {
       .eq("group_id", groupId);
 
     if (error) {
-      console.log("SUPABASE ERROR (fetchMembers):", JSON.stringify(error));
       setMembers([]);
       setLoading(false);
       return;
     }
 
     const joinedContacts = (data ?? [])
-      .map((d: any) => d.contacts as Contact | null)
+      .map((d) => (d as Record<string, unknown>).contacts as Contact | null)
       .filter(Boolean) as Contact[];
 
     if (joinedContacts.length > 0) {
@@ -42,7 +41,7 @@ export function useGroupMembers(groupId: string) {
 
     // 2) Fallback: récupérer les IDs puis recharger `contacts`
     const ids = Array.from(
-      new Set((data ?? []).map((d: any) => d.contact_id).filter(Boolean))
+      new Set((data ?? []).map((d) => d.contact_id).filter(Boolean))
     ) as string[];
 
     if (ids.length === 0) {
@@ -58,10 +57,6 @@ export function useGroupMembers(groupId: string) {
       .order("full_name", { ascending: true });
 
     if (contactsErr) {
-      console.log(
-        "SUPABASE ERROR (fetchMembers contacts):",
-        JSON.stringify(contactsErr)
-      );
       setMembers([]);
       setLoading(false);
       return;
@@ -84,10 +79,6 @@ export function useGroupMembers(groupId: string) {
         .insert({ group_id: groupId, contact_id: contactId });
 
       if (error) {
-        console.log(
-          "SUPABASE ERROR (addContactToGroup):",
-          JSON.stringify(error)
-        );
         return false;
       }
 
@@ -120,10 +111,6 @@ export function useGroupMembers(groupId: string) {
         .eq("contact_id", contactId);
 
       if (error) {
-        console.log(
-          "SUPABASE ERROR (removeContactFromGroup):",
-          JSON.stringify(error)
-        );
         return false;
       }
 

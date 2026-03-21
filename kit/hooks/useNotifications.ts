@@ -13,8 +13,8 @@ export function useNotifications() {
 
     try {
       notificationListener.current =
-        Notifications.addNotificationReceivedListener((notification) => {
-          console.log("Notification reçue :", notification);
+        Notifications.addNotificationReceivedListener((_notification) => {
+          // Notification received in foreground — no-op for now
         });
 
       responseListener.current =

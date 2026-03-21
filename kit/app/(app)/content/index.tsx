@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   FlatList,
@@ -27,17 +27,25 @@ function PromptCard({
   const [copied, setCopied] = useState(false);
   const [lang, setLang] = useState<"fr" | "en">("fr");
   const [expanded, setExpanded] = useState(false);
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     setExpanded(false);
   }, [prompt.id]);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    };
+  }, []);
 
   const handleCopy = async () => {
     const { Clipboard } = require("@react-native-clipboard/clipboard");
     const text = lang === "fr" ? prompt.prompt_fr : prompt.prompt_en;
     await Clipboard.setString(text);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+    copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
   };
 
   const handleOpenGemini = () => {
@@ -95,8 +103,7 @@ function PromptCard({
                 <TouchableOpacity
                   key={l}
                   onPress={(e) => {
-                    // Eviter que le tap sur le toggle reploie/déploie la card
-                    (e as any).stopPropagation?.();
+                    (e as { stopPropagation?: () => void }).stopPropagation?.();
                     setLang(l);
                   }}
                   style={{
@@ -255,12 +262,10 @@ export default function ContentScreen() {
   }, [displayedCategory, getPromptsByCategory]);
 
   useEffect(() => {
-    // si on charge plus tard les categories, on force le premier filtre
     if (!activeCategory && categories.length > 0) {
       setActiveCategory(categories[0].id);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categories.length]);
+  }, [activeCategory, categories]);
 
   useEffect(() => {
     let mounted = true;
@@ -269,8 +274,8 @@ export default function ContentScreen() {
         if (!mounted) return;
         if (val === "true") setShowTutorial(false);
       })
-      .catch(() => {
-        // pas bloquant
+      .catch((err) => {
+        console.warn("AsyncStorage tutorial read:", err);
       });
     return () => {
       mounted = false;
@@ -510,8 +515,7 @@ export default function ContentScreen() {
               {categories.map((cat) => {
                 const isActive = displayedCategory === cat.id;
                 const promptsCount = getPromptsByCategory(cat.id).length;
-                const catAny = cat as any;
-                const color: string = catAny.color ?? theme.primary;
+                const color: string = (cat as unknown as { color?: string }).color ?? theme.primary;
 
                 return (
                   <TouchableOpacity

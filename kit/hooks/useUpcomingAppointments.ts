@@ -40,7 +40,7 @@ export function useUpcomingAppointments(limit = 3) {
           contacts?: { full_name: string }[] | { full_name: string } | null;
         }>;
 
-        const normalized: UpcomingAppointment[] = list.map((a: any) => {
+        const normalized: UpcomingAppointment[] = list.map((a) => {
           const contact = Array.isArray(a.contacts) ? a.contacts[0] : a.contacts;
 
           return {

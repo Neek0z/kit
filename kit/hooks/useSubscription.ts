@@ -15,6 +15,7 @@ interface UseSubscriptionReturn {
   subscription: Subscription | null;
   isPro: boolean;
   loading: boolean;
+  error: string | null;
   startCheckout: () => Promise<void>;
   checkLimit: (
     type: "contacts" | "interactions" | "reminders",
@@ -35,9 +36,11 @@ export function useSubscription(): UseSubscriptionReturn {
   const { user } = useAuthContext();
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
+    let mounted = true;
 
     supabase
       .from("subscriptions")
@@ -46,7 +49,11 @@ export function useSubscription(): UseSubscriptionReturn {
       )
       .eq("user_id", user.id)
       .maybeSingle()
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (!mounted) return;
+        if (error) {
+          console.error("Erreur chargement subscription :", error.message);
+        }
         setSubscription(data ?? { plan: "free", status: "active" });
         setLoading(false);
       });
@@ -68,6 +75,7 @@ export function useSubscription(): UseSubscriptionReturn {
       .subscribe();
 
     return () => {
+      mounted = false;
       supabase.removeChannel(channel);
     };
   }, [user?.id]);
@@ -77,7 +85,8 @@ export function useSubscription(): UseSubscriptionReturn {
 
   const startCheckout = async () => {
     try {
-      const { data, error } = await supabase.functions.invoke(
+      setError(null);
+      const { data, error: invokeError } = await supabase.functions.invoke(
         "create-checkout-session",
         {
           body: {
@@ -87,10 +96,11 @@ export function useSubscription(): UseSubscriptionReturn {
         }
       );
 
-      if (error) throw error;
+      if (invokeError) throw invokeError;
       if (data?.url) await Linking.openURL(data.url);
     } catch (err) {
-      console.error("Erreur checkout :", err);
+      const message = err instanceof Error ? err.message : "Erreur lors du checkout";
+      setError(message);
     }
   };
 
@@ -102,5 +112,5 @@ export function useSubscription(): UseSubscriptionReturn {
     return current < FREE_LIMITS[type];
   };
 
-  return { subscription, isPro, loading, startCheckout, checkLimit };
+  return { subscription, isPro, loading, error, startCheckout, checkLimit };
 }

@@ -47,8 +47,6 @@ export function useGroups(type?: GroupType) {
       .select()
       .single();
     if (error || !data) {
-      // Log complet pour diagnostiquer les RLS Supabase
-      console.log("SUPABASE ERROR (createGroup):", JSON.stringify(error));
       return null;
     }
     setGroups((prev) => [...prev, data as Group]);
@@ -61,7 +59,6 @@ export function useGroups(type?: GroupType) {
   ): Promise<boolean> => {
     const { error } = await supabase.from("groups").update(input).eq("id", id);
     if (error) {
-      console.log("SUPABASE ERROR (updateGroup):", JSON.stringify(error));
       return false;
     }
     setGroups((prev) =>
@@ -73,7 +70,6 @@ export function useGroups(type?: GroupType) {
   const deleteGroup = async (id: string): Promise<boolean> => {
     const { error } = await supabase.from("groups").delete().eq("id", id);
     if (error) {
-      console.log("SUPABASE ERROR (deleteGroup):", JSON.stringify(error));
       return false;
     }
     setGroups((prev) => prev.filter((g) => g.id !== id));
