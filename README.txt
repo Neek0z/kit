@@ -113,5 +113,7 @@ Améliorations persos :
 .Call avec Célia #2
 noter mes questions pour check par Célia
 ajouter exemples photos dans prompt
-ajouter une zone de texte dans les relances (fiche contact) (fusionner tâches ?)
-workflow client actuel (pour le parrain) donc ajouté un workflow "vrai" client pour la todo sur l'app (à créer)
+FAIT - à améliorere - ajouter une zone de texte dans les relances (fiche contact) (fusionner tâches ?)
+FAIT - workflow parrain + workflow arrivée client (checklist) ; migration SQL : sql_supabase/workflow_roles_parrain_client.sql
+FAIT - messagerie de groupe liée aux groupes de contacts ; migration : sql_supabase/conversations_group_chat.sql
+Si erreur 42P17 RLS (récursion conversation_participants) : exécuter sql_supabase/fix_messaging_rls_recursion.sql
