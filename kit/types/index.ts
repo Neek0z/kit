@@ -13,6 +13,7 @@ export type AppRoute =
   | "/(app)/content"
   | "/(app)/groups"
   | "/(app)/calendar"
+  | "/(app)/notifications"
   | "/(app)/profile/edit"
   | "/(app)/profile/export"
   | "/(app)/profile/notifications"

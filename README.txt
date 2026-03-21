@@ -108,6 +108,7 @@ Améliorations persos :
 - recherche dans l'app (à différents endroits ?)
 - sync calendrier (prompt déjà dans les md)
 - voir pour une version pc
+- faire site pour présentation ?
 
 
 .Call avec Célia #2

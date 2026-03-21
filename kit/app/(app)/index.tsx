@@ -20,6 +20,7 @@ import { useDashboard } from "../../hooks/useDashboard";
 import { useAuthContext } from "../../lib/AuthContext";
 import { useSubscription } from "../../hooks/useSubscription";
 import { usePricing } from "../../hooks/usePricing";
+import { useNotificationCenter } from "../../hooks/useNotificationCenter";
 import { Avatar } from "../../components/ui";
 import { formatRelativeTime } from "../../lib/utils";
 import {
@@ -71,6 +72,7 @@ export default function DashboardScreen() {
   const { user } = useAuthContext();
   const { isPro } = useSubscription();
   const { isEarlyAdopter, currentPrice, pricing } = usePricing();
+  const { totalCount, urgentCount, hasUnread } = useNotificationCenter();
 
   const {
     totalContacts,
@@ -133,7 +135,7 @@ export default function DashboardScreen() {
             paddingBottom: 8,
           }}
         >
-          <View>
+          <View style={{ flex: 1 }}>
             <Text
               style={{
                 fontSize: 13,
@@ -147,21 +149,96 @@ export default function DashboardScreen() {
               Tableau de bord
             </Text>
           </View>
+
           <View
             style={{
-              width: 42,
-              height: 42,
-              borderRadius: 21,
-              backgroundColor: "#10b981",
+              flexDirection: "row",
               alignItems: "center",
-              justifyContent: "center",
+              gap: 10,
+              marginTop: 4,
             }}
           >
-            <Text
-              style={{ fontSize: 16, fontWeight: "800", color: "#fff" }}
+            {/* Bell */}
+            <TouchableOpacity
+              onPress={() =>
+                router.push("/(app)/notifications" as AppRoute)
+              }
+              style={{
+                position: "relative",
+                width: 42,
+                height: 42,
+                borderRadius: 21,
+                backgroundColor: "#fff",
+                alignItems: "center",
+                justifyContent: "center",
+                shadowColor: "#000",
+                shadowOpacity: 0.06,
+                shadowRadius: 6,
+                elevation: 2,
+              }}
             >
-              {firstName?.[0]?.toUpperCase()}
-            </Text>
+              <Feather
+                name="bell"
+                size={20}
+                color={
+                  urgentCount > 0 ? "#ef4444" : theme.textMuted
+                }
+              />
+              {hasUnread && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: -2,
+                    right: -2,
+                    minWidth: 18,
+                    height: 18,
+                    borderRadius: 9,
+                    backgroundColor:
+                      urgentCount > 0 ? "#ef4444" : "#10b981",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingHorizontal: 4,
+                    borderWidth: 2,
+                    borderColor: "#f8f9fb",
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: 9,
+                      fontWeight: "800",
+                      color: "#fff",
+                    }}
+                  >
+                    {totalCount > 99 ? "99+" : totalCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            {/* Avatar */}
+            <TouchableOpacity
+              onPress={() =>
+                router.push("/(app)/profile" as AppRoute)
+              }
+              style={{
+                width: 42,
+                height: 42,
+                borderRadius: 21,
+                backgroundColor: "#10b981",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "800",
+                  color: "#fff",
+                }}
+              >
+                {firstName?.[0]?.toUpperCase()}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
 

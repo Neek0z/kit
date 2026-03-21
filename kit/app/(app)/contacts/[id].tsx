@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Linking,
   Text,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
@@ -15,13 +16,11 @@ import {
   Avatar,
   Card,
   Button,
-  StatusPill,
   Divider,
 } from "../../../components/ui";
 import {
   AddInteractionSheet,
   TagsEditor,
-  PipelineArc,
   WorkflowTimeline,
   ContactRelancesSection,
   ContactTabBar,
@@ -37,13 +36,14 @@ import type { Appointment } from "../../../types";
 import { useToast } from "../../../lib/ToastContext";
 import {
   PipelineStatus,
+  PIPELINE_LABELS,
   INTERACTION_LABELS,
   INTERACTION_ICONS,
   InteractionType,
   type FeatherIconName,
   type AppRoute,
 } from "../../../types";
-import { useTheme } from "../../../lib/theme";
+import { useTheme, STATUS_COLORS, type StatusKey } from "../../../lib/theme";
 import { useContactGroups } from "../../../hooks/useContactGroups";
 import { GroupPicker } from "../../../components/groups/GroupPicker";
 
@@ -76,6 +76,7 @@ export default function ContactDetailScreen() {
   const { groups: contactGroups, addToGroup, removeFromGroup } =
     useContactGroups(id ?? "");
   const [showGroupPicker, setShowGroupPicker] = useState(false);
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [activeTab, setActiveTab] = useState<ContactTabKey>("infos");
 
   const contact = contacts.find((c) => c.id === id);
@@ -237,42 +238,68 @@ export default function ContactDetailScreen() {
         </View>
       </View>
 
-      {/* Hero: centered avatar + name + status */}
-      <View style={{ alignItems: "center", paddingVertical: 20 }}>
+      {/* Hero: compact avatar + name + status dropdown */}
+      <View style={{ alignItems: "center", paddingTop: 8, paddingBottom: 12 }}>
         <Avatar
           name={contact.full_name}
           url={contact.avatar_url}
           status={contact.status}
-          size="lg"
+          size="md"
         />
         <Text
           style={{
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: "800",
             color: theme.textPrimary,
-            marginTop: 12,
+            marginTop: 8,
             letterSpacing: -0.5,
           }}
         >
           {contact.full_name}
         </Text>
-        {contact.notes && (
+
+        {/* Status dropdown */}
+        <TouchableOpacity
+          onPress={() => setShowStatusMenu((v) => !v)}
+          activeOpacity={0.7}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            marginTop: 6,
+            backgroundColor: STATUS_COLORS[contact.status as StatusKey]?.bg ?? "#f1f5f9",
+            borderWidth: 1,
+            borderColor: STATUS_COLORS[contact.status as StatusKey]?.border ?? "#e2e8f0",
+            borderRadius: 100,
+            paddingHorizontal: 14,
+            paddingVertical: 5,
+          }}
+        >
+          <View
+            style={{
+              width: 7,
+              height: 7,
+              borderRadius: 4,
+              backgroundColor: STATUS_COLORS[contact.status as StatusKey]?.text ?? "#94a3b8",
+            }}
+          />
           <Text
             style={{
-              fontSize: 13,
-              color: theme.textMuted,
-              marginTop: 4,
-              textAlign: "center",
-              paddingHorizontal: 32,
+              fontSize: 12,
+              fontWeight: "600",
+              color: STATUS_COLORS[contact.status as StatusKey]?.text ?? "#64748b",
             }}
-            numberOfLines={1}
           >
-            {contact.notes}
+            {PIPELINE_LABELS[contact.status as PipelineStatus] ?? contact.status}
           </Text>
-        )}
-        <View style={{ marginTop: 8 }}>
-          <StatusPill status={contact.status} />
-        </View>
+          <Feather
+            name={showStatusMenu ? "chevron-up" : "chevron-down"}
+            size={13}
+            color={STATUS_COLORS[contact.status as StatusKey]?.text ?? "#94a3b8"}
+          />
+        </TouchableOpacity>
+
+        
       </View>
 
       {/* 4 action buttons */}
@@ -280,27 +307,27 @@ export default function ContactDetailScreen() {
         style={{
           flexDirection: "row",
           justifyContent: "center",
-          gap: 16,
+          gap: 20,
           paddingHorizontal: 20,
-          paddingBottom: 20,
+          paddingBottom: 12,
         }}
       >
         {[
           {
-            label: "Appel",
+            label: "Appeler",
             icon: "phone" as FeatherName,
             color: "#10b981",
             bg: "#f0fdf4",
             onPress: handleCall,
-            show: !!contact.phone,
+            show: true,
           },
           {
-            label: "Chat",
-            icon: "message-circle" as FeatherName,
+            label: "Message",
+            icon: "send" as FeatherName,
             color: "#818cf8",
             bg: "#f5f3ff",
-            onPress: handleWhatsApp,
-            show: !!contact.phone,
+            onPress: handleKitMessage,
+            show: true,
           },
           {
             label: "Planifier",
@@ -314,7 +341,7 @@ export default function ContactDetailScreen() {
             label: "Plus",
             icon: "more-horizontal" as FeatherName,
             color: "#64748b",
-            bg: "#f8fafc",
+            bg: "#f1f5f9",
             onPress: () => {},
             show: true,
           },
@@ -324,27 +351,23 @@ export default function ContactDetailScreen() {
             <TouchableOpacity
               key={btn.label}
               onPress={btn.onPress}
-              style={{ alignItems: "center", gap: 6 }}
+              style={{ alignItems: "center", gap: 4 }}
             >
               <View
                 style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: 16,
+                  width: 46,
+                  height: 46,
+                  borderRadius: 14,
                   backgroundColor: btn.bg,
                   alignItems: "center",
                   justifyContent: "center",
-                  shadowColor: "#000",
-                  shadowOpacity: 0.06,
-                  shadowRadius: 6,
-                  elevation: 2,
                 }}
               >
-                <Feather name={btn.icon} size={20} color={btn.color} />
+                <Feather name={btn.icon} size={18} color={btn.color} />
               </View>
               <Text
                 style={{
-                  fontSize: 11,
+                  fontSize: 10,
                   color: theme.textMuted,
                   fontWeight: "500",
                 }}
@@ -353,30 +376,6 @@ export default function ContactDetailScreen() {
               </Text>
             </TouchableOpacity>
           ))}
-      </View>
-
-      {/* Pipeline card */}
-      <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
-        <Card>
-          <Text
-            style={{
-              fontSize: 10,
-              color: theme.textHint,
-              textTransform: "uppercase",
-              letterSpacing: 0.8,
-              fontWeight: "600",
-              marginBottom: 10,
-            }}
-          >
-            Pipeline
-          </Text>
-          <PipelineArc
-            status={contact.status as PipelineStatus}
-            onChange={async (newStatus) => {
-              await updateContact(contact.id, { status: newStatus });
-            }}
-          />
-        </Card>
       </View>
 
       {/* Tabs */}
@@ -981,6 +980,102 @@ export default function ContactDetailScreen() {
         onRemove={removeFromGroup}
         onClose={() => setShowGroupPicker(false)}
       />
+
+      {/* Status picker overlay */}
+      <Modal
+        visible={showStatusMenu}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowStatusMenu(false)}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setShowStatusMenu(false)}
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(15,23,42,0.35)",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 20,
+              paddingVertical: 8,
+              width: 260,
+              shadowColor: "#000",
+              shadowOpacity: 0.18,
+              shadowRadius: 24,
+              shadowOffset: { width: 0, height: 8 },
+              elevation: 8,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 13,
+                fontWeight: "700",
+                color: "#94a3b8",
+                textTransform: "uppercase",
+                letterSpacing: 0.8,
+                paddingHorizontal: 18,
+                paddingTop: 10,
+                paddingBottom: 8,
+              }}
+            >
+              Statut
+            </Text>
+            {(
+              ["new", "contacted", "interested", "follow_up", "client", "inactive"] as PipelineStatus[]
+            ).map((s) => {
+              const isActive = contact.status === s;
+              const sc = STATUS_COLORS[s as StatusKey];
+              return (
+                <TouchableOpacity
+                  key={s}
+                  onPress={async () => {
+                    setShowStatusMenu(false);
+                    if (s !== contact.status) {
+                      await updateContact(contact.id, { status: s });
+                    }
+                  }}
+                  activeOpacity={0.6}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 12,
+                    paddingHorizontal: 18,
+                    paddingVertical: 12,
+                    backgroundColor: isActive ? sc.bg : "transparent",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 5,
+                      backgroundColor: sc.text,
+                    }}
+                  />
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontSize: 15,
+                      fontWeight: isActive ? "700" : "500",
+                      color: isActive ? sc.text : "#334155",
+                    }}
+                  >
+                    {PIPELINE_LABELS[s]}
+                  </Text>
+                  {isActive && (
+                    <Feather name="check" size={16} color={sc.text} />
+                  )}
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
