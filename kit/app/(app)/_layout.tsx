@@ -44,9 +44,9 @@ export default function AppLayout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: isDark ? theme.bg : "#ffffff",
+            backgroundColor: theme.surface,
             borderTopWidth: 1,
-            borderTopColor: isDark ? theme.border : "#f1f5f9",
+            borderTopColor: theme.border,
             paddingTop: 6,
             paddingBottom: 6,
             height: 64,

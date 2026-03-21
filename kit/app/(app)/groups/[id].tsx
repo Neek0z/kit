@@ -44,6 +44,7 @@ function RenameGroupModal({
   onClose: () => void;
   onSave: (name: string) => Promise<void>;
 }) {
+  const theme = useTheme();
   const [name, setName] = useState(groupName);
   const [loading, setLoading] = useState(false);
 
@@ -76,17 +77,17 @@ function RenameGroupModal({
         />
         <View
           style={{
-            backgroundColor: "#fff",
+            backgroundColor: theme.surface,
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             paddingBottom: Platform.OS === "ios" ? 34 : 24,
             maxHeight: "90%",
           }}
         >
-          <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: "#e2e8f0", alignSelf: "center", marginTop: 12, marginBottom: 4 }} />
+          <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border, alignSelf: "center", marginTop: 12, marginBottom: 4 }} />
 
           <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 }}>
-            <RNText style={{ fontSize: 18, fontWeight: "700", color: "#0f172a" }}>
+            <RNText style={{ fontSize: 18, fontWeight: "700", color: theme.textPrimary }}>
               Renommer le groupe
             </RNText>
           </View>
@@ -96,15 +97,15 @@ function RenameGroupModal({
               value={name}
               onChangeText={setName}
               placeholder="Nom du groupe..."
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={theme.textHint}
               style={{
-                backgroundColor: "#f8fafc",
+                backgroundColor: theme.bg,
                 borderWidth: 1,
-                borderColor: "#e2e8f0",
+                borderColor: theme.border,
                 borderRadius: 12,
                 padding: 14,
                 fontSize: 15,
-                color: "#0f172a",
+                color: theme.textPrimary,
               }}
             />
           </View>
@@ -112,14 +113,14 @@ function RenameGroupModal({
           <View style={{ flexDirection: "row", gap: 10, paddingHorizontal: 20, paddingTop: 16 }}>
             <TouchableOpacity
               onPress={onClose}
-              style={{ flex: 1, paddingVertical: 14, borderRadius: 14, alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1, borderColor: "#e2e8f0" }}
+              style={{ flex: 1, paddingVertical: 14, borderRadius: 14, alignItems: "center", backgroundColor: theme.bg, borderWidth: 1, borderColor: theme.border }}
             >
-              <RNText style={{ fontSize: 15, fontWeight: "600", color: "#64748b" }}>Annuler</RNText>
+              <RNText style={{ fontSize: 15, fontWeight: "600", color: theme.textMuted }}>Annuler</RNText>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleSave}
               disabled={loading || !name.trim()}
-              style={{ flex: 2, paddingVertical: 14, borderRadius: 14, alignItems: "center", backgroundColor: "#10b981", opacity: !name.trim() || loading ? 0.5 : 1 }}
+              style={{ flex: 2, paddingVertical: 14, borderRadius: 14, alignItems: "center", backgroundColor: theme.primary, opacity: !name.trim() || loading ? 0.5 : 1 }}
             >
               <RNText style={{ fontSize: 15, fontWeight: "600", color: "#fff" }}>
                 {loading ? "..." : "Enregistrer"}

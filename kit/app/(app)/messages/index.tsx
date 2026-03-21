@@ -136,7 +136,7 @@ export default function MessagesScreen() {
           />
           {search.length > 0 && (
             <TouchableOpacity onPress={() => setSearch("")}>
-              <Feather name="x" size={16} color="#64748b" />
+              <Feather name="x" size={16} color={theme.textMuted} />
             </TouchableOpacity>
           )}
         </View>

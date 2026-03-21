@@ -11,7 +11,7 @@ export function Divider({ indent = 0 }: DividerProps) {
     <View
       style={{
         height: 1,
-        backgroundColor: theme.isDark ? theme.border : "#f1f5f9",
+        backgroundColor: theme.border,
         marginLeft: indent,
       }}
     />

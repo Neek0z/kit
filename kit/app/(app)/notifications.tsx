@@ -150,7 +150,7 @@ export default function NotificationsScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f8f9fb" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Header */}
       <View
         style={{
@@ -168,7 +168,7 @@ export default function NotificationsScreen() {
             width: 36,
             height: 36,
             borderRadius: 18,
-            backgroundColor: "#fff",
+            backgroundColor: theme.surface,
             alignItems: "center",
             justifyContent: "center",
             shadowColor: "#000",
@@ -199,7 +199,7 @@ export default function NotificationsScreen() {
             justifyContent: "center",
           }}
         >
-          <ActivityIndicator color="#10b981" />
+          <ActivityIndicator color={theme.primary} />
         </View>
       ) : notifications.length === 0 ? (
         <View
@@ -220,7 +220,7 @@ export default function NotificationsScreen() {
               justifyContent: "center",
             }}
           >
-            <Feather name="bell" size={28} color="#10b981" />
+            <Feather name="bell" size={28} color={theme.primary} />
           </View>
           <RNText
             style={{
@@ -249,7 +249,7 @@ export default function NotificationsScreen() {
             <RefreshControl
               refreshing={false}
               onRefresh={refetch}
-              tintColor="#10b981"
+              tintColor={theme.primary}
             />
           }
         >
@@ -266,13 +266,13 @@ export default function NotificationsScreen() {
                 gap: 10,
               }}
             >
-              <Feather name="alert-circle" size={20} color="#ef4444" />
+              <Feather name="alert-circle" size={20} color={theme.danger} />
               <RNText
                 style={{
                   flex: 1,
                   fontSize: 13,
                   fontWeight: "600",
-                  color: "#ef4444",
+                  color: theme.danger,
                 }}
               >
                 {urgentCount} action{urgentCount > 1 ? "s" : ""} urgente
@@ -305,7 +305,7 @@ export default function NotificationsScreen() {
 
                 <View
                   style={{
-                    backgroundColor: "#fff",
+                    backgroundColor: theme.surface,
                     borderRadius: 16,
                     marginHorizontal: 20,
                     overflow: "hidden",
@@ -325,7 +325,7 @@ export default function NotificationsScreen() {
                         <View
                           style={{
                             height: 1,
-                            backgroundColor: "#f1f5f9",
+                            backgroundColor: theme.border,
                             marginLeft: 78,
                           }}
                         />

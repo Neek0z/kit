@@ -5,6 +5,7 @@ import { SwipeCard } from "./SwipeCard";
 import { useContacts } from "../../hooks/useContacts";
 import { PipelineStatus, PIPELINE_LABELS } from "../../types";
 import { Feather } from "@expo/vector-icons";
+import { useTheme } from "../../lib/theme";
 
 const STEPS: PipelineStatus[] = [
   "new",
@@ -29,6 +30,7 @@ interface SwipeModeProps {
 }
 
 export function SwipeMode({ onClose, onChanged }: SwipeModeProps) {
+  const theme = useTheme();
   const { contacts, updateContact } = useContacts();
   const [activeFilter, setActiveFilter] = useState<PipelineStatus | "all" | "overdue">("all");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -128,7 +130,7 @@ export function SwipeMode({ onClose, onChanged }: SwipeModeProps) {
             : `${currentIndex + 1} / ${queue.length}`}
         </Text>
         <TouchableOpacity onPress={onClose} className="p-2">
-          <Feather name="x" size={22} color="#64748b" />
+          <Feather name="x" size={22} color={theme.textMuted} />
         </TouchableOpacity>
       </View>
 

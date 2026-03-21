@@ -108,7 +108,7 @@ export default function ContactDetailScreen() {
       <SafeAreaView
         style={{
           flex: 1,
-          backgroundColor: "#f8f9fb",
+          backgroundColor: theme.bg,
           alignItems: "center",
           justifyContent: "center",
         }}
@@ -171,7 +171,7 @@ export default function ContactDetailScreen() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f8f9fb" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Header */}
       <View
         style={{
@@ -188,13 +188,17 @@ export default function ContactDetailScreen() {
             width: 36,
             height: 36,
             borderRadius: 18,
-            backgroundColor: "#fff",
+            backgroundColor: theme.surface,
             alignItems: "center",
             justifyContent: "center",
-            shadowColor: "#000",
-            shadowOpacity: 0.08,
-            shadowRadius: 4,
-            elevation: 2,
+            ...(theme.isDark ? {} : {
+              shadowColor: "#000",
+              shadowOpacity: 0.08,
+              shadowRadius: 4,
+              elevation: 2,
+            }),
+            borderWidth: theme.isDark ? 1 : 0,
+            borderColor: theme.isDark ? theme.border : "transparent",
           }}
         >
           <Feather name="chevron-left" size={20} color={theme.textPrimary} />
@@ -205,13 +209,17 @@ export default function ContactDetailScreen() {
               width: 36,
               height: 36,
               borderRadius: 18,
-              backgroundColor: "#fff",
+              backgroundColor: theme.surface,
               alignItems: "center",
               justifyContent: "center",
-              shadowColor: "#000",
-              shadowOpacity: 0.08,
-              shadowRadius: 4,
-              elevation: 2,
+              ...(theme.isDark ? {} : {
+                shadowColor: "#000",
+                shadowOpacity: 0.08,
+                shadowRadius: 4,
+                elevation: 2,
+              }),
+              borderWidth: theme.isDark ? 1 : 0,
+              borderColor: theme.isDark ? theme.border : "transparent",
             }}
           >
             <Feather name="star" size={18} color="#fbbf24" />
@@ -224,13 +232,17 @@ export default function ContactDetailScreen() {
               width: 36,
               height: 36,
               borderRadius: 18,
-              backgroundColor: "#fff",
+              backgroundColor: theme.surface,
               alignItems: "center",
               justifyContent: "center",
-              shadowColor: "#000",
-              shadowOpacity: 0.08,
-              shadowRadius: 4,
-              elevation: 2,
+              ...(theme.isDark ? {} : {
+                shadowColor: "#000",
+                shadowOpacity: 0.08,
+                shadowRadius: 4,
+                elevation: 2,
+              }),
+              borderWidth: theme.isDark ? 1 : 0,
+              borderColor: theme.isDark ? theme.border : "transparent",
             }}
           >
             <Feather name="edit-2" size={16} color={theme.textPrimary} />
@@ -316,8 +328,8 @@ export default function ContactDetailScreen() {
           {
             label: "Appeler",
             icon: "phone" as FeatherName,
-            color: "#10b981",
-            bg: "#f0fdf4",
+            color: theme.primary,
+            bg: theme.primaryBg,
             onPress: handleCall,
             show: true,
           },
@@ -340,8 +352,8 @@ export default function ContactDetailScreen() {
           {
             label: "Plus",
             icon: "more-horizontal" as FeatherName,
-            color: "#64748b",
-            bg: "#f1f5f9",
+            color: theme.textMuted,
+            bg: theme.border,
             onPress: () => {},
             show: true,
           },
@@ -627,18 +639,18 @@ export default function ContactDetailScreen() {
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 4,
-                  backgroundColor: "#f0fdf4",
+                  backgroundColor: theme.primaryBg,
                   borderRadius: 100,
                   paddingHorizontal: 12,
                   paddingVertical: 6,
                 }}
               >
-                <Feather name="plus" size={12} color="#10b981" />
+                <Feather name="plus" size={12} color={theme.primary} />
                 <Text
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: "#10b981",
+                    color: theme.primary,
                   }}
                 >
                   Ajouter
@@ -670,14 +682,18 @@ export default function ContactDetailScreen() {
                       flexDirection: "row",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      backgroundColor: "#fff",
+                      backgroundColor: theme.surface,
                       borderRadius: 16,
                       padding: 12,
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.06,
-                      shadowRadius: 8,
-                      elevation: 2,
+                      ...(theme.isDark ? {} : {
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.06,
+                        shadowRadius: 8,
+                        elevation: 2,
+                      }),
+                      borderWidth: theme.isDark ? 1 : 0,
+                      borderColor: theme.isDark ? theme.border : "transparent",
                     }}
                   >
                     <View
@@ -811,18 +827,18 @@ export default function ContactDetailScreen() {
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 4,
-                  backgroundColor: "#f0fdf4",
+                  backgroundColor: theme.primaryBg,
                   borderRadius: 100,
                   paddingHorizontal: 12,
                   paddingVertical: 6,
                 }}
               >
-                <Feather name="plus" size={12} color="#10b981" />
+                <Feather name="plus" size={12} color={theme.primary} />
                 <Text
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: "#10b981",
+                    color: theme.primary,
                   }}
                 >
                   Ajouter
@@ -862,7 +878,7 @@ export default function ContactDetailScreen() {
                           width: 32,
                           height: 32,
                           borderRadius: 16,
-                          backgroundColor: "#f0fdf4",
+                          backgroundColor: theme.primaryBg,
                           alignItems: "center",
                           justifyContent: "center",
                         }}
@@ -874,7 +890,7 @@ export default function ContactDetailScreen() {
                             ] as FeatherName
                           }
                           size={14}
-                          color="#10b981"
+                          color={theme.primary}
                         />
                       </View>
                       <View style={{ flex: 1 }}>
@@ -1000,22 +1016,26 @@ export default function ContactDetailScreen() {
         >
           <View
             style={{
-              backgroundColor: "#fff",
+              backgroundColor: theme.surface,
               borderRadius: 20,
               paddingVertical: 8,
               width: 260,
-              shadowColor: "#000",
-              shadowOpacity: 0.18,
-              shadowRadius: 24,
-              shadowOffset: { width: 0, height: 8 },
-              elevation: 8,
+              ...(theme.isDark ? {} : {
+                shadowColor: "#000",
+                shadowOpacity: 0.18,
+                shadowRadius: 24,
+                shadowOffset: { width: 0, height: 8 },
+                elevation: 8,
+              }),
+              borderWidth: theme.isDark ? 1 : 0,
+              borderColor: theme.isDark ? theme.border : "transparent",
             }}
           >
             <Text
               style={{
                 fontSize: 13,
                 fontWeight: "700",
-                color: "#94a3b8",
+                color: theme.textHint,
                 textTransform: "uppercase",
                 letterSpacing: 0.8,
                 paddingHorizontal: 18,
@@ -1062,7 +1082,7 @@ export default function ContactDetailScreen() {
                       flex: 1,
                       fontSize: 15,
                       fontWeight: isActive ? "700" : "500",
-                      color: isActive ? sc.text : "#334155",
+                      color: isActive ? sc.text : theme.textPrimary,
                     }}
                   >
                     {PIPELINE_LABELS[s]}

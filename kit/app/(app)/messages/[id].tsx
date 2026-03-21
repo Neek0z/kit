@@ -152,7 +152,7 @@ export default function ConversationScreen() {
       >
         {messagesLoading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator color="#10b981" />
+            <ActivityIndicator color={theme.primary} />
           </View>
         ) : messages.length === 0 ? (
           <View className="flex-1 items-center justify-center px-8">

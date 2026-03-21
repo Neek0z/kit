@@ -145,7 +145,7 @@ export function WorkflowTimeline({
         <View
           style={{
             height: 4,
-            backgroundColor: "#10b981",
+            backgroundColor: theme.primary,
             borderRadius: 2,
             width: `${progress}%`,
           }}
@@ -177,13 +177,13 @@ export function WorkflowTimeline({
                         height: 24,
                         borderRadius: 12,
                         backgroundColor: isCompleted
-                          ? "#10b981"
+                          ? theme.primary
                           : isOverdue
                           ? "#f8717122"
                           : "#1e293b",
                         borderWidth: 1.5,
                         borderColor: isCompleted
-                          ? "#10b981"
+                          ? theme.primary
                           : isOverdue
                           ? "#f87171"
                           : "#334155",
@@ -201,7 +201,7 @@ export function WorkflowTimeline({
                             ] as FeatherIconName
                           }
                           size={11}
-                          color={isOverdue ? "#f87171" : "#64748b"}
+                          color={isOverdue ? theme.danger : theme.textMuted}
                         />
                       )}
                     </View>

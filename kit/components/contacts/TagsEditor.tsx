@@ -2,6 +2,7 @@ import { useState } from "react";
 import { View, TouchableOpacity, TextInput } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Text } from "../ui";
+import { useTheme } from "../../lib/theme";
 
 interface TagsEditorProps {
   tags: string[];
@@ -14,6 +15,7 @@ export function TagsEditor({
   onChange,
   editable = true,
 }: TagsEditorProps) {
+  const theme = useTheme();
   const [input, setInput] = useState("");
 
   const addTag = () => {
@@ -49,7 +51,7 @@ export function TagsEditor({
             }`}
           >
             <Text className="text-sm text-textMain dark:text-textMain-dark">{tag}</Text>
-            {editable && <Feather name="x" size={12} color="#64748b" />}
+            {editable && <Feather name="x" size={12} color={theme.textMuted} />}
           </TouchableOpacity>
         ))}
       </View>
@@ -59,7 +61,7 @@ export function TagsEditor({
             value={input}
             onChangeText={setInput}
             placeholder="Ajouter un tag..."
-            placeholderTextColor="#64748b"
+            placeholderTextColor={theme.textHint}
             className="flex-1 bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-xl px-3 py-2 text-textMain dark:text-textMain-dark text-sm"
             onSubmitEditing={addTag}
             returnKeyType="done"
@@ -68,7 +70,7 @@ export function TagsEditor({
             onPress={addTag}
             className="bg-primary w-9 h-9 rounded-full items-center justify-center"
           >
-            <Feather name="plus" size={18} color="#0f172a" />
+            <Feather name="plus" size={18} color={theme.textPrimary} />
           </TouchableOpacity>
         </View>
       )}

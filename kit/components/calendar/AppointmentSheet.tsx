@@ -17,6 +17,7 @@ import DateTimePicker, {
 import { Feather } from "@expo/vector-icons";
 import { Avatar } from "../ui";
 import type { Appointment, Contact } from "../../types";
+import { useTheme } from "../../lib/theme";
 
 interface AppointmentSheetProps {
   visible: boolean;
@@ -49,6 +50,7 @@ export function AppointmentSheet({
   onSubmitEdit,
   onDelete,
 }: AppointmentSheetProps) {
+  const theme = useTheme();
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
   const [contactSearch, setContactSearch] = useState("");
   const [showContactList, setShowContactList] = useState(false);
@@ -187,7 +189,7 @@ export function AppointmentSheet({
 
         <View
           style={{
-            backgroundColor: "#fff",
+            backgroundColor: theme.surface,
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             paddingBottom: Platform.OS === "ios" ? 34 : 24,
@@ -199,7 +201,7 @@ export function AppointmentSheet({
               width: 40,
               height: 4,
               borderRadius: 2,
-              backgroundColor: "#e2e8f0",
+              backgroundColor: theme.border,
               alignSelf: "center",
               marginTop: 12,
               marginBottom: 4,
@@ -222,7 +224,7 @@ export function AppointmentSheet({
                 style={{
                   fontSize: 18,
                   fontWeight: "700",
-                  color: "#0f172a",
+                  color: theme.textPrimary,
                 }}
               >
                 {mode === "create"
@@ -239,7 +241,7 @@ export function AppointmentSheet({
                     style={{
                       fontSize: 12,
                       fontWeight: "600",
-                      color: "#64748b",
+                      color: theme.textMuted,
                       marginBottom: 8,
                       textTransform: "uppercase",
                       letterSpacing: 0.5,
@@ -270,9 +272,9 @@ export function AppointmentSheet({
                             paddingRight: 10,
                             paddingVertical: 4,
                             borderRadius: 100,
-                            backgroundColor: "#f0fdf4",
+                            backgroundColor: theme.primaryBg,
                             borderWidth: 1,
-                            borderColor: "#10b981",
+                            borderColor: theme.primaryBorder,
                           }}
                         >
                           <Avatar
@@ -285,13 +287,13 @@ export function AppointmentSheet({
                             style={{
                               fontSize: 13,
                               fontWeight: "600",
-                              color: "#10b981",
+                              color: theme.primary,
                             }}
                             numberOfLines={1}
                           >
                             {c.full_name.split(" ")[0]}
                           </RNText>
-                          <Feather name="x" size={12} color="#10b981" />
+                          <Feather name="x" size={12} color={theme.primary} />
                         </TouchableOpacity>
                       ))}
                     </View>
@@ -304,26 +306,26 @@ export function AppointmentSheet({
                       flexDirection: "row",
                       alignItems: "center",
                       gap: 10,
-                      backgroundColor: "#f8fafc",
+                      backgroundColor: theme.bg,
                       borderWidth: 1,
                       borderColor: showContactList
-                        ? "#10b981"
-                        : "#e2e8f0",
+                        ? theme.primary
+                        : theme.border,
                       borderRadius: 12,
                       padding: 12,
                     }}
                     activeOpacity={1}
                   >
-                    <Feather name="search" size={16} color="#94a3b8" />
+                    <Feather name="search" size={16} color={theme.textHint} />
                     <TextInput
                       style={{
                         flex: 1,
                         fontSize: 15,
-                        color: "#0f172a",
+                        color: theme.textPrimary,
                         padding: 0,
                       }}
                       placeholder="Rechercher un contact..."
-                      placeholderTextColor="#94a3b8"
+                      placeholderTextColor={theme.textHint}
                       value={contactSearch}
                       onChangeText={(t) => {
                         setContactSearch(t);
@@ -339,7 +341,7 @@ export function AppointmentSheet({
                       <Feather
                         name={showContactList ? "chevron-up" : "chevron-down"}
                         size={18}
-                        color="#94a3b8"
+                        color={theme.textHint}
                       />
                     </TouchableOpacity>
                   </TouchableOpacity>
@@ -349,9 +351,9 @@ export function AppointmentSheet({
                     <View
                       style={{
                         maxHeight: 180,
-                        backgroundColor: "#fff",
+                        backgroundColor: theme.surface,
                         borderWidth: 1,
-                        borderColor: "#e2e8f0",
+                        borderColor: theme.border,
                         borderRadius: 12,
                         marginTop: 6,
                         overflow: "hidden",
@@ -367,7 +369,7 @@ export function AppointmentSheet({
                           <RNText
                             style={{
                               fontSize: 13,
-                              color: "#94a3b8",
+                              color: theme.textHint,
                             }}
                           >
                             Aucun contact trouvé
@@ -393,7 +395,7 @@ export function AppointmentSheet({
                                   paddingVertical: 10,
                                   paddingHorizontal: 12,
                                   backgroundColor: isSelected
-                                    ? "#f0fdf4"
+                                    ? theme.primaryBg
                                     : "transparent",
                                 }}
                               >
@@ -408,7 +410,7 @@ export function AppointmentSheet({
                                     style={{
                                       fontSize: 14,
                                       fontWeight: "500",
-                                      color: "#0f172a",
+                                      color: theme.textPrimary,
                                     }}
                                     numberOfLines={1}
                                   >
@@ -418,7 +420,7 @@ export function AppointmentSheet({
                                     <RNText
                                       style={{
                                         fontSize: 12,
-                                        color: "#94a3b8",
+                                        color: theme.textHint,
                                         marginTop: 1,
                                       }}
                                     >
@@ -433,10 +435,10 @@ export function AppointmentSheet({
                                     borderRadius: 6,
                                     borderWidth: 1.5,
                                     borderColor: isSelected
-                                      ? "#10b981"
-                                      : "#e2e8f0",
+                                      ? theme.primary
+                                      : theme.border,
                                     backgroundColor: isSelected
-                                      ? "#10b981"
+                                      ? theme.primary
                                       : "transparent",
                                     alignItems: "center",
                                     justifyContent: "center",
@@ -462,7 +464,7 @@ export function AppointmentSheet({
                     <RNText
                       style={{
                         fontSize: 13,
-                        color: "#94a3b8",
+                        color: theme.textHint,
                         marginTop: 4,
                       }}
                     >
@@ -478,7 +480,7 @@ export function AppointmentSheet({
                     style={{
                       fontSize: 12,
                       fontWeight: "600",
-                      color: "#64748b",
+                      color: theme.textMuted,
                       marginBottom: 6,
                       textTransform: "uppercase",
                       letterSpacing: 0.5,
@@ -491,7 +493,7 @@ export function AppointmentSheet({
                       style={{
                         fontSize: 15,
                         fontWeight: "500",
-                        color: "#0f172a",
+                        color: theme.textPrimary,
                       }}
                     >
                       {selectedContacts.map((c) => c.full_name).join(", ")}
@@ -501,7 +503,7 @@ export function AppointmentSheet({
                       style={{
                         fontSize: 15,
                         fontWeight: "500",
-                        color: "#94a3b8",
+                        color: theme.textHint,
                       }}
                     >
                       Contact inconnu
@@ -516,7 +518,7 @@ export function AppointmentSheet({
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: "#64748b",
+                    color: theme.textMuted,
                     marginBottom: 6,
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
@@ -536,15 +538,15 @@ export function AppointmentSheet({
                     flexDirection: "row",
                     alignItems: "center",
                     gap: 10,
-                    backgroundColor: "#f8fafc",
+                    backgroundColor: theme.bg,
                     borderWidth: 1,
-                    borderColor: "#e2e8f0",
+                    borderColor: theme.border,
                     borderRadius: 12,
                     padding: 14,
                   }}
                 >
-                  <Feather name="calendar" size={16} color="#10b981" />
-                  <RNText style={{ fontSize: 15, color: "#0f172a" }}>
+                  <Feather name="calendar" size={16} color={theme.primary} />
+                  <RNText style={{ fontSize: 15, color: theme.textPrimary }}>
                     {scheduledAt.toLocaleDateString("fr-FR", {
                       weekday: "short",
                       day: "numeric",
@@ -576,7 +578,7 @@ export function AppointmentSheet({
                         style={{
                           fontSize: 14,
                           fontWeight: "600",
-                          color: "#10b981",
+                          color: theme.primary,
                         }}
                       >
                         Fermer
@@ -592,7 +594,7 @@ export function AppointmentSheet({
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: "#64748b",
+                    color: theme.textMuted,
                     marginBottom: 6,
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
@@ -602,16 +604,16 @@ export function AppointmentSheet({
                 </RNText>
                 <TextInput
                   style={{
-                    backgroundColor: "#f8fafc",
+                    backgroundColor: theme.bg,
                     borderWidth: 1,
-                    borderColor: "#e2e8f0",
+                    borderColor: theme.border,
                     borderRadius: 12,
                     padding: 14,
                     fontSize: 15,
-                    color: "#0f172a",
+                    color: theme.textPrimary,
                   }}
                   placeholder="Ex. Appel découverte"
-                  placeholderTextColor="#94a3b8"
+                  placeholderTextColor={theme.textHint}
                   value={title}
                   onChangeText={setTitle}
                 />
@@ -623,7 +625,7 @@ export function AppointmentSheet({
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: "#64748b",
+                    color: theme.textMuted,
                     marginBottom: 6,
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
@@ -633,18 +635,18 @@ export function AppointmentSheet({
                 </RNText>
                 <TextInput
                   style={{
-                    backgroundColor: "#f8fafc",
+                    backgroundColor: theme.bg,
                     borderWidth: 1,
-                    borderColor: "#e2e8f0",
+                    borderColor: theme.border,
                     borderRadius: 12,
                     padding: 14,
                     fontSize: 15,
-                    color: "#0f172a",
+                    color: theme.textPrimary,
                     minHeight: 80,
                     textAlignVertical: "top",
                   }}
                   placeholder="Notes..."
-                  placeholderTextColor="#94a3b8"
+                  placeholderTextColor={theme.textHint}
                   value={notes}
                   onChangeText={setNotes}
                   multiline
@@ -669,16 +671,16 @@ export function AppointmentSheet({
                 paddingVertical: 14,
                 borderRadius: 14,
                 alignItems: "center",
-                backgroundColor: "#f8fafc",
+                backgroundColor: theme.bg,
                 borderWidth: 1,
-                borderColor: "#e2e8f0",
+                borderColor: theme.border,
               }}
             >
               <RNText
                 style={{
                   fontSize: 15,
                   fontWeight: "600",
-                  color: "#64748b",
+                  color: theme.textMuted,
                 }}
               >
                 Annuler
@@ -692,7 +694,7 @@ export function AppointmentSheet({
                 paddingVertical: 14,
                 borderRadius: 14,
                 alignItems: "center",
-                backgroundColor: "#10b981",
+                backgroundColor: theme.primary,
                 opacity: !canSubmit || loading ? 0.5 : 1,
               }}
             >
@@ -738,7 +740,7 @@ export function AppointmentSheet({
                 style={{
                   fontSize: 14,
                   fontWeight: "500",
-                  color: "#ef4444",
+                  color: theme.danger,
                 }}
               >
                 Supprimer ce rendez-vous

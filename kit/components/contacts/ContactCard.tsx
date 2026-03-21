@@ -47,16 +47,22 @@ const ContactCard = React.memo(function ContactCard({
       onPress={handlePress}
       activeOpacity={0.7}
       style={{
-        backgroundColor: "#fff",
+        backgroundColor: theme.surface,
         borderRadius: 16,
         padding: 14,
         marginHorizontal: 20,
         marginBottom: 10,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        elevation: 2,
+        ...(theme.isDark
+          ? {}
+          : {
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.06,
+              shadowRadius: 8,
+              elevation: 2,
+            }),
+        borderWidth: theme.isDark ? 1 : 0,
+        borderColor: theme.isDark ? theme.border : "transparent",
       }}
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -88,7 +94,7 @@ const ContactCard = React.memo(function ContactCard({
             {pendingCount > 0 && (
               <View
                 style={{
-                  backgroundColor: "#f0fdf4",
+                  backgroundColor: theme.primaryBg,
                   borderRadius: 10,
                   paddingHorizontal: 6,
                   paddingVertical: 2,
@@ -98,7 +104,7 @@ const ContactCard = React.memo(function ContactCard({
                   style={{
                     fontSize: 10,
                     fontWeight: "700",
-                    color: "#10b981",
+                    color: theme.primary,
                   }}
                 >
                   {pendingCount}
@@ -110,7 +116,7 @@ const ContactCard = React.memo(function ContactCard({
           <Text
             style={{
               fontSize: 12,
-              color: isOverdue ? "#ef4444" : theme.textMuted,
+              color: isOverdue ? theme.danger : theme.textMuted,
               marginBottom: 8,
             }}
           >
@@ -134,7 +140,7 @@ const ContactCard = React.memo(function ContactCard({
                   height: 3,
                   borderRadius: 2,
                   backgroundColor:
-                    i <= progressValue ? statusColor : "#e2e8f0",
+                    i <= progressValue ? statusColor : theme.border,
                 }}
               />
             ))}
@@ -150,12 +156,12 @@ const ContactCard = React.memo(function ContactCard({
                 width: 32,
                 height: 32,
                 borderRadius: 16,
-                backgroundColor: "#f0fdf4",
+                backgroundColor: theme.primaryBg,
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <Feather name="phone" size={13} color="#10b981" />
+              <Feather name="phone" size={13} color={theme.primary} />
             </TouchableOpacity>
           )}
           <TouchableOpacity
@@ -164,7 +170,7 @@ const ContactCard = React.memo(function ContactCard({
               width: 32,
               height: 32,
               borderRadius: 16,
-              backgroundColor: "#f8fafc",
+              backgroundColor: theme.bg,
               alignItems: "center",
               justifyContent: "center",
             }}

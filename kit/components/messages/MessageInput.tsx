@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import { useTheme } from "../../lib/theme";
 
 interface MessageInputProps {
   onSend: (content: string) => Promise<boolean>;
@@ -13,6 +14,7 @@ export function MessageInput({
   sending = false,
   placeholder = "Écris un message…",
 }: MessageInputProps) {
+  const theme = useTheme();
   const [text, setText] = useState("");
 
   const handleSend = async () => {
@@ -34,7 +36,7 @@ export function MessageInput({
         <TextInput
           className="flex-1 bg-surface border border-border rounded-2xl px-4 py-3 text-textMain text-base max-h-28"
           placeholder={placeholder}
-          placeholderTextColor="#94a3b8"
+          placeholderTextColor={theme.textHint}
           value={text}
           onChangeText={setText}
           multiline
@@ -53,7 +55,7 @@ export function MessageInput({
           <Feather
             name="send"
             size={18}
-            color={canSend ? "#0f172a" : "#64748b"}
+            color={canSend ? theme.textPrimary : theme.textMuted}
           />
         </TouchableOpacity>
       </View>

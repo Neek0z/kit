@@ -15,6 +15,7 @@ import {
   INTERACTION_LABELS,
   INTERACTION_ICONS,
 } from "../../types";
+import { useTheme } from "../../lib/theme";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
@@ -37,6 +38,7 @@ export function AddInteractionSheet({
   onClose,
   onAdd,
 }: AddInteractionSheetProps) {
+  const theme = useTheme();
   const [selectedType, setSelectedType] = useState<InteractionType>("call");
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(false);
@@ -75,7 +77,7 @@ export function AddInteractionSheet({
 
         <View
           style={{
-            backgroundColor: "#fff",
+            backgroundColor: theme.surface,
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             paddingBottom: Platform.OS === "ios" ? 34 : 24,
@@ -87,7 +89,7 @@ export function AddInteractionSheet({
               width: 40,
               height: 4,
               borderRadius: 2,
-              backgroundColor: "#e2e8f0",
+              backgroundColor: theme.border,
               alignSelf: "center",
               marginTop: 12,
               marginBottom: 4,
@@ -109,7 +111,7 @@ export function AddInteractionSheet({
                 style={{
                   fontSize: 18,
                   fontWeight: "700",
-                  color: "#0f172a",
+                  color: theme.textPrimary,
                 }}
               >
                 Nouvelle interaction
@@ -122,7 +124,7 @@ export function AddInteractionSheet({
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: "#64748b",
+                    color: theme.textMuted,
                     marginBottom: 8,
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
@@ -148,21 +150,21 @@ export function AddInteractionSheet({
                           paddingHorizontal: 14,
                           paddingVertical: 8,
                           borderRadius: 100,
-                          backgroundColor: isActive ? "#f0fdf4" : "#f8fafc",
+                          backgroundColor: isActive ? theme.primaryBg : theme.bg,
                           borderWidth: 1,
-                          borderColor: isActive ? "#10b981" : "#e2e8f0",
+                          borderColor: isActive ? theme.primaryBorder : theme.border,
                         }}
                       >
                         <Feather
                           name={INTERACTION_ICONS[type] as FeatherName}
                           size={14}
-                          color={isActive ? "#10b981" : "#64748b"}
+                          color={isActive ? theme.primary : theme.textMuted}
                         />
                         <RNText
                           style={{
                             fontSize: 13,
                             fontWeight: isActive ? "600" : "500",
-                            color: isActive ? "#10b981" : "#64748b",
+                            color: isActive ? theme.primary : theme.textMuted,
                           }}
                         >
                           {INTERACTION_LABELS[type]}
@@ -178,7 +180,7 @@ export function AddInteractionSheet({
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: "#64748b",
+                    color: theme.textMuted,
                     marginBottom: 6,
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
@@ -188,18 +190,18 @@ export function AddInteractionSheet({
                 </RNText>
                 <TextInput
                   style={{
-                    backgroundColor: "#f8fafc",
+                    backgroundColor: theme.bg,
                     borderWidth: 1,
-                    borderColor: "#e2e8f0",
+                    borderColor: theme.border,
                     borderRadius: 12,
                     padding: 14,
                     fontSize: 15,
-                    color: "#0f172a",
+                    color: theme.textPrimary,
                     minHeight: 80,
                     textAlignVertical: "top",
                   }}
                   placeholder="Note optionnelle..."
-                  placeholderTextColor="#94a3b8"
+                  placeholderTextColor={theme.textHint}
                   value={content}
                   onChangeText={setContent}
                   multiline
@@ -223,16 +225,16 @@ export function AddInteractionSheet({
                 paddingVertical: 14,
                 borderRadius: 14,
                 alignItems: "center",
-                backgroundColor: "#f8fafc",
+                backgroundColor: theme.bg,
                 borderWidth: 1,
-                borderColor: "#e2e8f0",
+                borderColor: theme.border,
               }}
             >
               <RNText
                 style={{
                   fontSize: 15,
                   fontWeight: "600",
-                  color: "#64748b",
+                  color: theme.textMuted,
                 }}
               >
                 Annuler
@@ -246,7 +248,7 @@ export function AddInteractionSheet({
                 paddingVertical: 14,
                 borderRadius: 14,
                 alignItems: "center",
-                backgroundColor: "#10b981",
+                backgroundColor: theme.primary,
                 opacity: loading ? 0.6 : 1,
               }}
             >

@@ -357,25 +357,25 @@ export default function GroupsScreen() {
           />
           <View
             style={{
-              backgroundColor: "#fff",
+              backgroundColor: theme.surface,
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
               paddingBottom: Platform.OS === "ios" ? 34 : 24,
               maxHeight: "90%",
             }}
           >
-            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: "#e2e8f0", alignSelf: "center", marginTop: 12, marginBottom: 4 }} />
+            <View style={{ width: 40, height: 4, borderRadius: 2, backgroundColor: theme.border, alignSelf: "center", marginTop: 12, marginBottom: 4 }} />
 
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
               <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 }}>
-                <RNText style={{ fontSize: 18, fontWeight: "700", color: "#0f172a" }}>
+                <RNText style={{ fontSize: 18, fontWeight: "700", color: theme.textPrimary }}>
                   {mode === "create" ? "Créer un groupe" : "Modifier le groupe"}
                 </RNText>
               </View>
 
               <View style={{ paddingHorizontal: 20, gap: 16 }}>
                 <View>
-                  <RNText style={{ fontSize: 12, fontWeight: "600", color: "#64748b", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                  <RNText style={{ fontSize: 12, fontWeight: "600", color: theme.textMuted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
                     Emoji
                   </RNText>
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
@@ -401,7 +401,7 @@ export default function GroupsScreen() {
                 </View>
 
                 <View>
-                  <RNText style={{ fontSize: 12, fontWeight: "600", color: "#64748b", marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                  <RNText style={{ fontSize: 12, fontWeight: "600", color: theme.textMuted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
                     Couleur
                   </RNText>
                   <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
@@ -423,45 +423,45 @@ export default function GroupsScreen() {
                 </View>
 
                 <View>
-                  <RNText style={{ fontSize: 12, fontWeight: "600", color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                  <RNText style={{ fontSize: 12, fontWeight: "600", color: theme.textMuted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
                     Nom
                   </RNText>
                   <TextInput
                     value={draft.name}
                     onChangeText={(v) => setDraft((d) => ({ ...d, name: v }))}
                     placeholder="Nom du groupe..."
-                    placeholderTextColor="#94a3b8"
+                    placeholderTextColor={theme.textHint}
                     style={{
-                      backgroundColor: "#f8fafc",
+                      backgroundColor: theme.bg,
                       borderWidth: 1,
-                      borderColor: "#e2e8f0",
+                      borderColor: theme.border,
                       borderRadius: 12,
                       padding: 14,
                       fontSize: 15,
-                      color: "#0f172a",
+                      color: theme.textPrimary,
                     }}
                   />
                 </View>
 
                 <View>
-                  <RNText style={{ fontSize: 12, fontWeight: "600", color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                  <RNText style={{ fontSize: 12, fontWeight: "600", color: theme.textMuted, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5 }}>
                     Description
                   </RNText>
                   <TextInput
                     value={draft.description}
                     onChangeText={(v) => setDraft((d) => ({ ...d, description: v }))}
                     placeholder="Optionnel"
-                    placeholderTextColor="#94a3b8"
+                    placeholderTextColor={theme.textHint}
                     multiline
                     numberOfLines={3}
                     style={{
-                      backgroundColor: "#f8fafc",
+                      backgroundColor: theme.bg,
                       borderWidth: 1,
-                      borderColor: "#e2e8f0",
+                      borderColor: theme.border,
                       borderRadius: 12,
                       padding: 14,
                       fontSize: 15,
-                      color: "#0f172a",
+                      color: theme.textPrimary,
                       textAlignVertical: "top",
                     }}
                   />
@@ -472,14 +472,14 @@ export default function GroupsScreen() {
             <View style={{ flexDirection: "row", gap: 10, paddingHorizontal: 20, paddingTop: 16 }}>
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
-                style={{ flex: 1, paddingVertical: 14, borderRadius: 14, alignItems: "center", backgroundColor: "#f8fafc", borderWidth: 1, borderColor: "#e2e8f0" }}
+                style={{ flex: 1, paddingVertical: 14, borderRadius: 14, alignItems: "center", backgroundColor: theme.bg, borderWidth: 1, borderColor: theme.border }}
               >
-                <RNText style={{ fontSize: 15, fontWeight: "600", color: "#64748b" }}>Annuler</RNText>
+                <RNText style={{ fontSize: 15, fontWeight: "600", color: theme.textMuted }}>Annuler</RNText>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={handleSave}
                 disabled={!draft.name.trim()}
-                style={{ flex: 2, paddingVertical: 14, borderRadius: 14, alignItems: "center", backgroundColor: "#10b981", opacity: !draft.name.trim() ? 0.5 : 1 }}
+                style={{ flex: 2, paddingVertical: 14, borderRadius: 14, alignItems: "center", backgroundColor: theme.primary, opacity: !draft.name.trim() ? 0.5 : 1 }}
               >
                 <RNText style={{ fontSize: 15, fontWeight: "600", color: "#fff" }}>
                   {mode === "create" ? "Créer" : "Enregistrer"}

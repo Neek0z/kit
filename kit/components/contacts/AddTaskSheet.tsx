@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import type { TaskPriority } from "../../types";
 import { PRIORITY_COLORS, PRIORITY_LABELS } from "../../types";
+import { useTheme } from "../../lib/theme";
 
 interface AddTaskSheetProps {
   visible: boolean;
@@ -38,6 +39,7 @@ export function AddTaskSheet({
   onClose,
   onAdd,
 }: AddTaskSheetProps) {
+  const theme = useTheme();
   const [title, setTitle] = useState("");
   const [priority, setPriority] = useState<TaskPriority>("normal");
   const [loading, setLoading] = useState(false);
@@ -85,7 +87,7 @@ export function AddTaskSheet({
 
         <View
           style={{
-            backgroundColor: "#fff",
+            backgroundColor: theme.surface,
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             paddingBottom: Platform.OS === "ios" ? 34 : 24,
@@ -97,7 +99,7 @@ export function AddTaskSheet({
               width: 40,
               height: 4,
               borderRadius: 2,
-              backgroundColor: "#e2e8f0",
+              backgroundColor: theme.border,
               alignSelf: "center",
               marginTop: 12,
               marginBottom: 4,
@@ -119,7 +121,7 @@ export function AddTaskSheet({
                 style={{
                   fontSize: 18,
                   fontWeight: "700",
-                  color: "#0f172a",
+                  color: theme.textPrimary,
                 }}
               >
                 Nouvelle tâche
@@ -133,7 +135,7 @@ export function AddTaskSheet({
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: "#64748b",
+                    color: theme.textMuted,
                     marginBottom: 8,
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
@@ -156,16 +158,16 @@ export function AddTaskSheet({
                         paddingHorizontal: 14,
                         paddingVertical: 8,
                         borderRadius: 100,
-                        backgroundColor: "#f8fafc",
+                        backgroundColor: theme.bg,
                         borderWidth: 1,
-                        borderColor: "#e2e8f0",
+                        borderColor: theme.border,
                       }}
                     >
                       <RNText
                         style={{
                           fontSize: 13,
                           fontWeight: "500",
-                          color: "#64748b",
+                          color: theme.textMuted,
                         }}
                       >
                         {qt}
@@ -178,7 +180,7 @@ export function AddTaskSheet({
               <View
                 style={{
                   height: 1,
-                  backgroundColor: "#e2e8f0",
+                  backgroundColor: theme.border,
                 }}
               />
 
@@ -188,7 +190,7 @@ export function AddTaskSheet({
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: "#64748b",
+                    color: theme.textMuted,
                     marginBottom: 6,
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
@@ -200,15 +202,15 @@ export function AddTaskSheet({
                   value={title}
                   onChangeText={setTitle}
                   placeholder="Ou écris ta propre tâche..."
-                  placeholderTextColor="#94a3b8"
+                  placeholderTextColor={theme.textHint}
                   style={{
-                    backgroundColor: "#f8fafc",
+                    backgroundColor: theme.bg,
                     borderWidth: 1,
-                    borderColor: "#e2e8f0",
+                    borderColor: theme.border,
                     borderRadius: 12,
                     padding: 14,
                     fontSize: 15,
-                    color: "#0f172a",
+                    color: theme.textPrimary,
                   }}
                 />
               </View>
@@ -219,7 +221,7 @@ export function AddTaskSheet({
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: "#64748b",
+                    color: theme.textMuted,
                     marginBottom: 8,
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
@@ -241,11 +243,11 @@ export function AddTaskSheet({
                           alignItems: "center",
                           backgroundColor: isActive
                             ? `${PRIORITY_COLORS[p]}15`
-                            : "#f8fafc",
+                            : theme.bg,
                           borderWidth: 1,
                           borderColor: isActive
                             ? PRIORITY_COLORS[p]
-                            : "#e2e8f0",
+                            : theme.border,
                         }}
                       >
                         <RNText
@@ -254,7 +256,7 @@ export function AddTaskSheet({
                             fontWeight: isActive ? "600" : "500",
                             color: isActive
                               ? PRIORITY_COLORS[p]
-                              : "#64748b",
+                              : theme.textMuted,
                           }}
                         >
                           {PRIORITY_LABELS[p]}
@@ -283,16 +285,16 @@ export function AddTaskSheet({
                 paddingVertical: 14,
                 borderRadius: 14,
                 alignItems: "center",
-                backgroundColor: "#f8fafc",
+                backgroundColor: theme.bg,
                 borderWidth: 1,
-                borderColor: "#e2e8f0",
+                borderColor: theme.border,
               }}
             >
               <RNText
                 style={{
                   fontSize: 15,
                   fontWeight: "600",
-                  color: "#64748b",
+                  color: theme.textMuted,
                 }}
               >
                 Annuler
@@ -306,7 +308,7 @@ export function AddTaskSheet({
                 paddingVertical: 14,
                 borderRadius: 14,
                 alignItems: "center",
-                backgroundColor: "#10b981",
+                backgroundColor: theme.primary,
                 opacity: !title.trim() || loading ? 0.5 : 1,
               }}
             >

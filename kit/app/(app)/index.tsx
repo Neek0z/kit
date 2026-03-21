@@ -111,18 +111,18 @@ export default function DashboardScreen() {
       <SafeAreaView
         style={{
           flex: 1,
-          backgroundColor: "#f8f9fb",
+          backgroundColor: theme.bg,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <ActivityIndicator color="#10b981" />
+        <ActivityIndicator color={theme.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f8f9fb" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
       <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View
@@ -168,20 +168,24 @@ export default function DashboardScreen() {
                 width: 42,
                 height: 42,
                 borderRadius: 21,
-                backgroundColor: "#fff",
+                backgroundColor: theme.surface,
                 alignItems: "center",
                 justifyContent: "center",
-                shadowColor: "#000",
-                shadowOpacity: 0.06,
-                shadowRadius: 6,
-                elevation: 2,
+                ...(theme.isDark ? {} : {
+                  shadowColor: "#000",
+                  shadowOpacity: 0.06,
+                  shadowRadius: 6,
+                  elevation: 2,
+                }),
+                borderWidth: theme.isDark ? 1 : 0,
+                borderColor: theme.isDark ? theme.border : "transparent",
               }}
             >
               <Feather
                 name="bell"
                 size={20}
                 color={
-                  urgentCount > 0 ? "#ef4444" : theme.textMuted
+                  urgentCount > 0 ? theme.danger : theme.textMuted
                 }
               />
               {hasUnread && (
@@ -194,12 +198,12 @@ export default function DashboardScreen() {
                     height: 18,
                     borderRadius: 9,
                     backgroundColor:
-                      urgentCount > 0 ? "#ef4444" : "#10b981",
+                      urgentCount > 0 ? theme.danger : theme.primary,
                     alignItems: "center",
                     justifyContent: "center",
                     paddingHorizontal: 4,
                     borderWidth: 2,
-                    borderColor: "#f8f9fb",
+                    borderColor: theme.bg,
                   }}
                 >
                   <Text
@@ -224,7 +228,7 @@ export default function DashboardScreen() {
                 width: 42,
                 height: 42,
                 borderRadius: 21,
-                backgroundColor: "#10b981",
+                backgroundColor: theme.primary,
                 alignItems: "center",
                 justifyContent: "center",
               }}
@@ -269,7 +273,7 @@ export default function DashboardScreen() {
             {
               label: "Nouveau contact",
               icon: "user-plus" as FeatherIconName,
-              bg: "#10b981",
+              bg: theme.primary,
               fg: "#fff",
               route: "/(app)/contacts/new" as AppRoute,
             },
@@ -334,7 +338,7 @@ export default function DashboardScreen() {
               onPress={() => router.push("/(app)/contacts" as AppRoute)}
             >
               <Text
-                style={{ fontSize: 13, color: "#10b981", fontWeight: "600" }}
+                style={{ fontSize: 13, color: theme.primary, fontWeight: "600" }}
               >
                 Voir tout ›
               </Text>
@@ -347,15 +351,19 @@ export default function DashboardScreen() {
                 onPress={() => router.push("/(app)/contacts" as AppRoute)}
                 style={{
                   flex: 1,
-                  backgroundColor: "#fff",
+                  backgroundColor: theme.surface,
                   borderRadius: 14,
                   padding: 10,
                   alignItems: "flex-start",
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.06,
-                  shadowRadius: 8,
-                  elevation: 2,
+                  ...(theme.isDark ? {} : {
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.06,
+                    shadowRadius: 8,
+                    elevation: 2,
+                  }),
+                  borderWidth: theme.isDark ? 1 : 0,
+                  borderColor: theme.isDark ? theme.border : "transparent",
                 }}
               >
                 <View
@@ -434,7 +442,7 @@ export default function DashboardScreen() {
                 {overdueCount > 0 && (
                   <View
                     style={{
-                      backgroundColor: "#fef2f2",
+                      backgroundColor: theme.dangerBg,
                       borderRadius: 100,
                       paddingHorizontal: 8,
                       paddingVertical: 3,
@@ -444,7 +452,7 @@ export default function DashboardScreen() {
                       style={{
                         fontSize: 10,
                         fontWeight: "700",
-                        color: "#ef4444",
+                        color: theme.danger,
                       }}
                     >
                       {overdueCount} URGENT
@@ -465,7 +473,7 @@ export default function DashboardScreen() {
 
             {todayContacts.map((contact) => {
               const statusColor =
-                STATUS_COLORS[contact.status as StatusKey]?.text ?? "#10b981";
+                STATUS_COLORS[contact.status as StatusKey]?.text ?? theme.primary;
               const isOverdue =
                 !!contact.next_follow_up &&
                 new Date(contact.next_follow_up) < new Date();
@@ -482,17 +490,21 @@ export default function DashboardScreen() {
                   }
                   activeOpacity={0.7}
                   style={{
-                    backgroundColor: "#fff",
+                    backgroundColor: theme.surface,
                     borderRadius: 16,
                     padding: 14,
                     marginBottom: 10,
+                    ...(theme.isDark ? {} : {
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.06,
+                      shadowRadius: 8,
+                      elevation: 2,
+                    }),
+                    borderWidth: theme.isDark ? 1 : 0,
+                    borderColor: theme.isDark ? theme.border : "transparent",
                     borderLeftWidth: 3,
                     borderLeftColor: statusColor,
-                    shadowColor: "#000",
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.06,
-                    shadowRadius: 8,
-                    elevation: 2,
                   }}
                 >
                   <View
@@ -522,7 +534,7 @@ export default function DashboardScreen() {
                       <Text
                         style={{
                           fontSize: 12,
-                          color: isOverdue ? "#ef4444" : theme.textMuted,
+                          color: isOverdue ? theme.danger : theme.textMuted,
                         }}
                       >
                         {isOverdue
@@ -552,7 +564,7 @@ export default function DashboardScreen() {
                               backgroundColor:
                                 i <= progressValue
                                   ? statusColor
-                                  : "#e2e8f0",
+                                  : theme.border,
                             }}
                           />
                         ))}
@@ -567,7 +579,7 @@ export default function DashboardScreen() {
                           width: 36,
                           height: 36,
                           borderRadius: 18,
-                          backgroundColor: "#f0fdf4",
+                          backgroundColor: theme.primaryBg,
                           alignItems: "center",
                           justifyContent: "center",
                         }}
@@ -575,7 +587,7 @@ export default function DashboardScreen() {
                         <Feather
                           name="phone"
                           size={15}
-                          color="#10b981"
+                          color={theme.primary}
                         />
                       </TouchableOpacity>
                     )}
@@ -604,7 +616,7 @@ export default function DashboardScreen() {
                 label: "CONTACTS AJOUTÉS",
                 value: weeklyNewContacts,
                 icon: "users" as FeatherIconName,
-                color: "#10b981",
+                color: theme.primary,
                 sub: "↑ Cette semaine",
               },
               {
@@ -619,14 +631,18 @@ export default function DashboardScreen() {
                 key={stat.label}
                 style={{
                   flex: 1,
-                  backgroundColor: "#fff",
+                  backgroundColor: theme.surface,
                   borderRadius: 16,
                   padding: 16,
-                  shadowColor: "#000",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.06,
-                  shadowRadius: 8,
-                  elevation: 2,
+                  ...(theme.isDark ? {} : {
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.06,
+                    shadowRadius: 8,
+                    elevation: 2,
+                  }),
+                  borderWidth: theme.isDark ? 1 : 0,
+                  borderColor: theme.isDark ? theme.border : "transparent",
                 }}
               >
                 <View
@@ -696,14 +712,18 @@ export default function DashboardScreen() {
           </Text>
           <View
             style={{
-              backgroundColor: "#fff",
+              backgroundColor: theme.surface,
               borderRadius: 16,
               overflow: "hidden",
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
-              elevation: 2,
+              ...(theme.isDark ? {} : {
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.06,
+                shadowRadius: 8,
+                elevation: 2,
+              }),
+              borderWidth: theme.isDark ? 1 : 0,
+              borderColor: theme.isDark ? theme.border : "transparent",
             }}
           >
             {recentActivity.length === 0 ? (
@@ -735,7 +755,7 @@ export default function DashboardScreen() {
                         width: 36,
                         height: 36,
                         borderRadius: 18,
-                        backgroundColor: "#f0fdf4",
+                        backgroundColor: theme.primaryBg,
                         alignItems: "center",
                         justifyContent: "center",
                         flexShrink: 0,
@@ -748,7 +768,7 @@ export default function DashboardScreen() {
                           ] as FeatherIconName
                         }
                         size={15}
-                        color="#10b981"
+                        color={theme.primary}
                       />
                     </View>
                     <View style={{ flex: 1 }}>
@@ -780,7 +800,7 @@ export default function DashboardScreen() {
                     <View
                       style={{
                         height: 1,
-                        backgroundColor: "#f1f5f9",
+                        backgroundColor: theme.border,
                         marginLeft: 62,
                       }}
                     />
@@ -800,17 +820,21 @@ export default function DashboardScreen() {
             style={{
               marginHorizontal: 20,
               marginBottom: 24,
-              backgroundColor: "#fff",
+              backgroundColor: theme.surface,
               borderRadius: 16,
               padding: 14,
               flexDirection: "row",
               alignItems: "center",
               gap: 10,
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.06,
-              shadowRadius: 8,
-              elevation: 2,
+              ...(theme.isDark ? {} : {
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.06,
+                shadowRadius: 8,
+                elevation: 2,
+              }),
+              borderWidth: theme.isDark ? 1 : 0,
+              borderColor: theme.isDark ? theme.border : "transparent",
             }}
           >
             <Text style={{ fontSize: 16 }}>
@@ -822,7 +846,7 @@ export default function DashboardScreen() {
                 fontSize: 13,
                 fontWeight: "500",
                 color: isEarlyAdopter
-                  ? "#10b981"
+                  ? theme.primary
                   : theme.textPrimary,
               }}
             >
@@ -833,7 +857,7 @@ export default function DashboardScreen() {
             <Feather
               name="chevron-right"
               size={14}
-              color={isEarlyAdopter ? "#10b981" : theme.textHint}
+              color={isEarlyAdopter ? theme.primary : theme.textHint}
             />
           </TouchableOpacity>
         )}

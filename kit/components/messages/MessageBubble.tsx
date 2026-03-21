@@ -1,6 +1,7 @@
 import { View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Text } from "../ui";
+import { useTheme } from "../../lib/theme";
 import type { Message } from "../../types";
 
 interface MessageBubbleProps {
@@ -33,6 +34,7 @@ export function MessageBubble({
   isOwn,
   senderLabel,
 }: MessageBubbleProps) {
+  const theme = useTheme();
   const isRead = !!message.read_at;
 
   return (
@@ -63,7 +65,7 @@ export function MessageBubble({
           <Feather
             name={isRead ? "check-circle" : "check"}
             size={12}
-            color={isRead ? "#0f172a" : "rgba(15,23,42,0.7)"}
+            color={isRead ? theme.textPrimary : theme.textMuted}
           />
         )}
       </View>

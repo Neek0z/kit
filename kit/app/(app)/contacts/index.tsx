@@ -92,17 +92,21 @@ export default function ContactsListScreen() {
           onPress={() => router.push(`/(app)/contacts/${item.id}`)}
           activeOpacity={0.7}
           style={{
-            backgroundColor: "#fff",
+            backgroundColor: theme.surface,
             borderRadius: 12,
             paddingVertical: 8,
             paddingHorizontal: 10,
             marginHorizontal: 20,
             marginBottom: 6,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 6,
-            elevation: 1,
+            ...(theme.isDark ? {} : {
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.05,
+              shadowRadius: 6,
+              elevation: 1,
+            }),
+            borderWidth: theme.isDark ? 1 : 0,
+            borderColor: theme.isDark ? theme.border : "transparent",
           }}
         >
           <View
@@ -129,7 +133,7 @@ export default function ContactsListScreen() {
               <Text
                 style={{
                   fontSize: 11,
-                  color: isOverdue ? "#ef4444" : theme.textMuted,
+                  color: isOverdue ? theme.danger : theme.textMuted,
                   marginBottom: 4,
                 }}
                 numberOfLines={1}
@@ -159,7 +163,7 @@ export default function ContactsListScreen() {
                       height: 2,
                       borderRadius: 1,
                       backgroundColor:
-                        i <= progressValue ? statusColor : "#e2e8f0",
+                        i <= progressValue ? statusColor : theme.border,
                     }}
                   />
                 ))}
@@ -179,12 +183,12 @@ export default function ContactsListScreen() {
                     width: 28,
                     height: 28,
                     borderRadius: 14,
-                    backgroundColor: "#f0fdf4",
+                    backgroundColor: theme.primaryBg,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Feather name="phone" size={12} color="#10b981" />
+                  <Feather name="phone" size={12} color={theme.primary} />
                 </TouchableOpacity>
               )}
               <TouchableOpacity
@@ -195,9 +199,9 @@ export default function ContactsListScreen() {
                   width: 28,
                   height: 28,
                   borderRadius: 14,
-                  backgroundColor: "#f8fafc",
-                  alignItems: "center",
-                  justifyContent: "center",
+                    backgroundColor: theme.bg,
+                    alignItems: "center",
+                    justifyContent: "center",
                 }}
               >
                 <Feather
@@ -239,7 +243,7 @@ export default function ContactsListScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#f8f9fb" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
       {/* Header */}
       <View
         style={{
@@ -258,14 +262,18 @@ export default function ContactsListScreen() {
             width: 36,
             height: 36,
             borderRadius: 18,
-            backgroundColor: "#fff",
+            backgroundColor: theme.surface,
             alignItems: "center",
             justifyContent: "center",
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 4,
-            elevation: 1,
+            ...(theme.isDark ? {} : {
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.05,
+              shadowRadius: 4,
+              elevation: 1,
+            }),
+            borderWidth: theme.isDark ? 1 : 0,
+            borderColor: theme.isDark ? theme.border : "transparent",
           }}
           accessibilityLabel="Gérer les groupes"
         >
@@ -280,15 +288,19 @@ export default function ContactsListScreen() {
             flexDirection: "row",
             alignItems: "center",
             gap: 10,
-            backgroundColor: "#fff",
+            backgroundColor: theme.surface,
             borderRadius: 14,
             paddingHorizontal: 14,
             paddingVertical: 12,
-            shadowColor: "#000",
-            shadowOffset: { width: 0, height: 1 },
-            shadowOpacity: 0.05,
-            shadowRadius: 4,
-            elevation: 1,
+            ...(theme.isDark ? {} : {
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.05,
+              shadowRadius: 4,
+              elevation: 1,
+            }),
+            borderWidth: theme.isDark ? 1 : 0,
+            borderColor: theme.isDark ? theme.border : "transparent",
           }}
         >
           <Feather name="search" size={16} color={theme.textMuted} />
@@ -328,12 +340,16 @@ export default function ContactsListScreen() {
                 paddingVertical: 10,
                 borderRadius: 100,
                 backgroundColor:
-                  activeFilter === item.value ? "#10b981" : "#fff",
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
-                shadowRadius: 4,
-                elevation: 1,
+                  activeFilter === item.value ? theme.primary : theme.surface,
+                ...(theme.isDark ? {} : {
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 4,
+                  elevation: 1,
+                }),
+                borderWidth: theme.isDark ? 1 : 0,
+                borderColor: theme.isDark ? theme.border : "transparent",
               }}
             >
               <Text
@@ -362,7 +378,7 @@ export default function ContactsListScreen() {
             justifyContent: "center",
           }}
         >
-          <ActivityIndicator color="#10b981" />
+          <ActivityIndicator color={theme.primary} />
         </View>
       ) : (
         <FlatList
@@ -373,8 +389,8 @@ export default function ContactsListScreen() {
             <RefreshControl
               refreshing={loading}
               onRefresh={refetch}
-              colors={["#10b981"]}
-              tintColor="#10b981"
+              colors={[theme.primary]}
+              tintColor={theme.primary}
             />
           }
           ListEmptyComponent={ListEmpty}
@@ -402,15 +418,19 @@ export default function ContactsListScreen() {
           width: 56,
           height: 56,
           borderRadius: 28,
-          backgroundColor: "#10b981",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 100,
-          shadowColor: "#10b981",
-          shadowOffset: { width: 0, height: 6 },
-          shadowOpacity: 0.35,
-          shadowRadius: 12,
-          elevation: 8,
+            backgroundColor: theme.primary,
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 100,
+            ...(theme.isDark ? {} : {
+              shadowColor: theme.primary,
+              shadowOffset: { width: 0, height: 6 },
+              shadowOpacity: 0.35,
+              shadowRadius: 12,
+              elevation: 8,
+            }),
+            borderWidth: theme.isDark ? 1 : 0,
+            borderColor: theme.isDark ? theme.border : "transparent",
         }}
         accessibilityLabel="Ajouter un contact"
       >

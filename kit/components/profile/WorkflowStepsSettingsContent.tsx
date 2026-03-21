@@ -136,7 +136,7 @@ export function WorkflowStepsSettingsContent({
                     <Feather
                       name={step.is_active ? "toggle-right" : "toggle-left"}
                       size={24}
-                      color={step.is_active ? "#10b981" : "#475569"}
+                      color={step.is_active ? theme.primary : "#475569"}
                     />
                   </TouchableOpacity>
                 </View>

@@ -12,6 +12,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useGroups } from "../../hooks/useGroups";
 import { Group, MLM_GROUP_PRESETS } from "../../types";
+import { useTheme } from "../../lib/theme";
 
 const COLORS = [
   "#10b981",
@@ -40,6 +41,7 @@ export function GroupPicker({
   onRemove,
   onClose,
 }: GroupPickerProps) {
+  const theme = useTheme();
   const { groups, createGroup } = useGroups("contact");
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
@@ -86,7 +88,7 @@ export function GroupPicker({
 
         <View
           style={{
-            backgroundColor: "#fff",
+            backgroundColor: theme.surface,
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             paddingBottom: Platform.OS === "ios" ? 34 : 24,
@@ -98,7 +100,7 @@ export function GroupPicker({
               width: 40,
               height: 4,
               borderRadius: 2,
-              backgroundColor: "#e2e8f0",
+              backgroundColor: theme.border,
               alignSelf: "center",
               marginTop: 12,
               marginBottom: 4,
@@ -113,7 +115,7 @@ export function GroupPicker({
             }}
           >
             <RNText
-              style={{ fontSize: 18, fontWeight: "700", color: "#0f172a" }}
+              style={{ fontSize: 18, fontWeight: "700", color: theme.textPrimary }}
             >
               Ajouter à un groupe
             </RNText>
@@ -147,8 +149,8 @@ export function GroupPicker({
                         height: 36,
                         borderRadius: 10,
                         backgroundColor: isSelected
-                          ? "#f0fdf4"
-                          : "#f8fafc",
+                          ? theme.primaryBg
+                          : theme.bg,
                         alignItems: "center",
                         justifyContent: "center",
                       }}
@@ -161,7 +163,7 @@ export function GroupPicker({
                       <RNText
                         style={{
                           fontSize: 15,
-                          color: "#0f172a",
+                          color: theme.textPrimary,
                           fontWeight: "500",
                         }}
                       >
@@ -171,7 +173,7 @@ export function GroupPicker({
                         <RNText
                           style={{
                             fontSize: 12,
-                            color: "#94a3b8",
+                            color: theme.textHint,
                             marginTop: 1,
                           }}
                         >
@@ -180,7 +182,7 @@ export function GroupPicker({
                       )}
                     </View>
                     {isSelected && (
-                      <Feather name="check" size={18} color="#10b981" />
+                      <Feather name="check" size={18} color={theme.primary} />
                     )}
                   </TouchableOpacity>
                 );
@@ -204,17 +206,17 @@ export function GroupPicker({
                     width: 36,
                     height: 36,
                     borderRadius: 10,
-                    backgroundColor: "#f0fdf4",
+                    backgroundColor: theme.primaryBg,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Feather name="plus" size={16} color="#10b981" />
+                  <Feather name="plus" size={16} color={theme.primary} />
                 </View>
                 <RNText
                   style={{
                     fontSize: 15,
-                    color: "#10b981",
+                    color: theme.primary,
                     fontWeight: "500",
                   }}
                 >
@@ -226,9 +228,9 @@ export function GroupPicker({
                 style={{
                   padding: 14,
                   borderRadius: 14,
-                  backgroundColor: "#f8fafc",
+                  backgroundColor: theme.bg,
                   borderWidth: 1,
-                  borderColor: "#e2e8f0",
+                  borderColor: theme.border,
                   gap: 12,
                   marginBottom: 8,
                 }}
@@ -265,15 +267,15 @@ export function GroupPicker({
                   value={newName}
                   onChangeText={setNewName}
                   placeholder="Nom du groupe..."
-                  placeholderTextColor="#94a3b8"
+                  placeholderTextColor={theme.textHint}
                   style={{
-                    backgroundColor: "#fff",
+                    backgroundColor: theme.surface,
                     borderWidth: 1,
-                    borderColor: "#e2e8f0",
+                    borderColor: theme.border,
                     borderRadius: 12,
                     padding: 14,
                     fontSize: 15,
-                    color: "#0f172a",
+                    color: theme.textPrimary,
                   }}
                 />
 
@@ -308,14 +310,14 @@ export function GroupPicker({
                       paddingVertical: 12,
                       borderRadius: 14,
                       borderWidth: 1,
-                      borderColor: "#e2e8f0",
+                      borderColor: theme.border,
                       alignItems: "center",
-                      backgroundColor: "#f8fafc",
+                      backgroundColor: theme.bg,
                     }}
                   >
                     <RNText
                       style={{
-                        color: "#64748b",
+                        color: theme.textMuted,
                         fontSize: 14,
                         fontWeight: "600",
                       }}
@@ -329,7 +331,7 @@ export function GroupPicker({
                       flex: 1,
                       paddingVertical: 12,
                       borderRadius: 14,
-                      backgroundColor: "#10b981",
+                      backgroundColor: theme.primary,
                       alignItems: "center",
                     }}
                   >
@@ -353,7 +355,7 @@ export function GroupPicker({
                   style={{
                     fontSize: 12,
                     fontWeight: "600",
-                    color: "#64748b",
+                    color: theme.textMuted,
                     marginBottom: 8,
                     textTransform: "uppercase",
                     letterSpacing: 0.5,
@@ -381,9 +383,9 @@ export function GroupPicker({
                         paddingHorizontal: 14,
                         paddingVertical: 8,
                         borderRadius: 100,
-                        backgroundColor: "#f0fdf4",
+                        backgroundColor: theme.primaryBg,
                         borderWidth: 1,
-                        borderColor: "#10b981",
+                        borderColor: theme.primaryBorder,
                       }}
                     >
                       <RNText style={{ fontSize: 13 }}>
@@ -392,7 +394,7 @@ export function GroupPicker({
                       <RNText
                         style={{
                           fontSize: 13,
-                          color: "#10b981",
+                          color: theme.primary,
                           fontWeight: "600",
                         }}
                       >
@@ -412,7 +414,7 @@ export function GroupPicker({
                 paddingVertical: 14,
                 borderRadius: 14,
                 alignItems: "center",
-                backgroundColor: "#10b981",
+                backgroundColor: theme.primary,
               }}
             >
               <RNText

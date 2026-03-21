@@ -9,6 +9,7 @@ import {
   View,
 } from "react-native";
 import type { ContactRelance } from "../../types";
+import { useTheme } from "../../lib/theme";
 import { FollowUpPicker } from "./FollowUpPicker";
 
 interface AddRelanceSheetProps {
@@ -24,6 +25,7 @@ export function AddRelanceSheet({
   editing,
   onSave,
 }: AddRelanceSheetProps) {
+  const theme = useTheme();
   const [pickedIso, setPickedIso] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
@@ -79,7 +81,7 @@ export function AddRelanceSheet({
 
         <View
           style={{
-            backgroundColor: "#fff",
+            backgroundColor: theme.surface,
             borderTopLeftRadius: 24,
             borderTopRightRadius: 24,
             paddingBottom: Platform.OS === "ios" ? 34 : 24,
@@ -91,7 +93,7 @@ export function AddRelanceSheet({
               width: 40,
               height: 4,
               borderRadius: 2,
-              backgroundColor: "#e2e8f0",
+              backgroundColor: theme.border,
               alignSelf: "center",
               marginTop: 12,
               marginBottom: 4,
@@ -106,7 +108,7 @@ export function AddRelanceSheet({
             }}
           >
             <RNText
-              style={{ fontSize: 18, fontWeight: "700", color: "#0f172a" }}
+              style={{ fontSize: 18, fontWeight: "700", color: theme.textPrimary }}
             >
               {editing ? "Modifier la relance" : "Nouvelle relance"}
             </RNText>
@@ -123,7 +125,7 @@ export function AddRelanceSheet({
                 style={{
                   fontSize: 12,
                   fontWeight: "600",
-                  color: "#64748b",
+                  color: theme.textMuted,
                   marginBottom: 6,
                   textTransform: "uppercase",
                   letterSpacing: 0.5,
@@ -135,19 +137,19 @@ export function AddRelanceSheet({
                 value={note}
                 onChangeText={setNote}
                 placeholder="Ex. Rappeler pour la démo, envoyer le PDF…"
-                placeholderTextColor="#94a3b8"
+                placeholderTextColor={theme.textHint}
                 multiline
                 numberOfLines={3}
                 style={{
                   minHeight: 88,
                   textAlignVertical: "top",
-                  backgroundColor: "#f8fafc",
+                  backgroundColor: theme.bg,
                   borderWidth: 1,
-                  borderColor: "#e2e8f0",
+                  borderColor: theme.border,
                   borderRadius: 12,
                   padding: 14,
                   fontSize: 15,
-                  color: "#0f172a",
+                  color: theme.textPrimary,
                 }}
               />
             </View>
@@ -168,16 +170,16 @@ export function AddRelanceSheet({
                 paddingVertical: 14,
                 borderRadius: 14,
                 alignItems: "center",
-                backgroundColor: "#f8fafc",
+                backgroundColor: theme.bg,
                 borderWidth: 1,
-                borderColor: "#e2e8f0",
+                borderColor: theme.border,
               }}
             >
               <RNText
                 style={{
                   fontSize: 15,
                   fontWeight: "600",
-                  color: "#64748b",
+                  color: theme.textMuted,
                 }}
               >
                 Annuler
@@ -191,7 +193,7 @@ export function AddRelanceSheet({
                 paddingVertical: 14,
                 borderRadius: 14,
                 alignItems: "center",
-                backgroundColor: "#10b981",
+                backgroundColor: theme.primary,
                 opacity: !pickedIso || loading ? 0.5 : 1,
               }}
             >

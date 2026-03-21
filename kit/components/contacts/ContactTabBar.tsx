@@ -49,8 +49,8 @@ export function ContactTabBar({
     <View
       style={{
         borderBottomWidth: 1,
-        borderBottomColor: "#f1f5f9",
-        backgroundColor: "#fff",
+        borderBottomColor: theme.border,
+        backgroundColor: theme.surface,
       }}
     >
       <ScrollView
@@ -71,7 +71,7 @@ export function ContactTabBar({
                 alignItems: "center",
                 gap: 5,
                 borderBottomWidth: 2,
-                borderBottomColor: isActive ? "#10b981" : "transparent",
+                borderBottomColor: isActive ? theme.primary : "transparent",
                 marginBottom: -1,
               }}
             >
@@ -79,7 +79,7 @@ export function ContactTabBar({
                 style={{
                   fontSize: 14,
                   fontWeight: isActive ? "700" : "500",
-                  color: isActive ? "#10b981" : theme.textMuted,
+                  color: isActive ? theme.primary : theme.textMuted,
                 }}
               >
                 {tab.label}
@@ -87,7 +87,7 @@ export function ContactTabBar({
               {tab.badge !== undefined && tab.badge > 0 && (
                 <View
                   style={{
-                    backgroundColor: isActive ? "#f0fdf4" : "#f8fafc",
+                    backgroundColor: isActive ? theme.primaryBg : theme.bg,
                     borderRadius: 10,
                     paddingHorizontal: 5,
                     paddingVertical: 1,
@@ -99,7 +99,7 @@ export function ContactTabBar({
                     style={{
                       fontSize: 10,
                       fontWeight: "700",
-                      color: isActive ? "#10b981" : theme.textMuted,
+                      color: isActive ? theme.primary : theme.textMuted,
                     }}
                   >
                     {tab.badge}
