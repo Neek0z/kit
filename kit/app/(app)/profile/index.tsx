@@ -433,6 +433,19 @@ export default function ProfileScreen() {
               onPress={() => Linking.openURL("https://kit.app/terms")}
               rightElement={<Feather name="external-link" size={14} color={designTheme.textHint} />}
             />
+            <Divider />
+            {/* TODO: supprimer avant publication */}
+            <ProfileRow
+              icon="external-link"
+              label="📋 Feedback & Tests"
+              color={designTheme.accent}
+              onPress={() =>
+                Linking.openURL(
+                  "https://like-capybara-ebb.notion.site/Points-revoir-KIT-32a0aab0941280718508ec562cfeef43?source=copy_link"
+                )
+              }
+              rightElement={<Feather name="external-link" size={14} color={designTheme.accent} />}
+            />
           </Card>
 
           <Card>
