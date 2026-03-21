@@ -7,11 +7,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   Text,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import { Text as KitText, EmptyState, Card, StatusPill, Avatar } from "../../../components/ui";
+import { EmptyState, Avatar } from "../../../components/ui";
 import { SwipeMode } from "../../../components/contacts";
 import { useContacts } from "../../../hooks/useContacts";
 import { useSubscription } from "../../../hooks/useSubscription";
@@ -26,8 +27,6 @@ const STATUS_PROGRESS: Record<PipelineStatus, number> = {
   client: 4,
   inactive: 0,
 };
-
-const TOTAL_STEPS = 4;
 
 const FILTERS: { label: string; value: PipelineStatus | "all" | "overdue" }[] = [
   { label: "Tous", value: "all" },
@@ -46,7 +45,6 @@ export default function ContactsListScreen() {
   const [activeFilter, setActiveFilter] = useState<
     PipelineStatus | "all" | "overdue"
   >("all");
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [swipeMode, setSwipeMode] = useState(false);
   const theme = useTheme();
 
@@ -56,12 +54,6 @@ export default function ContactsListScreen() {
     }, [refetch])
   );
 
-  const uniqueTags = useMemo(() => {
-    const set = new Set<string>();
-    contacts.forEach((c) => (c.tags ?? []).forEach((t) => set.add(t)));
-    return Array.from(set).sort();
-  }, [contacts]);
-
   const filtered = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -69,67 +61,48 @@ export default function ContactsListScreen() {
       const matchSearch =
         c.full_name.toLowerCase().includes(search.toLowerCase()) ||
         c.phone?.includes(search) ||
-        c.email?.toLowerCase().includes(search.toLowerCase());
+        c.email?.toLowerCase().includes(search.toLowerCase()) ||
+        (c.tags ?? []).some((t) =>
+          t.toLowerCase().includes(search.toLowerCase())
+        );
       const matchFilter =
         activeFilter === "all"
           ? true
           : activeFilter === "overdue"
             ? !!c.next_follow_up && new Date(c.next_follow_up) < today
             : c.status === activeFilter;
-      const matchTag =
-        selectedTag === null ||
-        (c.tags ?? []).includes(selectedTag);
-      return matchSearch && matchFilter && matchTag;
+      return matchSearch && matchFilter;
     });
-  }, [contacts, search, activeFilter, selectedTag]);
-
-  const renderFilterItem = useCallback(
-    ({ item }: { item: (typeof FILTERS)[number] }) => (
-      <TouchableOpacity
-        onPress={() => setActiveFilter(item.value)}
-        className={`px-4 py-2 rounded-full border ${
-          activeFilter === item.value
-            ? "bg-primary border-primary"
-            : "bg-surface dark:bg-surface-dark border-border dark:border-border-dark"
-        }`}
-      >
-        <Text
-          className={`text-sm font-medium ${
-            activeFilter === item.value
-              ? "text-background"
-              : "text-textMuted dark:text-textMuted-dark"
-          }`}
-        >
-          {item.label}
-        </Text>
-      </TouchableOpacity>
-    ),
-    [activeFilter]
-  );
+  }, [contacts, search, activeFilter]);
 
   const renderContactItem = useCallback(
     ({ item }: { item: Contact }) => {
-      const progress = STATUS_PROGRESS[item.status as PipelineStatus] ?? 0;
-      const progressPercent = (progress / TOTAL_STEPS) * 100;
-      const statusColors =
-        STATUS_COLORS[item.status as StatusKey] ?? STATUS_COLORS.inactive;
+      const statusColor =
+        STATUS_COLORS[item.status as StatusKey]?.text ?? "#10b981";
+      const isOverdue =
+        item.next_follow_up && new Date(item.next_follow_up) < new Date();
+      const progressValue =
+        STATUS_PROGRESS[item.status as PipelineStatus] ?? 0;
 
       return (
-        <View>
-          <TouchableOpacity
-            onPress={() => router.push(`/(app)/contacts/${item.id}`)}
-            activeOpacity={0.7}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 12,
-              paddingVertical: 11,
-              paddingHorizontal: 20,
-              backgroundColor:
-                item.status === "client"
-                  ? "rgba(110,231,183,0.03)"
-                  : "transparent",
-            }}
+        <TouchableOpacity
+          onPress={() => router.push(`/(app)/contacts/${item.id}`)}
+          activeOpacity={0.7}
+          style={{
+            backgroundColor: "#fff",
+            borderRadius: 16,
+            padding: 14,
+            marginHorizontal: 20,
+            marginBottom: 10,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.06,
+            shadowRadius: 8,
+            elevation: 2,
+          }}
+        >
+          <View
+            style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
           >
             <Avatar
               name={item.full_name}
@@ -143,55 +116,89 @@ export default function ContactsListScreen() {
                   fontSize: 15,
                   fontWeight: "600",
                   color: theme.textPrimary,
+                  marginBottom: 2,
                 }}
               >
                 {item.full_name}
               </Text>
-              {item.phone && (
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: theme.textMuted,
-                    marginTop: 1,
-                  }}
-                >
-                  {item.phone}
-                </Text>
-              )}
-              <View
+              <Text
                 style={{
-                  marginTop: 7,
-                  height: 3,
-                  backgroundColor: theme.border,
-                  borderRadius: 2,
-                  overflow: "hidden",
+                  fontSize: 12,
+                  color: isOverdue ? "#ef4444" : theme.textMuted,
+                  marginBottom: 8,
                 }}
               >
-                <View
-                  style={{
-                    height: 3,
-                    width: `${progressPercent}%`,
-                    backgroundColor: statusColors.text,
-                    borderRadius: 2,
-                  }}
-                />
+                {isOverdue
+                  ? `En retard · ${new Date(
+                      item.next_follow_up!
+                    ).toLocaleDateString("fr-FR", {
+                      day: "numeric",
+                      month: "short",
+                    })}`
+                  : item.next_follow_up
+                    ? `Dernier contact ${new Date(
+                        item.next_follow_up
+                      ).toLocaleDateString("fr-FR", {
+                        day: "numeric",
+                        month: "short",
+                      })}`
+                    : item.phone ?? "Aucun numéro"}
+              </Text>
+              {/* Multi-segment progress bar */}
+              <View style={{ flexDirection: "row", gap: 3 }}>
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <View
+                    key={i}
+                    style={{
+                      flex: 1,
+                      height: 3,
+                      borderRadius: 2,
+                      backgroundColor:
+                        i <= progressValue ? statusColor : "#e2e8f0",
+                    }}
+                  />
+                ))}
               </View>
             </View>
-            <StatusPill status={item.status} size="sm" />
-            <Feather
-              name="chevron-right"
-              size={14}
-              color={theme.textHint}
-            />
-          </TouchableOpacity>
-          <View
-            style={{
-              height: 1,
-              backgroundColor: theme.border,
-              marginLeft: 72,
-            }}
-          />
-        </View>
+            {/* Quick actions */}
+            <View style={{ flexDirection: "column", gap: 8 }}>
+              {item.phone && (
+                <TouchableOpacity
+                  onPress={() => Linking.openURL(`tel:${item.phone}`)}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: "#f0fdf4",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Feather name="phone" size={13} color="#10b981" />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={() =>
+                  router.push(`/(app)/contacts/${item.id}`)
+                }
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 16,
+                  backgroundColor: "#f8fafc",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Feather
+                  name="chevron-right"
+                  size={13}
+                  color={theme.textMuted}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
       );
     },
     [theme]
@@ -222,17 +229,7 @@ export default function ContactsListScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Ligne décorative */}
-      <View
-        style={{
-          height: 1,
-          marginHorizontal: 32,
-          backgroundColor: theme.primary,
-          opacity: 0.25,
-        }}
-      />
-
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f8f9fb" }}>
       {swipeMode ? (
         <SwipeMode
           onClose={() => {
@@ -250,13 +247,13 @@ export default function ContactsListScreen() {
               alignItems: "center",
               justifyContent: "space-between",
               paddingHorizontal: 20,
-              paddingTop: 16,
-              paddingBottom: 12,
+              paddingTop: 20,
+              paddingBottom: 8,
             }}
           >
             <Text
               style={{
-                fontSize: 28,
+                fontSize: 30,
                 fontWeight: "800",
                 color: theme.textPrimary,
                 letterSpacing: -1,
@@ -265,166 +262,146 @@ export default function ContactsListScreen() {
               Contacts
             </Text>
             <View
-              style={{
-                flexDirection: "row",
-                gap: 8,
-                alignItems: "center",
-              }}
+              style={{ flexDirection: "row", gap: 8, alignItems: "center" }}
             >
               <TouchableOpacity
                 onPress={() => {
-                  const next = !swipeMode;
-                  setSwipeMode(next);
-                  if (!next) {
-                    refetch();
-                  }
+                  setSwipeMode(true);
                 }}
                 style={{
                   paddingHorizontal: 12,
                   paddingVertical: 6,
                   borderRadius: 100,
-                  backgroundColor: swipeMode
-                    ? theme.primaryBg
-                    : theme.surface,
-                  borderWidth: 1,
-                  borderColor: swipeMode
-                    ? theme.primaryBorder
-                    : theme.border,
+                  backgroundColor: "#fff",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 4,
+                  elevation: 1,
                 }}
               >
-          <Text
-            style={{
-              fontSize: 11,
-              fontWeight: "600",
-              color: swipeMode ? theme.primary : theme.textMuted,
-            }}
-          >
-            {swipeMode ? "Mode swipe" : "Mode liste"}
-          </Text>
-              </TouchableOpacity>
-              {!swipeMode && (
-                <TouchableOpacity
-                  onPress={() => router.push("/(app)/groups")}
+                <Text
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
-                    backgroundColor: theme.surface,
-                    borderWidth: 1,
-                    borderColor: theme.border,
-                    alignItems: "center",
-                    justifyContent: "center",
+                    fontSize: 11,
+                    fontWeight: "600",
+                    color: theme.textMuted,
                   }}
-                  accessibilityLabel="Gérer les groupes"
                 >
-                  <Feather name="users" size={16} color={theme.primary} />
+                  Mode swipe
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => router.push("/(app)/groups")}
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 18,
+                  backgroundColor: "#fff",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 4,
+                  elevation: 1,
+                }}
+                accessibilityLabel="Gérer les groupes"
+              >
+                <Feather name="filter" size={16} color={theme.textMuted} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Search bar */}
+          <View style={{ paddingHorizontal: 20, marginBottom: 12 }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                backgroundColor: "#fff",
+                borderRadius: 14,
+                paddingHorizontal: 14,
+                paddingVertical: 12,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 1 },
+                shadowOpacity: 0.05,
+                shadowRadius: 4,
+                elevation: 1,
+              }}
+            >
+              <Feather name="search" size={16} color={theme.textMuted} />
+              <TextInput
+                placeholder="Rechercher par nom, tag ou statut..."
+                placeholderTextColor={theme.textHint}
+                style={{
+                  flex: 1,
+                  fontSize: 14,
+                  color: theme.textPrimary,
+                }}
+                value={search}
+                onChangeText={setSearch}
+                autoCapitalize="none"
+              />
+              {search.length > 0 && (
+                <TouchableOpacity onPress={() => setSearch("")}>
+                  <Feather name="x" size={16} color={theme.textMuted} />
                 </TouchableOpacity>
               )}
             </View>
           </View>
 
-          {/* Barre de recherche */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 8,
-              backgroundColor: theme.surface,
-              borderWidth: 1,
-              borderColor: theme.border,
-              borderRadius: 14,
-              paddingHorizontal: 14,
-              marginHorizontal: 20,
-              marginBottom: 10,
-            }}
-          >
-            <Feather name="search" size={15} color={theme.textHint} />
-            <TextInput
-              style={{
-                flex: 1,
-                paddingVertical: 11,
-                fontSize: 14,
-                color: theme.textPrimary,
-              }}
-              placeholder="Rechercher..."
-              placeholderTextColor={theme.textHint}
-              value={search}
-              onChangeText={setSearch}
-              autoCapitalize="none"
-            />
-            {search.length > 0 && (
-              <TouchableOpacity onPress={() => setSearch("")}>
-                <Feather name="x" size={15} color={theme.textHint} />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Filtres pipeline */}
-          <View className="mb-2">
-        <FlatList
-          horizontal
-          data={FILTERS}
-          keyExtractor={(item) => item.value}
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
-          renderItem={renderFilterItem}
-        />
-          </View>
-
-          {/* Tags */}
-          {uniqueTags.length > 0 && (
-        <View className="mb-2 px-5">
-        <KitText variant="muted" className="text-xs mb-1.5">Tag</KitText>
-          <View className="flex-row flex-wrap gap-2">
-            <TouchableOpacity
-              onPress={() => setSelectedTag(null)}
-              className={`px-3 py-1.5 rounded-full border ${
-                selectedTag === null
-                  ? "bg-primary border-primary"
-                  : "bg-surface dark:bg-surface-dark border-border dark:border-border-dark"
-              }`}
-            >
-              <Text
-                className={`text-xs ${
-                  selectedTag === null
-                    ? "text-background font-medium"
-                    : "text-textMuted dark:text-textMuted-dark"
-                }`}
-              >
-                Tous
-              </Text>
-            </TouchableOpacity>
-            {uniqueTags.map((tag) => (
-              <TouchableOpacity
-                key={tag}
-                onPress={() => setSelectedTag(selectedTag === tag ? null : tag)}
-                className={`px-3 py-1.5 rounded-full border ${
-                  selectedTag === tag
-                    ? "bg-primary border-primary"
-                    : "bg-surface dark:bg-surface-dark border-border dark:border-border-dark"
-                }`}
-              >
-                <Text
-                  className={`text-xs ${
-                    selectedTag === tag
-                      ? "text-background font-medium"
-                      : "text-textMuted dark:text-textMuted-dark"
-                  }`}
+          {/* Filter tabs */}
+          <View style={{ marginBottom: 12 }}>
+            <FlatList
+              horizontal
+              data={FILTERS}
+              keyExtractor={(item) => item.value}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => setActiveFilter(item.value)}
+                  style={{
+                    paddingHorizontal: 18,
+                    paddingVertical: 10,
+                    borderRadius: 100,
+                    backgroundColor:
+                      activeFilter === item.value ? "#10b981" : "#fff",
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 4,
+                    elevation: 1,
+                  }}
                 >
-                  {tag}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      fontWeight: "600",
+                      color:
+                        activeFilter === item.value
+                          ? "#fff"
+                          : theme.textMuted,
+                    }}
+                  >
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            />
           </View>
-        </View>
-          )}
 
-          {/* Liste */}
+          {/* Contact list */}
           {loading ? (
             <View
-              style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+              style={{
+                flex: 1,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
             >
-              <ActivityIndicator color={theme.primary} />
+              <ActivityIndicator color="#10b981" />
             </View>
           ) : (
             <FlatList
@@ -435,8 +412,8 @@ export default function ContactsListScreen() {
                 <RefreshControl
                   refreshing={loading}
                   onRefresh={refetch}
-                  colors={[theme.primary]}
-                  tintColor={theme.primary}
+                  colors={["#10b981"]}
+                  tintColor="#10b981"
                 />
               }
               ListEmptyComponent={ListEmpty}
@@ -446,12 +423,13 @@ export default function ContactsListScreen() {
               maxToRenderPerBatch={10}
               removeClippedSubviews={true}
               keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{ paddingTop: 4, paddingBottom: 80 }}
             />
           )}
         </>
       )}
 
-      {/* FAB flottant "+": ajoute un contact */}
+      {/* FAB */}
       {!swipeMode && (
         <TouchableOpacity
           onPress={() =>
@@ -463,26 +441,22 @@ export default function ContactsListScreen() {
             position: "absolute",
             bottom: 24,
             right: 20,
-            width: 52,
-            height: 52,
-            borderRadius: 26,
-            backgroundColor: theme.primary,
+            width: 56,
+            height: 56,
+            borderRadius: 28,
+            backgroundColor: "#10b981",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 100,
-            shadowColor: theme.primary,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.3,
-            shadowRadius: 8,
+            shadowColor: "#10b981",
+            shadowOffset: { width: 0, height: 6 },
+            shadowOpacity: 0.35,
+            shadowRadius: 12,
             elevation: 8,
           }}
           accessibilityLabel="Ajouter un contact"
         >
-          <Feather
-            name="plus"
-            size={24}
-            color={theme.isDark ? "#0f172a" : "#ffffff"}
-          />
+          <Feather name="plus" size={26} color="#fff" />
         </TouchableOpacity>
       )}
     </SafeAreaView>

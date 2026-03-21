@@ -163,15 +163,6 @@ export default function CalendarScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Ligne décorative */}
-      <View
-        style={{
-          height: 1,
-          marginHorizontal: 32,
-          backgroundColor: theme.primary,
-          opacity: 0.25,
-        }}
-      />
       {/* Header compact + toggle pill */}
       <View
         style={{
@@ -484,7 +475,7 @@ export default function CalendarScreen() {
           <View className="flex-1 px-5 min-h-0">
             {!isSelectedToday && (
               <TouchableOpacity onPress={goToToday} className="flex-row items-center justify-center gap-2 py-2 mb-1">
-                <Feather name="circle" size={12} color="#6ee7b7" />
+                <Feather name="circle" size={12} color="#10b981" />
                 <Text className="text-primary text-sm font-medium">Revenir à aujourd'hui</Text>
               </TouchableOpacity>
             )}

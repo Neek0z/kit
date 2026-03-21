@@ -108,15 +108,6 @@ export default function MessagesScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Ligne décorative */}
-      <View
-        style={{
-          height: 1,
-          marginHorizontal: 32,
-          backgroundColor: theme.primary,
-          opacity: 0.25,
-        }}
-      />
       <Header
         title="Messages"
         rightAction={{

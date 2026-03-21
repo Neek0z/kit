@@ -1,5 +1,12 @@
 import { useCallback, useMemo } from "react";
-import { View, ScrollView, TouchableOpacity, Text, ActivityIndicator } from "react-native";
+import {
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  Linking,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
 import { Feather } from "@expo/vector-icons";
@@ -8,7 +15,7 @@ import { useDashboard } from "../../hooks/useDashboard";
 import { useAuthContext } from "../../lib/AuthContext";
 import { useSubscription } from "../../hooks/useSubscription";
 import { usePricing } from "../../hooks/usePricing";
-import { Card, Avatar, Divider } from "../../components/ui";
+import { Avatar } from "../../components/ui";
 import { formatRelativeTime } from "../../lib/utils";
 import {
   INTERACTION_ICONS,
@@ -19,11 +26,11 @@ import {
   type AppRoute,
 } from "../../types";
 
-const FR_QUOTES = [
-  "Votre réseau est votre valeur nette.",
-  "Contactez 5 personnes aujourd'hui.",
-  "La régularité bat le talent.",
+const QUOTES = [
+  "Votre réseau est votre valeur nette. Contactez 5 personnes aujourd'hui.",
+  "La régularité bat le talent. Relancez aujourd'hui.",
   "Construisez des relations, pas des ventes.",
+  "Chaque connexion est une opportunité.",
 ];
 
 const STATUS_PROGRESS: Record<PipelineStatus, number> = {
@@ -34,6 +41,25 @@ const STATUS_PROGRESS: Record<PipelineStatus, number> = {
   client: 4,
   inactive: 0,
 };
+
+const PIPELINE_STATUSES: Array<{
+  key: PipelineStatus;
+  label: string;
+  color: string;
+}> = [
+  { key: "new", label: "NOUVEAU", color: STATUS_COLORS.new.text },
+  { key: "contacted", label: "CONTACTÉ", color: STATUS_COLORS.contacted.text },
+  { key: "interested", label: "INTÉRESSÉ", color: STATUS_COLORS.interested.text },
+  { key: "follow_up", label: "RELANCE", color: STATUS_COLORS.follow_up.text },
+  { key: "client", label: "CLIENT", color: STATUS_COLORS.client.text },
+];
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return "Bonjour";
+  if (h < 18) return "Bon après-midi";
+  return "Bonsoir";
+}
 
 export default function DashboardScreen() {
   const theme = useTheme();
@@ -64,137 +90,248 @@ export default function DashboardScreen() {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const overdueCount = useMemo(
-    () => toFollowUp.filter((c) => c.next_follow_up && new Date(c.next_follow_up) < new Date()).length,
+    () =>
+      toFollowUp.filter(
+        (c) => c.next_follow_up && new Date(c.next_follow_up) < new Date()
+      ).length,
     [toFollowUp]
   );
+
+  const todayQuote = QUOTES[new Date().getDay() % QUOTES.length];
 
   if (loading) {
     return (
       <SafeAreaView
         style={{
           flex: 1,
-          backgroundColor: theme.bg,
+          backgroundColor: "#f8f9fb",
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        <ActivityIndicator color={theme.primary} />
+        <ActivityIndicator color="#10b981" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f8f9fb" }}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Ligne décorative haut d'écran */}
+        {/* Header */}
         <View
           style={{
-            height: 1,
-            marginHorizontal: 32,
-            backgroundColor: theme.primary,
-            opacity: 0.25,
-          }}
-        />
-
-        <View
-          style={{
+            flexDirection: "row",
+            alignItems: "flex-start",
+            justifyContent: "space-between",
             paddingHorizontal: 20,
             paddingTop: 24,
-            paddingBottom: 40,
-            gap: 20,
+            paddingBottom: 8,
           }}
         >
-          {/* Header */}
+          <View>
+            <Text
+              style={{
+                fontSize: 13,
+                color: theme.textMuted,
+                marginBottom: 4,
+              }}
+            >
+              {getGreeting()}, {firstName}
+            </Text>
+            <Text
+              style={{
+                fontSize: 30,
+                fontWeight: "800",
+                color: theme.textPrimary,
+                letterSpacing: -1,
+              }}
+            >
+              Tableau de bord
+            </Text>
+          </View>
+          <View
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 21,
+              backgroundColor: "#10b981",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{ fontSize: 16, fontWeight: "800", color: "#fff" }}
+            >
+              {firstName?.[0]?.toUpperCase()}
+            </Text>
+          </View>
+        </View>
+
+        {/* Motivational quote */}
+        <Text
+          style={{
+            fontSize: 13,
+            color: theme.textMuted,
+            fontStyle: "italic",
+            paddingHorizontal: 20,
+            marginBottom: 16,
+          }}
+        >
+          "{todayQuote}"
+        </Text>
+
+        {/* Quick action pills */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            gap: 8,
+            paddingBottom: 20,
+          }}
+        >
+          {[
+            {
+              label: "Nouveau contact",
+              icon: "user-plus" as FeatherIconName,
+              bg: "#10b981",
+              fg: "#fff",
+              route: "/(app)/contacts/new" as AppRoute,
+            },
+            {
+              label: "Relance",
+              icon: "bell" as FeatherIconName,
+              bg: "#fef3c7",
+              fg: "#92400e",
+              route: "/(app)/contacts" as AppRoute,
+            },
+            {
+              label: "Message",
+              icon: "message-circle" as FeatherIconName,
+              bg: "#ede9fe",
+              fg: "#5b21b6",
+              route: "/(app)/messages" as AppRoute,
+            },
+          ].map((btn) => (
+            <TouchableOpacity
+              key={btn.label}
+              onPress={() => router.push(btn.route)}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 7,
+                backgroundColor: btn.bg,
+                borderRadius: 100,
+                paddingHorizontal: 16,
+                paddingVertical: 10,
+              }}
+            >
+              <Feather name={btn.icon} size={14} color={btn.fg} />
+              <Text
+                style={{ fontSize: 13, fontWeight: "600", color: btn.fg }}
+              >
+                {btn.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Pipeline */}
+        <View style={{ paddingHorizontal: 20, marginBottom: 24 }}>
           <View
             style={{
               flexDirection: "row",
-              alignItems: "flex-start",
+              alignItems: "center",
               justifyContent: "space-between",
-              paddingBottom: 16,
+              marginBottom: 14,
             }}
           >
-            <View>
-              <Text style={{ fontSize: 16, color: theme.textMuted, marginBottom: 6 }}>
-                Bonjour, {firstName}
-              </Text>
+            <Text
+              style={{
+                fontSize: 17,
+                fontWeight: "700",
+                color: theme.textPrimary,
+              }}
+            >
+              Pipeline
+            </Text>
+            <TouchableOpacity
+              onPress={() => router.push("/(app)/contacts" as AppRoute)}
+            >
               <Text
+                style={{ fontSize: 13, color: "#10b981", fontWeight: "600" }}
+              >
+                Voir tout ›
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {PIPELINE_STATUSES.map((s) => (
+              <TouchableOpacity
+                key={s.key}
+                onPress={() => router.push("/(app)/contacts" as AppRoute)}
                 style={{
-                  fontSize: 13,
-                  color: theme.textMuted,
-                  marginTop: 5,
-                  fontStyle: "italic",
+                  flex: 1,
+                  backgroundColor: "#fff",
+                  borderRadius: 14,
+                  padding: 10,
+                  alignItems: "flex-start",
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.06,
+                  shadowRadius: 8,
+                  elevation: 2,
                 }}
               >
-                "{FR_QUOTES[new Date().getDay() % FR_QUOTES.length]}"
-              </Text>
-            </View>
-
-            {/* Bouton + déplacé en FAB flottant en bas à droite */}
-          </View>
-
-          {/* Raccourcis rapides (Sleek) */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ paddingHorizontal: 0, paddingBottom: 0 }}
-          >
-            <View style={{ flexDirection: "row", gap: 8 }}>
-              {([
-                {
-                  label: "Nouveau contact",
-                  icon: "user-plus" as FeatherIconName,
-                  color: theme.primary,
-                  route: "/(app)/contacts/new" as AppRoute,
-                },
-                {
-                  label: "Relance",
-                  icon: "bell" as FeatherIconName,
-                  color: theme.danger,
-                  route: "/(app)/contacts" as AppRoute,
-                },
-                {
-                  label: "Message",
-                  icon: "message-circle" as FeatherIconName,
-                  color: theme.accent,
-                  route: "/(app)/messages" as AppRoute,
-                },
-              ]).map((btn) => (
-                <TouchableOpacity
-                  key={btn.label}
-                  onPress={() => router.push(btn.route)}
+                <View
                   style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    gap: 6,
-                    backgroundColor: `${btn.color}12`,
-                    borderWidth: 1,
-                    borderColor: `${btn.color}25`,
-                    borderRadius: 100,
-                    paddingHorizontal: 14,
-                    paddingVertical: 8,
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: s.color,
+                    marginBottom: 8,
+                  }}
+                />
+                <Text
+                  style={{
+                    fontSize: 22,
+                    fontWeight: "800",
+                    color: theme.textPrimary,
+                    lineHeight: 24,
+                    marginBottom: 4,
                   }}
                 >
-                  <Feather
-                    name={btn.icon}
-                    size={13}
-                    color={btn.color}
-                  />
-                  <Text
-                    style={{
-                      fontSize: 12,
-                      fontWeight: "600",
-                      color: btn.color,
-                    }}
-                  >
-                    {btn.label}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
+                  {byStatus[s.key] ?? 0}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 9,
+                    fontWeight: "600",
+                    color: theme.textHint,
+                    letterSpacing: 0.5,
+                  }}
+                  numberOfLines={1}
+                >
+                  {s.label}
+                </Text>
+                <View
+                  style={{
+                    height: 2,
+                    width: "100%",
+                    backgroundColor: s.color,
+                    borderRadius: 1,
+                    marginTop: 8,
+                    opacity: 0.6,
+                  }}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
 
-          {/* Pipeline avec chiffres (Sleek) */}
-          <View style={{ marginBottom: 0 }}>
+        {/* Today's Focus */}
+        {todayContacts.length > 0 && (
+          <View style={{ paddingHorizontal: 20, marginBottom: 24 }}>
             <View
               style={{
                 flexDirection: "row",
@@ -203,137 +340,218 @@ export default function DashboardScreen() {
                 marginBottom: 14,
               }}
             >
-              <Text
+              <View
                 style={{
-                  fontSize: 11,
-                  color: theme.textHint,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.8,
-                  fontWeight: "600",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
                 }}
               >
-                Pipeline
-              </Text>
-              <TouchableOpacity onPress={() => router.push("/(app)/contacts")}>
-                <Text style={{ fontSize: 12, color: theme.primary }}>Voir tout →</Text>
+                <Text
+                  style={{
+                    fontSize: 17,
+                    fontWeight: "700",
+                    color: theme.textPrimary,
+                  }}
+                >
+                  Focus du jour
+                </Text>
+                {overdueCount > 0 && (
+                  <View
+                    style={{
+                      backgroundColor: "#fef2f2",
+                      borderRadius: 100,
+                      paddingHorizontal: 8,
+                      paddingVertical: 3,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: 10,
+                        fontWeight: "700",
+                        color: "#ef4444",
+                      }}
+                    >
+                      {overdueCount} URGENT
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <TouchableOpacity
+                onPress={() => router.push("/(app)/contacts" as AppRoute)}
+              >
+                <Text
+                  style={{ fontSize: 13, color: theme.textMuted }}
+                >
+                  Voir tout ›
+                </Text>
               </TouchableOpacity>
             </View>
 
-            <View style={{ flexDirection: "row", gap: 6 }}>
-              {(
-                [
-                  { key: "new", label: "NOUVEAU", color: STATUS_COLORS.new.text },
-                  {
-                    key: "contacted",
-                    label: "CONTACTÉ",
-                    color: STATUS_COLORS.contacted.text,
-                  },
-                  {
-                    key: "interested",
-                    label: "INTÉRESSÉ",
-                    color: STATUS_COLORS.interested.text,
-                  },
-                  {
-                    key: "follow_up",
-                    label: "RELANCE",
-                    color: STATUS_COLORS.follow_up.text,
-                  },
-                  { key: "client", label: "CLIENT", color: STATUS_COLORS.client.text },
-                ] as Array<{ key: PipelineStatus; label: string; color: string }>
-              ).map((s) => (
+            {todayContacts.map((contact) => {
+              const statusColor =
+                STATUS_COLORS[contact.status as StatusKey]?.text ?? "#10b981";
+              const isOverdue =
+                !!contact.next_follow_up &&
+                new Date(contact.next_follow_up) < new Date();
+              const progressValue =
+                STATUS_PROGRESS[contact.status as PipelineStatus] ?? 0;
+
+              return (
                 <TouchableOpacity
-                  key={s.key}
-                  onPress={() => router.push("/(app)/contacts")}
+                  key={contact.id}
+                  onPress={() =>
+                    router.push(
+                      `/(app)/contacts/${contact.id}` as AppRoute
+                    )
+                  }
+                  activeOpacity={0.7}
                   style={{
-                    flex: 1,
-                    backgroundColor: theme.bg,
-                    borderRadius: 14,
-                    borderWidth: 1,
-                    borderColor: theme.border,
-                    padding: 10,
-                    alignItems: "flex-start",
-                    gap: 6,
+                    backgroundColor: "#fff",
+                    borderRadius: 16,
+                    padding: 14,
+                    marginBottom: 10,
+                    borderLeftWidth: 3,
+                    borderLeftColor: statusColor,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.06,
+                    shadowRadius: 8,
+                    elevation: 2,
                   }}
                 >
-                  {/* Point coloré en haut */}
                   <View
                     style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: 4,
-                      backgroundColor: s.color,
-                    }}
-                  />
-
-                  {/* Chiffre grand */}
-                  <Text
-                    style={{
-                      fontSize: 22,
-                      fontWeight: "800",
-                      color: theme.textPrimary,
-                      lineHeight: 24,
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 12,
                     }}
                   >
-                    {byStatus[s.key] ?? 0}
-                  </Text>
-
-                  {/* Label */}
-                  <Text
-                    style={{
-                      fontSize: 9,
-                      fontWeight: "600",
-                      color: theme.textHint,
-                      letterSpacing: 0.5,
-                    }}
-                    numberOfLines={1}
-                  >
-                    {s.label}
-                  </Text>
-
-                  {/* Barre couleur en bas */}
-                  <View
-                    style={{
-                      height: 2,
-                      width: "100%",
-                      backgroundColor: s.color,
-                      borderRadius: 1,
-                      opacity: 0.5,
-                    }}
-                  />
+                    <Avatar
+                      name={contact.full_name}
+                      status={contact.status}
+                      size="md"
+                      url={contact.avatar_url}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={{
+                          fontSize: 15,
+                          fontWeight: "600",
+                          color: theme.textPrimary,
+                          marginBottom: 2,
+                        }}
+                      >
+                        {contact.full_name}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: isOverdue ? "#ef4444" : theme.textMuted,
+                        }}
+                      >
+                        {isOverdue
+                          ? `En retard · ${new Date(
+                              contact.next_follow_up as string
+                            ).toLocaleDateString("fr-FR", {
+                              day: "numeric",
+                              month: "short",
+                            })}`
+                          : "Aujourd'hui"}
+                      </Text>
+                      {/* Multi-segment progress bar */}
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          gap: 3,
+                          marginTop: 8,
+                        }}
+                      >
+                        {[0, 1, 2, 3, 4].map((i) => (
+                          <View
+                            key={i}
+                            style={{
+                              flex: 1,
+                              height: 3,
+                              borderRadius: 2,
+                              backgroundColor:
+                                i <= progressValue
+                                  ? statusColor
+                                  : "#e2e8f0",
+                            }}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                    {contact.phone && (
+                      <TouchableOpacity
+                        onPress={() =>
+                          Linking.openURL(`tel:${contact.phone}`)
+                        }
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 18,
+                          backgroundColor: "#f0fdf4",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <Feather
+                          name="phone"
+                          size={15}
+                          color="#10b981"
+                        />
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </TouchableOpacity>
-              ))}
-            </View>
+              );
+            })}
           </View>
+        )}
 
-          {/* Section Performance */}
+        {/* Performance */}
+        <View style={{ paddingHorizontal: 20, marginBottom: 24 }}>
+          <Text
+            style={{
+              fontSize: 17,
+              fontWeight: "700",
+              color: theme.textPrimary,
+              marginBottom: 14,
+            }}
+          >
+            Performance
+          </Text>
           <View style={{ flexDirection: "row", gap: 12 }}>
-            {(
-              [
-                {
-                  label: "CONTACTS AJOUTÉS",
-                  value: weeklyNewContacts,
-                  icon: "users",
-                  color: theme.primary,
-                  sub: "↑ Cette semaine",
-                },
-                {
-                  label: "NOUVEAUX CLIENTS",
-                  value: monthlyNewClients,
-                  icon: "star",
-                  color: theme.primary,
-                  sub: "↑ Ce mois",
-                },
-              ] as const
-            ).map((stat) => (
+            {[
+              {
+                label: "CONTACTS AJOUTÉS",
+                value: weeklyNewContacts,
+                icon: "users" as FeatherIconName,
+                color: "#10b981",
+                sub: "↑ Cette semaine",
+              },
+              {
+                label: "NOUVEAUX CLIENTS",
+                value: monthlyNewClients,
+                icon: "star" as FeatherIconName,
+                color: "#818cf8",
+                sub: "↑ Ce mois",
+              },
+            ].map((stat) => (
               <View
                 key={stat.label}
                 style={{
                   flex: 1,
-                  backgroundColor: theme.surface,
-                  borderWidth: 1,
-                  borderColor: theme.border,
-                  borderRadius: 18,
-                  padding: 14,
+                  backgroundColor: "#fff",
+                  borderRadius: 16,
+                  padding: 16,
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.06,
+                  shadowRadius: 8,
+                  elevation: 2,
                 }}
               >
                 <View
@@ -347,9 +565,12 @@ export default function DashboardScreen() {
                     marginBottom: 12,
                   }}
                 >
-                  <Feather name={stat.icon} size={18} color={stat.color} />
+                  <Feather
+                    name={stat.icon}
+                    size={18}
+                    color={stat.color}
+                  />
                 </View>
-
                 <Text
                   style={{
                     fontSize: 28,
@@ -361,7 +582,6 @@ export default function DashboardScreen() {
                 >
                   {stat.value}
                 </Text>
-
                 <Text
                   style={{
                     fontSize: 10,
@@ -373,283 +593,175 @@ export default function DashboardScreen() {
                 >
                   {stat.label}
                 </Text>
-
-                <Text style={{ fontSize: 11, color: stat.color, fontWeight: "600" }}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: stat.color,
+                    fontWeight: "600",
+                  }}
+                >
                   {stat.sub}
                 </Text>
               </View>
             ))}
           </View>
+        </View>
 
-          {/* Today's Focus */}
-          {todayContacts.length > 0 && (
-            <View>
-              {/* Header section */}
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 12,
-                }}
-              >
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <Text
-                    style={{
-                      fontSize: 15,
-                      fontWeight: "700",
-                      color: theme.textPrimary,
-                    }}
-                  >
-                    Focus du jour
-                  </Text>
-
-                  {overdueCount > 0 && (
-                    <View
-                      style={{
-                        backgroundColor: theme.dangerBg,
-                        borderWidth: 1,
-                        borderColor: theme.dangerBorder,
-                        borderRadius: 100,
-                        paddingHorizontal: 8,
-                        paddingVertical: 3,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 4,
-                      }}
-                    >
-                      <Text style={{ fontSize: 10, fontWeight: "700", color: theme.danger }}>
-                        {overdueCount} URGENT
-                      </Text>
-                    </View>
-                  )}
-                </View>
-
-                <TouchableOpacity onPress={() => router.push("/(app)/contacts")}>
-                  <Text style={{ fontSize: 12, color: theme.textMuted }}>Voir tout →</Text>
-                </TouchableOpacity>
+        {/* Recent Activity */}
+        <View style={{ paddingHorizontal: 20, paddingBottom: 32 }}>
+          <Text
+            style={{
+              fontSize: 17,
+              fontWeight: "700",
+              color: theme.textPrimary,
+              marginBottom: 14,
+            }}
+          >
+            Activité récente
+          </Text>
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 16,
+              overflow: "hidden",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.06,
+              shadowRadius: 8,
+              elevation: 2,
+            }}
+          >
+            {recentActivity.length === 0 ? (
+              <View style={{ padding: 14 }}>
+                <Text
+                  style={{ fontSize: 13, color: theme.textMuted }}
+                >
+                  Aucune activité récente
+                </Text>
               </View>
-
-              {/* Liste contacts */}
-              {todayContacts.map((contact) => {
-                const overdue =
-                  !!contact.next_follow_up && new Date(contact.next_follow_up) < todayStart;
-                const statusKey = contact.status as StatusKey;
-                const leftColor =
-                  STATUS_COLORS[statusKey]?.text ?? theme.primary;
-                const progressValue =
-                  STATUS_PROGRESS[contact.status as PipelineStatus] ?? 0;
-                const progressPct = (progressValue / 4) * 100;
-
-                return (
+            ) : (
+              recentActivity.slice(0, 4).map((item, i) => (
+                <View key={item.id}>
                   <TouchableOpacity
-                    key={contact.id}
-                    onPress={() => router.push(`/(app)/contacts/${contact.id}`)}
-                    activeOpacity={0.7}
+                    onPress={() =>
+                      router.push(
+                        `/(app)/contacts/${item.contact_id}` as AppRoute
+                      )
+                    }
                     style={{
                       flexDirection: "row",
-                      alignItems: "center",
+                      alignItems: "flex-start",
                       gap: 12,
-                      paddingVertical: 12,
-                      paddingLeft: 12,
-                      paddingRight: 10,
-                      backgroundColor: theme.surface,
-                      borderRadius: 14,
-                      borderWidth: 1,
-                      borderColor: theme.border,
-                      borderLeftWidth: 3,
-                      borderLeftColor: leftColor,
-                      marginBottom: 8,
+                      padding: 14,
                     }}
                   >
-                    <Avatar
-                      name={contact.full_name}
-                      status={contact.status}
-                      size="md"
-                      url={contact.avatar_url}
-                    />
-
+                    <View
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 18,
+                        backgroundColor: "#f0fdf4",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Feather
+                        name={
+                          INTERACTION_ICONS[
+                            item.type as InteractionType
+                          ] as FeatherIconName
+                        }
+                        size={15}
+                        color="#10b981"
+                      />
+                    </View>
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
                           fontSize: 14,
-                          fontWeight: "600",
                           color: theme.textPrimary,
+                          lineHeight: 20,
                         }}
-                        numberOfLines={1}
                       >
-                        {contact.full_name}
+                        {item.content ??
+                          INTERACTION_LABELS[
+                            item.type as InteractionType
+                          ]}
                       </Text>
                       <Text
                         style={{
-                          fontSize: 11,
-                          marginTop: 2,
-                          color: overdue ? theme.danger : theme.textMuted,
+                          fontSize: 12,
+                          color: theme.textMuted,
+                          marginTop: 3,
                         }}
-                        numberOfLines={1}
                       >
-                        {overdue
-                          ? `En retard · prévu le ${new Date(contact.next_follow_up as string).toLocaleDateString("fr-FR", {
-                              day: "numeric",
-                              month: "short",
-                            })}`
-                          : "Aujourd'hui"}
+                        {formatRelativeTime(item.created_at)}
                       </Text>
-
-                      {/* Barre de progression pipeline */}
-                      <View
-                        style={{
-                          height: 3,
-                          backgroundColor: theme.border,
-                          borderRadius: 2,
-                          marginTop: 7,
-                          overflow: "hidden",
-                        }}
-                      >
-                        <View
-                          style={{
-                            height: 3,
-                            width: `${progressPct}%`,
-                            backgroundColor: leftColor,
-                            borderRadius: 2,
-                          }}
-                        />
-                      </View>
                     </View>
-
-                    {overdue && (
-                      <View
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: 14,
-                          backgroundColor: theme.dangerBg,
-                          borderWidth: 1,
-                          borderColor: theme.dangerBorder,
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Feather name="alert-circle" size={14} color={theme.danger} />
-                      </View>
-                    )}
                   </TouchableOpacity>
-                );
-              })}
-            </View>
-          )}
+                  {i <
+                    Math.min(recentActivity.length, 4) - 1 && (
+                    <View
+                      style={{
+                        height: 1,
+                        backgroundColor: "#f1f5f9",
+                        marginLeft: 62,
+                      }}
+                    />
+                  )}
+                </View>
+              ))
+            )}
+          </View>
+        </View>
 
-          {/* Recent Activity */}
-          <View style={{ marginBottom: 24 }}>
+        {/* Early Adopter / Pro banner */}
+        {!isPro && totalContacts >= 20 && (
+          <TouchableOpacity
+            onPress={() =>
+              router.push("/(app)/subscription" as AppRoute)
+            }
+            style={{
+              marginHorizontal: 20,
+              marginBottom: 24,
+              backgroundColor: "#fff",
+              borderRadius: 16,
+              padding: 14,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.06,
+              shadowRadius: 8,
+              elevation: 2,
+            }}
+          >
+            <Text style={{ fontSize: 16 }}>
+              {isEarlyAdopter ? "⚡" : "✨"}
+            </Text>
             <Text
               style={{
-                fontSize: 18,
-                fontWeight: "700",
-                color: theme.textPrimary,
-                marginBottom: 12,
+                flex: 1,
+                fontSize: 13,
+                fontWeight: "500",
+                color: isEarlyAdopter
+                  ? "#10b981"
+                  : theme.textPrimary,
               }}
             >
-              Activité récente
+              {isEarlyAdopter
+                ? `${pricing?.spots_left ?? 0} places Early Adopter restantes — ${currentPrice.toFixed(2).replace(".", ",")}€/mois`
+                : `${totalContacts}/25 contacts · Passe à Pro`}
             </Text>
-
-            <Card>
-              {recentActivity.length === 0 ? (
-                <Text style={{ fontSize: 12, color: theme.textMuted }}>
-                  Aucune activité récente
-                </Text>
-              ) : (
-                recentActivity.slice(0, 4).map((item, i) => (
-                  <View key={item.id}>
-                    <TouchableOpacity
-                      onPress={() => router.push(`/(app)/contacts/${item.contact_id}`)}
-                      style={{ flexDirection: "row", alignItems: "flex-start", gap: 12, paddingVertical: 12 }}
-                    >
-                      <View
-                        style={{
-                          width: 38,
-                          height: 38,
-                          borderRadius: 18,
-                          backgroundColor: theme.primaryBg,
-                          borderWidth: 1,
-                          borderColor: theme.primaryBorder,
-                          alignItems: "center",
-                          justifyContent: "center",
-                          flexShrink: 0,
-                        }}
-                      >
-                        <Feather
-                          name={
-                            INTERACTION_ICONS[item.type as InteractionType] as FeatherIconName
-                          }
-                          size={15}
-                          color={theme.primary}
-                        />
-                      </View>
-                      <View style={{ flex: 1, paddingTop: 2 }}>
-                        <Text
-                          style={{
-                            fontSize: 14,
-                            color: theme.textPrimary,
-                            fontWeight: "600",
-                            lineHeight: 20,
-                          }}
-                        >
-                          {item.content ?? INTERACTION_LABELS[item.type]}
-                        </Text>
-                        <Text
-                          style={{
-                            fontSize: 12,
-                            color: theme.textMuted,
-                            marginTop: 3,
-                          }}
-                        >
-                          {formatRelativeTime(item.created_at)}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-
-                    {i < Math.min(recentActivity.length, 4) - 1 && (
-                      <Divider indent={50} />
-                    )}
-                  </View>
-                ))
-              )}
-            </Card>
-          </View>
-
-          {/* Bannière Early Adopter -> Pro (conservée) */}
-          {!isPro && totalContacts >= 20 && (
-            <TouchableOpacity
-              onPress={() => router.push("/(app)/subscription")}
-              style={{
-                marginTop: 10,
-                backgroundColor: isEarlyAdopter ? theme.primaryBg : theme.surface,
-                borderWidth: 1,
-                borderColor: isEarlyAdopter ? theme.primaryBorder : theme.border,
-                borderRadius: 14,
-                padding: 12,
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-              }}
-            >
-              <Text style={{ fontSize: 16 }}>{isEarlyAdopter ? "⚡" : "✨"}</Text>
-              <Text
-                style={{
-                  flex: 1,
-                  fontSize: 13,
-                  fontWeight: "500",
-                  color: isEarlyAdopter ? theme.primary : theme.textPrimary,
-                }}
-              >
-                {isEarlyAdopter
-                  ? `${pricing?.spots_left ?? 0} places Early Adopter restantes — ${currentPrice.toFixed(2).replace(".", ",")}€/mois`
-                  : `${totalContacts}/25 contacts · Passe à Pro`}
-              </Text>
-              <Feather name="chevron-right" size={14} color={isEarlyAdopter ? theme.primary : theme.textHint} />
-            </TouchableOpacity>
-          )}
-        </View>
+            <Feather
+              name="chevron-right"
+              size={14}
+              color={isEarlyAdopter ? "#10b981" : theme.textHint}
+            />
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

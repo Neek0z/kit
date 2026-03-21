@@ -1,5 +1,5 @@
 import { Tabs, router, usePathname } from "expo-router";
-import { View } from "react-native";
+import { View, Text } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { PushTokenSync } from "../../components/PushTokenSync";
 import { useTheme as useAppTheme } from "../../lib/ThemeContext";
@@ -11,15 +11,22 @@ interface TabIconProps {
   name: FeatherName;
   color: string;
   focused: boolean;
+  label: string;
 }
 
-function TabIcon({ name, color, focused }: TabIconProps) {
+function TabIcon({ name, color, focused, label }: TabIconProps) {
   return (
-    <View className="items-center justify-center">
+    <View style={{ alignItems: "center", justifyContent: "center", gap: 3 }}>
       <Feather name={name} size={22} color={color} />
-      {focused && (
-        <View className="w-1 h-1 rounded-full bg-primary mt-1" />
-      )}
+      <Text
+        style={{
+          fontSize: 10,
+          fontWeight: focused ? "600" : "400",
+          color,
+        }}
+      >
+        {label}
+      </Text>
     </View>
   );
 }
@@ -27,9 +34,6 @@ function TabIcon({ name, color, focused }: TabIconProps) {
 export default function AppLayout() {
   const { isDark } = useAppTheme();
   const theme = useDesignTheme();
-  const tabBarBg = isDark ? theme.bg : theme.surface;
-  const tabBarBorder = theme.border;
-  const tabBarInactive = theme.textHint;
   const pathname = usePathname();
 
   return (
@@ -39,15 +43,15 @@ export default function AppLayout() {
         screenOptions={{
           headerShown: false,
           tabBarStyle: {
-            backgroundColor: tabBarBg,
+            backgroundColor: isDark ? theme.bg : "#ffffff",
             borderTopWidth: 1,
-            borderTopColor: tabBarBorder,
-            paddingTop: 8,
-            paddingBottom: 8,
+            borderTopColor: isDark ? theme.border : "#f1f5f9",
+            paddingTop: 6,
+            paddingBottom: 6,
             height: 64,
           },
-          tabBarActiveTintColor: theme.primary,
-          tabBarInactiveTintColor: tabBarInactive,
+          tabBarActiveTintColor: isDark ? "#6ee7b7" : "#10b981",
+          tabBarInactiveTintColor: theme.textHint,
           tabBarShowLabel: false,
         }}
       >
@@ -55,7 +59,7 @@ export default function AppLayout() {
         name="index"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="home" color={color} focused={focused} />
+            <TabIcon name="home" color={color} focused={focused} label="Accueil" />
           ),
         }}
       />
@@ -63,16 +67,14 @@ export default function AppLayout() {
         name="contacts"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="users" color={color} focused={focused} />
+            <TabIcon name="users" color={color} focused={focused} label="Contacts" />
           ),
         }}
         listeners={{
           tabPress: (e) => {
-            // Si on est déjà sur la page principale Contacts, ne rien faire
             if (pathname === "/(app)/contacts") {
               return;
             }
-            // Sinon, empêcher la navigation par défaut et forcer la page principale Contacts
             e.preventDefault();
             router.replace("/(app)/contacts");
           },
@@ -82,7 +84,7 @@ export default function AppLayout() {
         name="calendar"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="calendar" color={color} focused={focused} />
+            <TabIcon name="calendar" color={color} focused={focused} label="Agenda" />
           ),
         }}
       />
@@ -90,7 +92,7 @@ export default function AppLayout() {
         name="messages"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="message-circle" color={color} focused={focused} />
+            <TabIcon name="message-circle" color={color} focused={focused} label="Messages" />
           ),
         }}
       />
@@ -98,15 +100,13 @@ export default function AppLayout() {
         name="content"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="instagram" color={color} focused={focused} />
+            <TabIcon name="instagram" color={color} focused={focused} label="Contenu" />
           ),
         }}
       />
-      {/* Empêche toute auto-inclusion de la route /groups dans la tab bar */}
       <Tabs.Screen
         name="groups"
         options={{
-          // Retire complètement /groups de la tab bar (le route reste accessible via router.push)
           href: null,
         }}
       />
@@ -114,7 +114,7 @@ export default function AppLayout() {
         name="profile"
         options={{
           tabBarIcon: ({ color, focused }) => (
-            <TabIcon name="user" color={color} focused={focused} />
+            <TabIcon name="user" color={color} focused={focused} label="Profil" />
           ),
         }}
       />

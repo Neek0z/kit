@@ -13,9 +13,18 @@ interface AvatarProps {
 }
 
 const SIZES = {
-  sm: { container: 32, text: 12, border: 1 },
-  md: { container: 40, text: 14, border: 1.5 },
-  lg: { container: 60, text: 20, border: 2 },
+  sm: { container: 32, text: 12 },
+  md: { container: 44, text: 15 },
+  lg: { container: 64, text: 22 },
+};
+
+const STATUS_BG_COLORS: Record<string, string> = {
+  new: "#94a3b8",
+  contacted: "#818cf8",
+  interested: "#fbbf24",
+  follow_up: "#f87171",
+  client: "#10b981",
+  inactive: "#475569",
 };
 
 function getInitials(name?: string): string {
@@ -30,13 +39,7 @@ function getInitials(name?: string): string {
 
 const Avatar = React.memo(function Avatar({ name, url, status, size = "md" }: AvatarProps) {
   const s = SIZES[size];
-  const colors = status
-    ? STATUS_COLORS[status as StatusKey] ?? STATUS_COLORS.inactive
-    : {
-        text: "#6ee7b7",
-        bg: "rgba(110,231,183,0.1)",
-        border: "rgba(110,231,183,0.25)",
-      };
+  const bgColor = status ? (STATUS_BG_COLORS[status] ?? "#475569") : "#10b981";
 
   if (url) {
     return (
@@ -61,16 +64,14 @@ const Avatar = React.memo(function Avatar({ name, url, status, size = "md" }: Av
         width: s.container,
         height: s.container,
         borderRadius: s.container / 2,
-        backgroundColor: colors.bg,
-        borderWidth: s.border,
-        borderColor: colors.border,
+        backgroundColor: bgColor,
         alignItems: "center",
         justifyContent: "center",
       }}
     >
       <Text
         style={{
-          color: colors.text,
+          color: "#ffffff",
           fontSize: s.text,
           fontWeight: "700",
         }}
@@ -82,4 +83,3 @@ const Avatar = React.memo(function Avatar({ name, url, status, size = "md" }: Av
 });
 
 export { Avatar };
-

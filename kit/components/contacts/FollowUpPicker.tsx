@@ -80,7 +80,7 @@ export function FollowUpPicker({ value, onChange }: FollowUpPickerProps) {
         <Feather
           name="calendar"
           size={16}
-          color={value ? "#6ee7b7" : "#475569"}
+          color={value ? "#10b981" : "#475569"}
         />
         <Text
           className={`flex-1 text-sm ${value ? "text-primary" : "text-textMuted"}`}

@@ -183,7 +183,7 @@ export default function ImportContactsScreen() {
         className="flex-row items-center gap-3 px-4 py-3 border-b border-border/50 dark:border-border-dark/50"
       >
         <View className="w-5 h-5 rounded border-2 border-border dark:border-border-dark items-center justify-center">
-          {selectedIds.has(item.id) && <Feather name="check" size={14} color="#6ee7b7" />}
+          {selectedIds.has(item.id) && <Feather name="check" size={14} color="#10b981" />}
         </View>
         <View className="flex-1">
           <Text className="font-medium">{item.name ?? "Sans nom"}</Text>
@@ -231,15 +231,6 @@ export default function ImportContactsScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Ligne décorative */}
-      <View
-        style={{
-          height: 1,
-          marginHorizontal: 32,
-          backgroundColor: theme.primary,
-          opacity: 0.25,
-        }}
-      />
       <Header title="Importer des contacts" showBack />
 
       <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false}>

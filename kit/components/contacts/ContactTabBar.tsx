@@ -49,8 +49,8 @@ export function ContactTabBar({
     <View
       style={{
         borderBottomWidth: 1,
-        borderBottomColor: theme.border,
-        backgroundColor: theme.bg,
+        borderBottomColor: "#f1f5f9",
+        backgroundColor: "#fff",
       }}
     >
       <ScrollView
@@ -65,21 +65,21 @@ export function ContactTabBar({
               key={tab.key}
               onPress={() => onTabChange(tab.key)}
               style={{
-                paddingHorizontal: 14,
-                paddingVertical: 12,
+                paddingHorizontal: 16,
+                paddingVertical: 14,
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 5,
                 borderBottomWidth: 2,
-                borderBottomColor: isActive ? theme.primary : "transparent",
+                borderBottomColor: isActive ? "#10b981" : "transparent",
                 marginBottom: -1,
               }}
             >
               <Text
                 style={{
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: isActive ? "700" : "500",
-                  color: isActive ? theme.primary : theme.textMuted,
+                  color: isActive ? "#10b981" : theme.textMuted,
                 }}
               >
                 {tab.label}
@@ -87,9 +87,7 @@ export function ContactTabBar({
               {tab.badge !== undefined && tab.badge > 0 && (
                 <View
                   style={{
-                    backgroundColor: isActive ? theme.primaryBg : theme.surface,
-                    borderWidth: 1,
-                    borderColor: isActive ? theme.primaryBorder : theme.border,
+                    backgroundColor: isActive ? "#f0fdf4" : "#f8fafc",
                     borderRadius: 10,
                     paddingHorizontal: 5,
                     paddingVertical: 1,
@@ -101,7 +99,7 @@ export function ContactTabBar({
                     style={{
                       fontSize: 10,
                       fontWeight: "700",
-                      color: isActive ? theme.primary : theme.textMuted,
+                      color: isActive ? "#10b981" : theme.textMuted,
                     }}
                   >
                     {tab.badge}

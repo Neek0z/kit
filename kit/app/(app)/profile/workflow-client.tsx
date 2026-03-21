@@ -1,4 +1,3 @@
-import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Header } from "../../../components/layout";
 import { WorkflowStepsSettingsContent } from "../../../components/profile/WorkflowStepsSettingsContent";
@@ -9,14 +8,6 @@ export default function WorkflowClientArrivalSettingsScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      <View
-        style={{
-          height: 1,
-          marginHorizontal: 32,
-          backgroundColor: theme.primary,
-          opacity: 0.25,
-        }}
-      />
       <Header title="Arrivée client" showBack />
       <WorkflowStepsSettingsContent
         workflowRole="client_arrival"

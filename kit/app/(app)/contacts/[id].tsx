@@ -40,6 +40,8 @@ import {
   INTERACTION_LABELS,
   INTERACTION_ICONS,
   InteractionType,
+  type FeatherIconName,
+  type AppRoute,
 } from "../../../types";
 import { useTheme } from "../../../lib/theme";
 import { useContactGroups } from "../../../hooks/useContactGroups";
@@ -66,9 +68,13 @@ export default function ContactDetailScreen() {
   const { showToast } = useToast();
   const [showSheet, setShowSheet] = useState(false);
   const [appointmentSheetVisible, setAppointmentSheetVisible] = useState(false);
-  const [appointmentSheetMode, setAppointmentSheetMode] = useState<"create" | "edit">("create");
-  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null);
-  const { groups: contactGroups, addToGroup, removeFromGroup } = useContactGroups(id ?? "");
+  const [appointmentSheetMode, setAppointmentSheetMode] = useState<
+    "create" | "edit"
+  >("create");
+  const [editingAppointment, setEditingAppointment] =
+    useState<Appointment | null>(null);
+  const { groups: contactGroups, addToGroup, removeFromGroup } =
+    useContactGroups(id ?? "");
   const [showGroupPicker, setShowGroupPicker] = useState(false);
   const [activeTab, setActiveTab] = useState<ContactTabKey>("infos");
 
@@ -93,7 +99,7 @@ export default function ContactDetailScreen() {
       <SafeAreaView
         style={{
           flex: 1,
-          backgroundColor: theme.bg,
+          backgroundColor: "#f8f9fb",
           alignItems: "center",
           justifyContent: "center",
         }}
@@ -141,192 +147,215 @@ export default function ContactDetailScreen() {
   const handleKitMessage = () => {
     if (!contact.email) return;
     if (conversationWithContact) {
-      router.push(`/(app)/messages/${conversationWithContact.id}`);
+      router.push(`/(app)/messages/${conversationWithContact.id}` as AppRoute);
     } else {
       router.push(
-        `/(app)/messages/new?email=${encodeURIComponent(contact.email)}`
+        `/(app)/messages/new?email=${encodeURIComponent(contact.email)}` as AppRoute
       );
     }
   };
 
+  const handleCreateAppt = () => {
+    setAppointmentSheetMode("create");
+    setEditingAppointment(null);
+    setAppointmentSheetVisible(true);
+  };
+
   const upcomingAppointments = useMemo(
-    () => (contactAppointments as Appointment[]).filter(
-      (a) => new Date(a.scheduled_at) >= new Date()
-    ),
+    () =>
+      (contactAppointments as Appointment[]).filter(
+        (a) => new Date(a.scheduled_at) >= new Date()
+      ),
     [contactAppointments]
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#f8f9fb" }}>
       {/* Header */}
       <View
         style={{
           flexDirection: "row",
           alignItems: "center",
           justifyContent: "space-between",
-          paddingHorizontal: 20,
+          paddingHorizontal: 16,
           paddingVertical: 12,
         }}
       >
-        <TouchableOpacity onPress={() => router.back()}>
-          <Feather name="arrow-left" size={22} color={theme.primary} />
-        </TouchableOpacity>
-        <Text
-          style={{
-            fontSize: 16,
-            fontWeight: "700",
-            color: theme.textPrimary,
-            flex: 1,
-            textAlign: "center",
-            marginHorizontal: 8,
-          }}
-          numberOfLines={1}
-        >
-          {contact.full_name}
-        </Text>
         <TouchableOpacity
-          onPress={() => router.push(`/(app)/contacts/${id}/edit`)}
+          onPress={() => router.back()}
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: "#fff",
+            alignItems: "center",
+            justifyContent: "center",
+            shadowColor: "#000",
+            shadowOpacity: 0.08,
+            shadowRadius: 4,
+            elevation: 2,
+          }}
         >
-          <Feather name="edit-2" size={18} color={theme.primary} />
+          <Feather name="chevron-left" size={20} color={theme.textPrimary} />
         </TouchableOpacity>
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <TouchableOpacity
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: "#fff",
+              alignItems: "center",
+              justifyContent: "center",
+              shadowColor: "#000",
+              shadowOpacity: 0.08,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
+          >
+            <Feather name="star" size={18} color="#fbbf24" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              router.push(`/(app)/contacts/${id}/edit` as AppRoute)
+            }
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 18,
+              backgroundColor: "#fff",
+              alignItems: "center",
+              justifyContent: "center",
+              shadowColor: "#000",
+              shadowOpacity: 0.08,
+              shadowRadius: 4,
+              elevation: 2,
+            }}
+          >
+            <Feather name="edit-2" size={16} color={theme.textPrimary} />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* Ligne décorative */}
-      <View
-        style={{
-          height: 1,
-          marginHorizontal: 32,
-          backgroundColor: theme.primary,
-          opacity: 0.25,
-        }}
-      />
-
-      {/* Hero compact */}
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          gap: 14,
-          paddingHorizontal: 20,
-          paddingVertical: 14,
-        }}
-      >
+      {/* Hero: centered avatar + name + status */}
+      <View style={{ alignItems: "center", paddingVertical: 20 }}>
         <Avatar
           name={contact.full_name}
           url={contact.avatar_url}
           status={contact.status}
           size="lg"
         />
-        <View style={{ flex: 1 }}>
+        <Text
+          style={{
+            fontSize: 22,
+            fontWeight: "800",
+            color: theme.textPrimary,
+            marginTop: 12,
+            letterSpacing: -0.5,
+          }}
+        >
+          {contact.full_name}
+        </Text>
+        {contact.notes && (
           <Text
             style={{
-              fontSize: 20,
-              fontWeight: "800",
-              color: theme.textPrimary,
-              letterSpacing: -0.5,
+              fontSize: 13,
+              color: theme.textMuted,
+              marginTop: 4,
+              textAlign: "center",
+              paddingHorizontal: 32,
             }}
-            numberOfLines={2}
+            numberOfLines={1}
           >
-            {contact.full_name}
+            {contact.notes}
           </Text>
-          <View style={{ marginTop: 5 }}>
-            <StatusPill status={contact.status} />
-          </View>
-        </View>
-
-        <View style={{ flexDirection: "row", gap: 8, flexShrink: 0 }}>
-          {contact.phone && (
-            <TouchableOpacity
-              onPress={handleCall}
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                backgroundColor: theme.surface,
-                borderWidth: 1,
-                borderColor: `${theme.primary}30`,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Feather name="phone" size={16} color={theme.primary} />
-            </TouchableOpacity>
-          )}
-          {contact.phone && (
-            <TouchableOpacity
-              onPress={handleWhatsApp}
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                backgroundColor: theme.surface,
-                borderWidth: 1,
-                borderColor: theme.successBorder,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Feather name="message-circle" size={16} color={theme.success} />
-            </TouchableOpacity>
-          )}
-          {contact.email && (
-            <TouchableOpacity
-              onPress={handleEmail}
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                backgroundColor: theme.surface,
-                borderWidth: 1,
-                borderColor: theme.accentBorder,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Feather name="mail" size={16} color={theme.accent} />
-            </TouchableOpacity>
-          )}
-          {contact.email && (
-            <TouchableOpacity
-              onPress={handleKitMessage}
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 12,
-                backgroundColor: theme.surface,
-                borderWidth: 1,
-                borderColor: `${theme.primary}30`,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Feather name="message-square" size={16} color={theme.primary} />
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            accessibilityLabel="Prévoir un rendez-vous"
-            onPress={() => {
-              setAppointmentSheetMode("create");
-              setEditingAppointment(null);
-              setAppointmentSheetVisible(true);
-            }}
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: 12,
-              backgroundColor: theme.surface,
-              borderWidth: 1,
-              borderColor: theme.warningBorder,
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Feather name="calendar" size={16} color={theme.warning} />
-          </TouchableOpacity>
+        )}
+        <View style={{ marginTop: 8 }}>
+          <StatusPill status={contact.status} />
         </View>
       </View>
 
-      {/* Pipeline (toujours visible sous le hero) */}
+      {/* 4 action buttons */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          gap: 16,
+          paddingHorizontal: 20,
+          paddingBottom: 20,
+        }}
+      >
+        {[
+          {
+            label: "Appel",
+            icon: "phone" as FeatherName,
+            color: "#10b981",
+            bg: "#f0fdf4",
+            onPress: handleCall,
+            show: !!contact.phone,
+          },
+          {
+            label: "Chat",
+            icon: "message-circle" as FeatherName,
+            color: "#818cf8",
+            bg: "#f5f3ff",
+            onPress: handleWhatsApp,
+            show: !!contact.phone,
+          },
+          {
+            label: "Planifier",
+            icon: "calendar" as FeatherName,
+            color: "#f59e0b",
+            bg: "#fffbeb",
+            onPress: handleCreateAppt,
+            show: true,
+          },
+          {
+            label: "Plus",
+            icon: "more-horizontal" as FeatherName,
+            color: "#64748b",
+            bg: "#f8fafc",
+            onPress: () => {},
+            show: true,
+          },
+        ]
+          .filter((b) => b.show)
+          .map((btn) => (
+            <TouchableOpacity
+              key={btn.label}
+              onPress={btn.onPress}
+              style={{ alignItems: "center", gap: 6 }}
+            >
+              <View
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 16,
+                  backgroundColor: btn.bg,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  shadowColor: "#000",
+                  shadowOpacity: 0.06,
+                  shadowRadius: 6,
+                  elevation: 2,
+                }}
+              >
+                <Feather name={btn.icon} size={20} color={btn.color} />
+              </View>
+              <Text
+                style={{
+                  fontSize: 11,
+                  color: theme.textMuted,
+                  fontWeight: "500",
+                }}
+              >
+                {btn.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+      </View>
+
+      {/* Pipeline card */}
       <View style={{ paddingHorizontal: 20, paddingBottom: 8 }}>
         <Card>
           <Text
@@ -350,6 +379,7 @@ export default function ContactDetailScreen() {
         </Card>
       </View>
 
+      {/* Tabs */}
       <ContactTabBar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -362,12 +392,17 @@ export default function ContactDetailScreen() {
         }}
       />
 
+      {/* Tab content */}
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 40 }}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: 16,
+          paddingBottom: 40,
+        }}
       >
-        {/* ─── ONGLET INFOS ─── */}
+        {/* INFOS TAB */}
         {activeTab === "infos" && (
           <View style={{ gap: 10 }}>
             <Card>
@@ -391,7 +426,11 @@ export default function ContactDetailScreen() {
                   >
                     {contact.phone}
                   </Text>
-                  <Feather name="chevron-right" size={12} color={theme.textHint} />
+                  <Feather
+                    name="chevron-right"
+                    size={12}
+                    color={theme.textHint}
+                  />
                 </TouchableOpacity>
               )}
               {contact.phone && contact.email && <Divider />}
@@ -415,7 +454,11 @@ export default function ContactDetailScreen() {
                   >
                     {contact.email}
                   </Text>
-                  <Feather name="chevron-right" size={12} color={theme.textHint} />
+                  <Feather
+                    name="chevron-right"
+                    size={12}
+                    color={theme.textHint}
+                  />
                 </TouchableOpacity>
               )}
             </Card>
@@ -448,13 +491,19 @@ export default function ContactDetailScreen() {
 
             {upcomingAppointments.length > 0 && (
               <Card>
-                <KitText
-                  variant="muted"
-                  className="text-xs mb-3 uppercase tracking-wider"
+                <Text
+                  style={{
+                    fontSize: 10,
+                    color: theme.textHint,
+                    textTransform: "uppercase",
+                    letterSpacing: 0.8,
+                    fontWeight: "600",
+                    marginBottom: 12,
+                  }}
                 >
                   Prochains RDV
-                </KitText>
-                <View className="gap-2">
+                </Text>
+                <View style={{ gap: 8 }}>
                   {upcomingAppointments.map((a) => {
                     const at = new Date(a.scheduled_at);
                     return (
@@ -465,20 +514,46 @@ export default function ContactDetailScreen() {
                           setAppointmentSheetMode("edit");
                           setAppointmentSheetVisible(true);
                         }}
-                        className="flex-row items-center gap-3 py-2"
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: 12,
+                          paddingVertical: 8,
+                        }}
                       >
-                        <View className="w-8 h-8 rounded-full bg-primary/20 items-center justify-center">
+                        <View
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: 16,
+                            backgroundColor: "#fffbeb",
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
                           <Feather
                             name="calendar"
                             size={14}
-                            color={theme.primary}
+                            color="#f59e0b"
                           />
                         </View>
-                        <View className="flex-1">
-                          <Text className="text-sm font-medium">
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={{
+                              fontSize: 14,
+                              fontWeight: "600",
+                              color: theme.textPrimary,
+                            }}
+                          >
                             {a.title || "Rendez-vous"}
                           </Text>
-                          <KitText variant="muted" className="text-xs">
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              color: theme.textMuted,
+                              marginTop: 2,
+                            }}
+                          >
                             {at.toLocaleDateString("fr-FR", {
                               weekday: "short",
                               day: "numeric",
@@ -489,7 +564,7 @@ export default function ContactDetailScreen() {
                               hour: "2-digit",
                               minute: "2-digit",
                             })}
-                          </KitText>
+                          </Text>
                         </View>
                         <Feather
                           name="chevron-right"
@@ -511,7 +586,7 @@ export default function ContactDetailScreen() {
           </View>
         )}
 
-        {/* ─── ONGLET GROUPES ─── */}
+        {/* GROUPS TAB */}
         {activeTab === "groupes" && (
           <View style={{ gap: 10 }}>
             <View
@@ -537,17 +612,19 @@ export default function ContactDetailScreen() {
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 4,
-                  backgroundColor: theme.primaryBg,
-                  borderWidth: 1,
-                  borderColor: theme.primaryBorder,
+                  backgroundColor: "#f0fdf4",
                   borderRadius: 100,
                   paddingHorizontal: 12,
                   paddingVertical: 6,
                 }}
               >
-                <Feather name="plus" size={12} color={theme.primary} />
+                <Feather name="plus" size={12} color="#10b981" />
                 <Text
-                  style={{ fontSize: 12, fontWeight: "600", color: theme.primary }}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: "#10b981",
+                  }}
                 >
                   Ajouter
                 </Text>
@@ -578,11 +655,14 @@ export default function ContactDetailScreen() {
                       flexDirection: "row",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      backgroundColor: theme.surface,
-                      borderWidth: 1,
-                      borderColor: `${group.color}25`,
-                      borderRadius: 14,
+                      backgroundColor: "#fff",
+                      borderRadius: 16,
                       padding: 12,
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.06,
+                      shadowRadius: 8,
+                      elevation: 2,
                     }}
                   >
                     <View
@@ -617,7 +697,10 @@ export default function ContactDetailScreen() {
                         </Text>
                         {group.description ? (
                           <Text
-                            style={{ fontSize: 11, color: theme.textMuted }}
+                            style={{
+                              fontSize: 11,
+                              color: theme.textMuted,
+                            }}
                             numberOfLines={2}
                           >
                             {group.description}
@@ -625,7 +708,9 @@ export default function ContactDetailScreen() {
                         ) : null}
                       </View>
                     </View>
-                    <TouchableOpacity onPress={() => removeFromGroup(group.id)}>
+                    <TouchableOpacity
+                      onPress={() => removeFromGroup(group.id)}
+                    >
                       <Feather name="x" size={16} color={theme.textHint} />
                     </TouchableOpacity>
                   </View>
@@ -659,7 +744,7 @@ export default function ContactDetailScreen() {
           </View>
         )}
 
-        {/* ─── ONGLET WORKFLOW ─── */}
+        {/* WORKFLOW TAB */}
         {activeTab === "workflow" && isClient && (
           <View style={{ gap: 12 }}>
             <WorkflowTimeline
@@ -675,7 +760,7 @@ export default function ContactDetailScreen() {
           </View>
         )}
 
-        {/* ─── ONGLET RELANCES ─── */}
+        {/* RELANCES TAB */}
         {activeTab === "relance" && (
           <ContactRelancesSection
             contact={contact}
@@ -685,7 +770,7 @@ export default function ContactDetailScreen() {
           />
         )}
 
-        {/* ─── ONGLET HISTORIQUE ─── */}
+        {/* HISTORY TAB */}
         {activeTab === "historique" && (
           <View style={{ gap: 10 }}>
             <View
@@ -711,17 +796,19 @@ export default function ContactDetailScreen() {
                   flexDirection: "row",
                   alignItems: "center",
                   gap: 4,
-                  backgroundColor: theme.primaryBg,
-                  borderWidth: 1,
-                  borderColor: theme.primaryBorder,
+                  backgroundColor: "#f0fdf4",
                   borderRadius: 100,
                   paddingHorizontal: 12,
                   paddingVertical: 6,
                 }}
               >
-                <Feather name="plus" size={12} color={theme.primary} />
+                <Feather name="plus" size={12} color="#10b981" />
                 <Text
-                  style={{ fontSize: 12, fontWeight: "600", color: theme.primary }}
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "600",
+                    color: "#10b981",
+                  }}
                 >
                   Ajouter
                 </Text>
@@ -759,20 +846,20 @@ export default function ContactDetailScreen() {
                         style={{
                           width: 32,
                           height: 32,
-                          borderRadius: 50,
-                          backgroundColor: theme.bg,
-                          borderWidth: 1,
-                          borderColor: theme.border,
+                          borderRadius: 16,
+                          backgroundColor: "#f0fdf4",
                           alignItems: "center",
                           justifyContent: "center",
                         }}
                       >
                         <Feather
                           name={
-                            INTERACTION_ICONS[item.type as InteractionType] as FeatherName
+                            INTERACTION_ICONS[
+                              item.type as InteractionType
+                            ] as FeatherName
                           }
                           size={14}
-                          color={theme.primary}
+                          color="#10b981"
                         />
                       </View>
                       <View style={{ flex: 1 }}>
@@ -790,13 +877,24 @@ export default function ContactDetailScreen() {
                               color: theme.textPrimary,
                             }}
                           >
-                            {INTERACTION_LABELS[item.type as InteractionType]}
+                            {
+                              INTERACTION_LABELS[
+                                item.type as InteractionType
+                              ]
+                            }
                           </Text>
-                          <Text style={{ fontSize: 11, color: theme.textHint }}>
-                            {new Date(item.created_at).toLocaleDateString(
-                              "fr-FR",
-                              { day: "numeric", month: "short" }
-                            )}
+                          <Text
+                            style={{
+                              fontSize: 11,
+                              color: theme.textHint,
+                            }}
+                          >
+                            {new Date(
+                              item.created_at
+                            ).toLocaleDateString("fr-FR", {
+                              day: "numeric",
+                              month: "short",
+                            })}
                           </Text>
                         </View>
                         {item.content && (
@@ -860,7 +958,6 @@ export default function ContactDetailScreen() {
         }}
       />
 
-      {/* GroupPicker global : visible depuis l’onglet Groupes */}
       <GroupPicker
         visible={showGroupPicker}
         selectedGroups={contactGroups}

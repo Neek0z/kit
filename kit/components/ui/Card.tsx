@@ -22,25 +22,21 @@ export function Card({
       style={[
         {
           backgroundColor: theme.surface,
-          borderWidth: theme.isDark ? 1 : 0.5,
+          borderWidth: theme.isDark ? 1 : 0,
           borderColor: accent
             ? theme.isDark
               ? theme.borderAccent
-              : "rgba(13,148,136,0.14)"
+              : "rgba(16,185,129,0.14)"
             : theme.isDark
               ? theme.border
-              : "rgba(0,0,0,0.06)",
-          borderRadius: 18,
+              : "transparent",
+          borderRadius: 16,
           padding: PADDINGS[padding],
-          ...(theme.isDark
-            ? {}
-            : {
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
-                shadowRadius: 4,
-                elevation: 1,
-              }),
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: theme.isDark ? 0 : 0.06,
+          shadowRadius: 8,
+          elevation: theme.isDark ? 0 : 2,
         },
         style,
       ]}
@@ -50,4 +46,3 @@ export function Card({
     </View>
   );
 }
-

@@ -192,15 +192,6 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: designTheme.bg }}>
-      {/* Ligne décorative */}
-      <View
-        style={{
-          height: 1,
-          marginHorizontal: 32,
-          backgroundColor: designTheme.primary,
-          opacity: 0.25,
-        }}
-      />
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="items-center pt-8 pb-6 px-5">
           <TouchableOpacity onPress={handlePickAvatar} className="relative mb-4">

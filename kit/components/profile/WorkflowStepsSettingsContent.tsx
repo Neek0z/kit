@@ -60,15 +60,6 @@ export function WorkflowStepsSettingsContent({
 
   return (
     <>
-      <View
-        style={{
-          height: 1,
-          marginHorizontal: 32,
-          backgroundColor: theme.primary,
-          opacity: 0.25,
-        }}
-      />
-
       <ScrollView
         className="flex-1 px-5"
         showsVerticalScrollIndicator={false}
@@ -145,7 +136,7 @@ export function WorkflowStepsSettingsContent({
                     <Feather
                       name={step.is_active ? "toggle-right" : "toggle-left"}
                       size={24}
-                      color={step.is_active ? "#6ee7b7" : "#475569"}
+                      color={step.is_active ? "#10b981" : "#475569"}
                     />
                   </TouchableOpacity>
                 </View>

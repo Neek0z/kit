@@ -400,16 +400,6 @@ export default function ContentScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Ligne décorative */}
-      <View
-        style={{
-          height: 1,
-          marginHorizontal: 32,
-          backgroundColor: theme.primary,
-          opacity: 0.25,
-        }}
-      />
-
       {/* Liste verticale unique (évite VirtualizedLists imbriqués) */}
       <FlatList
         data={displayedPrompts}

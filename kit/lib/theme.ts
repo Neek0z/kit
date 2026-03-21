@@ -22,9 +22,9 @@ export const STATUS_COLORS = {
     border: "rgba(248,113,113,0.25)",
   },
   client: {
-    text: "#6ee7b7",
-    bg: "rgba(110,231,183,0.1)",
-    border: "rgba(110,231,183,0.25)",
+    text: "#10b981",
+    bg: "rgba(16,185,129,0.1)",
+    border: "rgba(16,185,129,0.25)",
   },
   inactive: {
     text: "#475569",
@@ -49,13 +49,13 @@ export function useTheme() {
     textMuted: isDark ? "#64748b" : "#64748b",
     textHint: isDark ? "#334155" : "#94a3b8",
     border: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.08)",
-    borderAccent: isDark ? "rgba(110,231,183,0.2)" : "rgba(15,118,110,0.2)",
-    primary: isDark ? "#6ee7b7" : "#0d9488",
-    primaryBg: isDark ? "rgba(110,231,183,0.12)" : "rgba(13,148,136,0.08)",
-    primaryBorder: isDark ? "rgba(110,231,183,0.3)" : "rgba(13,148,136,0.2)",
+    borderAccent: isDark ? "rgba(110,231,183,0.2)" : "rgba(16,185,129,0.2)",
+    primary: isDark ? "#6ee7b7" : "#10b981",
+    primaryBg: isDark ? "rgba(110,231,183,0.12)" : "rgba(16,185,129,0.08)",
+    primaryBorder: isDark ? "rgba(110,231,183,0.3)" : "rgba(16,185,129,0.2)",
     accentLine: isDark
       ? "linear-gradient(90deg, transparent, rgba(110,231,183,0.4), transparent)"
-      : "linear-gradient(90deg, transparent, rgba(5,150,105,0.35), transparent)",
+      : "linear-gradient(90deg, transparent, rgba(16,185,129,0.35), transparent)",
 
     danger: "#f87171",
     dangerBg: "rgba(248,113,113,0.1)",

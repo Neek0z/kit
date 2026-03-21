@@ -219,7 +219,7 @@ export function AppointmentSheet({
                   onPress={() => setShowDatePicker(true)}
                   className="flex-row items-center gap-2 bg-background dark:bg-background-dark border border-border dark:border-border-dark rounded-xl px-4 py-3"
                 >
-                  <Feather name="calendar" size={16} color="#6ee7b7" />
+                  <Feather name="calendar" size={16} color="#10b981" />
                   <Text className="text-base text-textMain dark:text-textMain-dark">
                     {scheduledAt.toLocaleDateString("fr-FR", {
                       weekday: "short",

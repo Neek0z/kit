@@ -103,14 +103,6 @@ export default function ConversationScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      <View
-        style={{
-          height: 1,
-          marginHorizontal: 32,
-          backgroundColor: theme.primary,
-          opacity: 0.25,
-        }}
-      />
       <Header
         title={displayName}
         showBack
@@ -160,7 +152,7 @@ export default function ConversationScreen() {
       >
         {messagesLoading ? (
           <View className="flex-1 items-center justify-center">
-            <ActivityIndicator color="#6ee7b7" />
+            <ActivityIndicator color="#10b981" />
           </View>
         ) : messages.length === 0 ? (
           <View className="flex-1 items-center justify-center px-8">

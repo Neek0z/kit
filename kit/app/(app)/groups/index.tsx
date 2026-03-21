@@ -28,7 +28,7 @@ import { useToast } from "../../../lib/ToastContext";
 import { Group, GroupType, MLM_GROUP_PRESETS } from "../../../types";
 
 const COLORS = [
-  "#6ee7b7",
+  "#10b981",
   "#fbbf24",
   "#818cf8",
   "#f87171",
@@ -236,14 +236,6 @@ export default function GroupsScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      <View
-        style={{
-          height: 1,
-          marginHorizontal: 32,
-          backgroundColor: theme.primary,
-          opacity: 0.25,
-        }}
-      />
       <Header
         title="Groupes"
         showBack

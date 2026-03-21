@@ -41,15 +41,6 @@ export default function NewConversationScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
-      {/* Ligne décorative */}
-      <View
-        style={{
-          height: 1,
-          marginHorizontal: 32,
-          backgroundColor: theme.primary,
-          opacity: 0.25,
-        }}
-      />
       <Header title="Nouvelle conversation" showBack />
       <View className="px-5 pt-4 gap-4">
         <Text variant="muted" className="text-sm">

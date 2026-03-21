@@ -1,8 +1,8 @@
 import React from "react";
-import { View, TouchableOpacity } from "react-native";
+import { View, TouchableOpacity, Text, Linking } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Text, Avatar, StatusPill } from "../ui";
+import { Avatar } from "../ui";
 import { Contact, PipelineStatus } from "../../types";
 import { useTheme, STATUS_COLORS, StatusKey } from "../../lib/theme";
 
@@ -15,135 +15,165 @@ const STATUS_PROGRESS: Record<PipelineStatus, number> = {
   inactive: 0,
 };
 
-const TOTAL_STEPS = 4;
-
 interface ContactCardProps {
   contact: Contact;
   pendingCount?: number;
+  onPress?: () => void;
 }
 
-const ContactCard = React.memo(function ContactCard({ contact, pendingCount = 0 }: ContactCardProps) {
+const ContactCard = React.memo(function ContactCard({
+  contact,
+  pendingCount = 0,
+  onPress,
+}: ContactCardProps) {
   const theme = useTheme();
-  const progress = STATUS_PROGRESS[contact.status as PipelineStatus] ?? 0;
-  const progressPercent = (progress / TOTAL_STEPS) * 100;
-  const statusColors =
-    STATUS_COLORS[contact.status as StatusKey] ?? STATUS_COLORS.inactive;
+  const statusColor =
+    STATUS_COLORS[contact.status as StatusKey]?.text ?? "#10b981";
+  const isOverdue =
+    contact.next_follow_up && new Date(contact.next_follow_up) < new Date();
+  const progressValue =
+    STATUS_PROGRESS[contact.status as PipelineStatus] ?? 0;
+
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    } else {
+      router.push(`/(app)/contacts/${contact.id}`);
+    }
+  };
 
   return (
-    <View>
-      <TouchableOpacity
-        onPress={() => router.push(`/(app)/contacts/${contact.id}`)}
-        activeOpacity={0.7}
-      >
-        <View className="flex-row items-center gap-3 py-3 px-5">
-          <Avatar
-            name={contact.full_name}
-            size="md"
-            url={contact.avatar_url}
-            status={contact.status}
-          />
-          <View className="flex-1">
-            <Text variant="h3" className="text-base">
-              {contact.full_name}
-            </Text>
-            {contact.phone && (
-              <Text variant="muted" className="text-xs mt-0.5">
-                {contact.phone}
-              </Text>
-            )}
+    <TouchableOpacity
+      onPress={handlePress}
+      activeOpacity={0.7}
+      style={{
+        backgroundColor: "#fff",
+        borderRadius: 16,
+        padding: 14,
+        marginHorizontal: 20,
+        marginBottom: 10,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.06,
+        shadowRadius: 8,
+        elevation: 2,
+      }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <Avatar
+          name={contact.full_name}
+          status={contact.status}
+          size="md"
+          url={contact.avatar_url}
+        />
 
-            {/* Barre de progression pipeline */}
-            <View
+        <View style={{ flex: 1 }}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 2,
+            }}
+          >
+            <Text
               style={{
-                marginTop: 6,
-                height: 3,
-                backgroundColor: theme.border,
-                borderRadius: 2,
-                overflow: "hidden",
+                fontSize: 15,
+                fontWeight: "600",
+                color: theme.textPrimary,
               }}
             >
-              <View
-                style={{
-                  height: 3,
-                  width: `${progressPercent}%`,
-                  backgroundColor: statusColors.text,
-                  borderRadius: 2,
-                }}
-              />
-            </View>
-
-            {(contact.tags?.length ?? 0) > 0 && (
-              <View className="flex-row flex-wrap gap-1 mt-1">
-                {(contact.tags ?? []).slice(0, 3).map((tag) => (
-                  <View
-                    key={tag}
-                    className="px-2 py-0.5 rounded-full bg-border dark:bg-border-dark"
-                  >
-                    <Text variant="muted" className="text-[10px]">
-                      {tag}
-                    </Text>
-                  </View>
-                ))}
-                {(contact.tags?.length ?? 0) > 3 && (
-                  <View className="px-2 py-0.5">
-                    <Text variant="muted" className="text-[10px]">
-                      +{(contact.tags?.length ?? 0) - 3}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            )}
-          </View>
-          <View className="items-end gap-1">
-            <StatusPill status={contact.status} size="sm" />
+              {contact.full_name}
+            </Text>
             {pendingCount > 0 && (
               <View
                 style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: 9,
-                  backgroundColor: theme.primaryBg,
-                  borderWidth: 1,
-                  borderColor: theme.primaryBorder,
-                  alignItems: "center",
-                  justifyContent: "center",
+                  backgroundColor: "#f0fdf4",
+                  borderRadius: 10,
+                  paddingHorizontal: 6,
+                  paddingVertical: 2,
                 }}
               >
                 <Text
                   style={{
-                    fontSize: 9,
+                    fontSize: 10,
                     fontWeight: "700",
-                    color: theme.primary,
+                    color: "#10b981",
                   }}
                 >
                   {pendingCount}
                 </Text>
               </View>
             )}
-            {contact.next_follow_up && (
-              <Text variant="muted" className="text-xs">
-                {new Date(contact.next_follow_up).toLocaleDateString(
-                  "fr-FR",
-                  {
-                    day: "numeric",
-                    month: "short",
-                  }
-                )}
-              </Text>
-            )}
           </View>
-          <Feather name="chevron-right" size={16} color={theme.textHint} />
+
+          <Text
+            style={{
+              fontSize: 12,
+              color: isOverdue ? "#ef4444" : theme.textMuted,
+              marginBottom: 8,
+            }}
+          >
+            {isOverdue
+              ? `En retard · ${new Date(
+                  contact.next_follow_up!
+                ).toLocaleDateString("fr-FR", {
+                  day: "numeric",
+                  month: "short",
+                })}`
+              : contact.phone ?? "Aucun numéro"}
+          </Text>
+
+          {/* Multi-segment progress bar */}
+          <View style={{ flexDirection: "row", gap: 3 }}>
+            {[0, 1, 2, 3, 4].map((i) => (
+              <View
+                key={i}
+                style={{
+                  flex: 1,
+                  height: 3,
+                  borderRadius: 2,
+                  backgroundColor:
+                    i <= progressValue ? statusColor : "#e2e8f0",
+                }}
+              />
+            ))}
+          </View>
         </View>
-      </TouchableOpacity>
-      {/* Séparateur indenté */}
-      <View
-        style={{
-          height: 1,
-          backgroundColor: theme.border,
-          marginLeft: 72,
-        }}
-      />
-    </View>
+
+        {/* Quick actions */}
+        <View style={{ flexDirection: "column", gap: 8 }}>
+          {contact.phone && (
+            <TouchableOpacity
+              onPress={() => Linking.openURL(`tel:${contact.phone}`)}
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: "#f0fdf4",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Feather name="phone" size={13} color="#10b981" />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            onPress={handlePress}
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 16,
+              backgroundColor: "#f8fafc",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Feather name="chevron-right" size={13} color={theme.textMuted} />
+          </TouchableOpacity>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 });
 

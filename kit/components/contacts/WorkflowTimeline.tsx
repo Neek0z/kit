@@ -145,7 +145,7 @@ export function WorkflowTimeline({
         <View
           style={{
             height: 4,
-            backgroundColor: "#6ee7b7",
+            backgroundColor: "#10b981",
             borderRadius: 2,
             width: `${progress}%`,
           }}
@@ -177,13 +177,13 @@ export function WorkflowTimeline({
                         height: 24,
                         borderRadius: 12,
                         backgroundColor: isCompleted
-                          ? "#6ee7b7"
+                          ? "#10b981"
                           : isOverdue
                           ? "#f8717122"
                           : "#1e293b",
                         borderWidth: 1.5,
                         borderColor: isCompleted
-                          ? "#6ee7b7"
+                          ? "#10b981"
                           : isOverdue
                           ? "#f87171"
                           : "#334155",

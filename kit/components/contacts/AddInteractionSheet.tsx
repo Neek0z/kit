@@ -87,7 +87,7 @@ export function AddInteractionSheet({
                 <Feather
                   name={INTERACTION_ICONS[type] as FeatherName}
                   size={14}
-                  color={selectedType === type ? "#6ee7b7" : "#475569"}
+                  color={selectedType === type ? "#10b981" : "#475569"}
                 />
                 <Text
                   className={`text-sm ${

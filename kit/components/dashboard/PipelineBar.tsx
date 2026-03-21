@@ -7,7 +7,7 @@ const STATUS_COLORS: Record<PipelineStatus, string> = {
   contacted: "#818cf8",
   interested: "#fbbf24",
   follow_up: "#f87171",
-  client: "#6ee7b7",
+  client: "#10b981",
   inactive: "#1e293b",
 };
 

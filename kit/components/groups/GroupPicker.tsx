@@ -16,7 +16,7 @@ import { Group, MLM_GROUP_PRESETS } from "../../types";
 import { useTheme } from "../../lib/theme";
 
 const COLORS = [
-  "#6ee7b7",
+  "#10b981",
   "#fbbf24",
   "#818cf8",
   "#f87171",
