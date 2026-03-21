@@ -1,5 +1,9 @@
-import { View, Text, Image } from "react-native";
+import React from "react";
+import { View, Text } from "react-native";
+import { Image } from "expo-image";
 import { STATUS_COLORS, StatusKey } from "../../lib/theme";
+
+const PLACEHOLDER_BLURHASH = "L6PZfSi_.AyE_3t7t7R**0o#DgR4";
 
 interface AvatarProps {
   name?: string;
@@ -24,7 +28,7 @@ function getInitials(name?: string): string {
     .toUpperCase();
 }
 
-export function Avatar({ name, url, status, size = "md" }: AvatarProps) {
+const Avatar = React.memo(function Avatar({ name, url, status, size = "md" }: AvatarProps) {
   const s = SIZES[size];
   const colors = status
     ? STATUS_COLORS[status as StatusKey] ?? STATUS_COLORS.inactive
@@ -38,6 +42,10 @@ export function Avatar({ name, url, status, size = "md" }: AvatarProps) {
     return (
       <Image
         source={{ uri: url }}
+        placeholder={{ blurhash: PLACEHOLDER_BLURHASH }}
+        contentFit="cover"
+        transition={200}
+        cachePolicy="memory-disk"
         style={{
           width: s.container,
           height: s.container,
@@ -71,5 +79,7 @@ export function Avatar({ name, url, status, size = "md" }: AvatarProps) {
       </Text>
     </View>
   );
-}
+});
+
+export { Avatar };
 

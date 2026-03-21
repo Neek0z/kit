@@ -90,6 +90,33 @@ export function SwipeMode({ onClose, onChanged }: SwipeModeProps) {
     setCurrentIndex((i) => i + 1);
   }, [currentIndex, queue]);
 
+  const renderSwipeFilter = useCallback(
+    ({ item }: { item: (typeof FILTERS)[number] }) => (
+      <TouchableOpacity
+        onPress={() => {
+          setActiveFilter(item.value);
+          setCurrentIndex(0);
+        }}
+        className={`px-4 py-2 rounded-full border ${
+          activeFilter === item.value
+            ? "bg-primary border-primary dark:border-primary"
+            : "bg-surface dark:bg-surface-dark border-border dark:border-border-dark"
+        }`}
+      >
+        <Text
+          className={`text-sm font-medium ${
+            activeFilter === item.value
+              ? "text-onPrimary"
+              : "text-textMuted dark:text-textMuted-dark"
+          }`}
+        >
+          {item.label}
+        </Text>
+      </TouchableOpacity>
+    ),
+    [activeFilter]
+  );
+
   const remaining = queue.slice(currentIndex, currentIndex + 3);
 
   return (
@@ -113,29 +140,7 @@ export function SwipeMode({ onClose, onChanged }: SwipeModeProps) {
           keyExtractor={(item) => item.value}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => {
-                setActiveFilter(item.value);
-                setCurrentIndex(0);
-              }}
-              className={`px-4 py-2 rounded-full border ${
-                activeFilter === item.value
-                  ? "bg-primary border-primary dark:border-primary"
-                  : "bg-surface dark:bg-surface-dark border-border dark:border-border-dark"
-              }`}
-            >
-              <Text
-                className={`text-sm font-medium ${
-                  activeFilter === item.value
-                    ? "text-onPrimary"
-                    : "text-textMuted dark:text-textMuted-dark"
-                }`}
-              >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          )}
+          renderItem={renderSwipeFilter}
         />
       </View>
 

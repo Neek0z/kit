@@ -54,6 +54,36 @@ export default function MessageGroupPickScreen() {
     }
   };
 
+  const renderGroupItem = useCallback(
+    ({ item }: { item: Group }) => {
+      const busy = startingId === item.id;
+      return (
+        <TouchableOpacity
+          onPress={() => openChat(item)}
+          disabled={busy}
+          className="mx-5 mb-3 p-4 rounded-2xl border border-border dark:border-border-dark bg-surface dark:bg-surface-dark active:opacity-90"
+        >
+          <View className="flex-row items-center justify-between gap-3">
+            <View className="flex-1">
+              <GroupBadge group={item} />
+              {item.description ? (
+                <Text variant="muted" className="text-xs mt-2" numberOfLines={2}>
+                  {item.description}
+                </Text>
+              ) : null}
+            </View>
+            {busy ? (
+              <ActivityIndicator color={theme.primary} />
+            ) : (
+              <Feather name="chevron-right" size={20} color={theme.textMuted} />
+            )}
+          </View>
+        </TouchableOpacity>
+      );
+    },
+    [startingId, openChat, theme]
+  );
+
   const showHelp = () => {
     Alert.alert(
       "Messagerie de groupe",
@@ -117,32 +147,12 @@ export default function MessageGroupPickScreen() {
           data={groups}
           keyExtractor={(g) => g.id}
           contentContainerStyle={{ paddingBottom: 32 }}
-          renderItem={({ item }) => {
-            const busy = startingId === item.id;
-            return (
-              <TouchableOpacity
-                onPress={() => openChat(item)}
-                disabled={busy}
-                className="mx-5 mb-3 p-4 rounded-2xl border border-border dark:border-border-dark bg-surface dark:bg-surface-dark active:opacity-90"
-              >
-                <View className="flex-row items-center justify-between gap-3">
-                  <View className="flex-1">
-                    <GroupBadge group={item} />
-                    {item.description ? (
-                      <Text variant="muted" className="text-xs mt-2" numberOfLines={2}>
-                        {item.description}
-                      </Text>
-                    ) : null}
-                  </View>
-                  {busy ? (
-                    <ActivityIndicator color={theme.primary} />
-                  ) : (
-                    <Feather name="chevron-right" size={20} color={theme.textMuted} />
-                  )}
-                </View>
-              </TouchableOpacity>
-            );
-          }}
+          renderItem={renderGroupItem}
+          windowSize={10}
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          removeClippedSubviews={true}
+          keyboardShouldPersistTaps="handled"
         />
       )}
     </SafeAreaView>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   View,
   ScrollView,
@@ -176,6 +176,28 @@ export default function ImportContactsScreen() {
     setCsvRows(rows);
   };
 
+  const renderDeviceContact = useCallback(
+    ({ item }: { item: ExpoContacts.Contact }) => (
+      <TouchableOpacity
+        onPress={() => toggleCarnetSelection(item.id)}
+        className="flex-row items-center gap-3 px-4 py-3 border-b border-border/50 dark:border-border-dark/50"
+      >
+        <View className="w-5 h-5 rounded border-2 border-border dark:border-border-dark items-center justify-center">
+          {selectedIds.has(item.id) && <Feather name="check" size={14} color="#6ee7b7" />}
+        </View>
+        <View className="flex-1">
+          <Text className="font-medium">{item.name ?? "Sans nom"}</Text>
+          {(item.phoneNumbers?.[0]?.number || item.emails?.[0]?.email) && (
+            <Text variant="muted" className="text-xs">
+              {item.phoneNumbers?.[0]?.number || item.emails?.[0]?.email}
+            </Text>
+          )}
+        </View>
+      </TouchableOpacity>
+    ),
+    [selectedIds, toggleCarnetSelection]
+  );
+
   const importFromCSV = async () => {
     const toImport = csvRows.slice(0, remaining);
     if (toImport.length === 0 && csvRows.length > 0) {
@@ -319,24 +341,12 @@ export default function ImportContactsScreen() {
           <FlatList
             data={deviceContacts}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => toggleCarnetSelection(item.id)}
-                className="flex-row items-center gap-3 px-4 py-3 border-b border-border/50 dark:border-border-dark/50"
-              >
-                <View className="w-5 h-5 rounded border-2 border-border dark:border-border-dark items-center justify-center">
-                  {selectedIds.has(item.id) && <Feather name="check" size={14} color="#6ee7b7" />}
-                </View>
-                <View className="flex-1">
-                  <Text className="font-medium">{item.name ?? "Sans nom"}</Text>
-                  {(item.phoneNumbers?.[0]?.number || item.emails?.[0]?.email) && (
-                    <Text variant="muted" className="text-xs">
-                      {item.phoneNumbers?.[0]?.number || item.emails?.[0]?.email}
-                    </Text>
-                  )}
-                </View>
-              </TouchableOpacity>
-            )}
+            renderItem={renderDeviceContact}
+            windowSize={10}
+            initialNumToRender={15}
+            maxToRenderPerBatch={10}
+            removeClippedSubviews={true}
+            keyboardShouldPersistTaps="handled"
           />
         </SafeAreaView>
       </Modal>

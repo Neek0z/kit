@@ -1,3 +1,4 @@
+import React from "react";
 import { TouchableOpacity, View, Text } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "../../lib/theme";
@@ -10,7 +11,7 @@ interface ContactTaskItemProps {
   onDelete: () => void;
 }
 
-export function ContactTaskItem({ task, onToggle, onDelete }: ContactTaskItemProps) {
+const ContactTaskItem = React.memo(function ContactTaskItem({ task, onToggle, onDelete }: ContactTaskItemProps) {
   const theme = useTheme();
   const isCompleted = !!task.completed_at;
   const priorityColor = PRIORITY_COLORS[task.priority as TaskPriority] ?? theme.primary;
@@ -98,5 +99,7 @@ export function ContactTaskItem({ task, onToggle, onDelete }: ContactTaskItemPro
       </TouchableOpacity>
     </View>
   );
-}
+});
+
+export { ContactTaskItem };
 

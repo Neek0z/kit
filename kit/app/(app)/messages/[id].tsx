@@ -1,4 +1,4 @@
-import { useRef, useEffect, useMemo } from "react";
+import { useRef, useEffect, useMemo, useCallback } from "react";
 import { useLocalSearchParams } from "expo-router";
 import {
   View,
@@ -54,6 +54,23 @@ export default function ConversationScreen() {
     }
     return m;
   }, [participants]);
+
+  const renderMessage = useCallback(
+    ({ item }: { item: (typeof messages)[number] }) => (
+      <View className="px-4 py-1">
+        <MessageBubble
+          message={item}
+          isOwn={item.sender_id === user?.id}
+          senderLabel={
+            isGroup && item.sender_id !== user?.id
+              ? senderLabelByUserId.get(item.sender_id) ?? "Membre"
+              : undefined
+          }
+        />
+      </View>
+    ),
+    [user?.id, isGroup, senderLabelByUserId]
+  );
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -156,23 +173,16 @@ export default function ConversationScreen() {
             ref={listRef}
             data={messages}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <View className="px-4 py-1">
-                <MessageBubble
-                  message={item}
-                  isOwn={item.sender_id === user?.id}
-                  senderLabel={
-                    isGroup && item.sender_id !== user?.id
-                      ? senderLabelByUserId.get(item.sender_id) ?? "Membre"
-                      : undefined
-                  }
-                />
-              </View>
-            )}
+            renderItem={renderMessage}
             contentContainerStyle={{
               paddingVertical: 12,
               paddingBottom: 8,
             }}
+            windowSize={15}
+            initialNumToRender={20}
+            maxToRenderPerBatch={10}
+            removeClippedSubviews={true}
+            keyboardShouldPersistTaps="handled"
           />
         )}
         <MessageInput onSend={sendMessage} sending={sending} />

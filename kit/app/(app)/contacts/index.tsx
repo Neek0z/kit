@@ -15,7 +15,7 @@ import { Text as KitText, EmptyState, Card, StatusPill, Avatar } from "../../../
 import { SwipeMode } from "../../../components/contacts";
 import { useContacts } from "../../../hooks/useContacts";
 import { useSubscription } from "../../../hooks/useSubscription";
-import { PipelineStatus } from "../../../types";
+import { PipelineStatus, type Contact } from "../../../types";
 import { useTheme, STATUS_COLORS, StatusKey } from "../../../lib/theme";
 
 const STATUS_PROGRESS: Record<PipelineStatus, number> = {
@@ -82,6 +82,144 @@ export default function ContactsListScreen() {
       return matchSearch && matchFilter && matchTag;
     });
   }, [contacts, search, activeFilter, selectedTag]);
+
+  const renderFilterItem = useCallback(
+    ({ item }: { item: (typeof FILTERS)[number] }) => (
+      <TouchableOpacity
+        onPress={() => setActiveFilter(item.value)}
+        className={`px-4 py-2 rounded-full border ${
+          activeFilter === item.value
+            ? "bg-primary border-primary"
+            : "bg-surface dark:bg-surface-dark border-border dark:border-border-dark"
+        }`}
+      >
+        <Text
+          className={`text-sm font-medium ${
+            activeFilter === item.value
+              ? "text-background"
+              : "text-textMuted dark:text-textMuted-dark"
+          }`}
+        >
+          {item.label}
+        </Text>
+      </TouchableOpacity>
+    ),
+    [activeFilter]
+  );
+
+  const renderContactItem = useCallback(
+    ({ item }: { item: Contact }) => {
+      const progress = STATUS_PROGRESS[item.status as PipelineStatus] ?? 0;
+      const progressPercent = (progress / TOTAL_STEPS) * 100;
+      const statusColors =
+        STATUS_COLORS[item.status as StatusKey] ?? STATUS_COLORS.inactive;
+
+      return (
+        <View>
+          <TouchableOpacity
+            onPress={() => router.push(`/(app)/contacts/${item.id}`)}
+            activeOpacity={0.7}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              paddingVertical: 11,
+              paddingHorizontal: 20,
+              backgroundColor:
+                item.status === "client"
+                  ? "rgba(110,231,183,0.03)"
+                  : "transparent",
+            }}
+          >
+            <Avatar
+              name={item.full_name}
+              status={item.status}
+              url={item.avatar_url}
+              size="md"
+            />
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 15,
+                  fontWeight: "600",
+                  color: theme.textPrimary,
+                }}
+              >
+                {item.full_name}
+              </Text>
+              {item.phone && (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: theme.textMuted,
+                    marginTop: 1,
+                  }}
+                >
+                  {item.phone}
+                </Text>
+              )}
+              <View
+                style={{
+                  marginTop: 7,
+                  height: 3,
+                  backgroundColor: theme.border,
+                  borderRadius: 2,
+                  overflow: "hidden",
+                }}
+              >
+                <View
+                  style={{
+                    height: 3,
+                    width: `${progressPercent}%`,
+                    backgroundColor: statusColors.text,
+                    borderRadius: 2,
+                  }}
+                />
+              </View>
+            </View>
+            <StatusPill status={item.status} size="sm" />
+            <Feather
+              name="chevron-right"
+              size={14}
+              color={theme.textHint}
+            />
+          </TouchableOpacity>
+          <View
+            style={{
+              height: 1,
+              backgroundColor: theme.border,
+              marginLeft: 72,
+            }}
+          />
+        </View>
+      );
+    },
+    [theme]
+  );
+
+  const ListEmpty = useCallback(
+    () => (
+      <EmptyState
+        icon="👥"
+        title={search ? "Aucun résultat" : "Aucun contact"}
+        description={
+          search
+            ? "Essaie un autre terme de recherche."
+            : "Ajoute ton premier contact pour commencer."
+        }
+        actionLabel={search ? undefined : "Ajouter un contact"}
+        onAction={
+          search
+            ? undefined
+            : () =>
+                canAddContact
+                  ? router.push("/(app)/contacts/new")
+                  : router.push("/(app)/subscription")
+        }
+      />
+    ),
+    [search, canAddContact]
+  );
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
@@ -229,26 +367,7 @@ export default function ContactsListScreen() {
           keyExtractor={(item) => item.value}
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => setActiveFilter(item.value)}
-              className={`px-4 py-2 rounded-full border ${
-                activeFilter === item.value
-                  ? "bg-primary border-primary"
-                  : "bg-surface dark:bg-surface-dark border-border dark:border-border-dark"
-              }`}
-            >
-              <Text
-                className={`text-sm font-medium ${
-                  activeFilter === item.value
-                    ? "text-background"
-                    : "text-textMuted dark:text-textMuted-dark"
-                }`}
-              >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          )}
+          renderItem={renderFilterItem}
         />
           </View>
 
@@ -311,98 +430,7 @@ export default function ContactsListScreen() {
             <FlatList
               data={filtered}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => {
-                const progress = STATUS_PROGRESS[
-                  item.status as PipelineStatus
-                ] ?? 0;
-                const progressPercent = (progress / TOTAL_STEPS) * 100;
-                const statusColors =
-                  STATUS_COLORS[item.status as StatusKey] ??
-                  STATUS_COLORS.inactive;
-
-                return (
-                  <View>
-                    <TouchableOpacity
-                      onPress={() => router.push(`/(app)/contacts/${item.id}`)}
-                      activeOpacity={0.7}
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: 12,
-                        paddingVertical: 11,
-                        paddingHorizontal: 20,
-                        backgroundColor:
-                          item.status === "client"
-                            ? "rgba(110,231,183,0.03)"
-                            : "transparent",
-                      }}
-                    >
-                      <Avatar
-                        name={item.full_name}
-                        status={item.status}
-                        url={item.avatar_url}
-                        size="md"
-                      />
-                      <View style={{ flex: 1 }}>
-                        <Text
-                          style={{
-                            fontSize: 15,
-                            fontWeight: "600",
-                            color: theme.textPrimary,
-                          }}
-                        >
-                          {item.full_name}
-                        </Text>
-                        {item.phone && (
-                          <Text
-                            style={{
-                              fontSize: 12,
-                              color: theme.textMuted,
-                              marginTop: 1,
-                            }}
-                          >
-                            {item.phone}
-                          </Text>
-                        )}
-
-                        {/* Barre de progression pipeline */}
-                        <View
-                          style={{
-                            marginTop: 7,
-                            height: 3,
-                            backgroundColor: theme.border,
-                            borderRadius: 2,
-                            overflow: "hidden",
-                          }}
-                        >
-                          <View
-                            style={{
-                              height: 3,
-                              width: `${progressPercent}%`,
-                              backgroundColor: statusColors.text,
-                              borderRadius: 2,
-                            }}
-                          />
-                        </View>
-                      </View>
-                      <StatusPill status={item.status} size="sm" />
-                      <Feather
-                        name="chevron-right"
-                        size={14}
-                        color={theme.textHint}
-                      />
-                    </TouchableOpacity>
-                    {/* Séparateur indenté iOS */}
-                    <View
-                      style={{
-                        height: 1,
-                        backgroundColor: theme.border,
-                        marginLeft: 72,
-                      }}
-                    />
-                  </View>
-                );
-              }}
+              renderItem={renderContactItem}
               refreshControl={
                 <RefreshControl
                   refreshing={loading}
@@ -411,27 +439,13 @@ export default function ContactsListScreen() {
                   tintColor={theme.primary}
                 />
               }
-              ListEmptyComponent={
-                <EmptyState
-                  icon="👥"
-                  title={search ? "Aucun résultat" : "Aucun contact"}
-                  description={
-                    search
-                      ? "Essaie un autre terme de recherche."
-                      : "Ajoute ton premier contact pour commencer."
-                  }
-                  actionLabel={search ? undefined : "Ajouter un contact"}
-                  onAction={
-                    search
-                      ? undefined
-                      : () =>
-                          canAddContact
-                            ? router.push("/(app)/contacts/new")
-                            : router.push("/(app)/subscription")
-                  }
-                />
-              }
+              ListEmptyComponent={ListEmpty}
               showsVerticalScrollIndicator={false}
+              windowSize={10}
+              initialNumToRender={15}
+              maxToRenderPerBatch={10}
+              removeClippedSubviews={true}
+              keyboardShouldPersistTaps="handled"
             />
           )}
         </>

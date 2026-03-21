@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -243,6 +243,56 @@ export default function GroupMembersScreen() {
       { cancelable: true }
     );
   };
+
+  const renderAddContact = useCallback(
+    ({ item }: { item: (typeof filteredAddContacts)[number] }) => (
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 12,
+          paddingVertical: 11,
+          paddingHorizontal: 12,
+          borderRadius: 14,
+          backgroundColor: theme.surface,
+          borderWidth: 1,
+          borderColor: theme.border,
+        }}
+      >
+        <Avatar name={item.full_name} status={item.status} size="sm" />
+        <View style={{ flex: 1 }}>
+          <KitText style={{ fontSize: 14, fontWeight: "600", color: theme.textPrimary }}>
+            {item.full_name}
+          </KitText>
+          {item.phone ? (
+            <KitText variant="muted" className="mt-1" style={{ fontSize: 12 }}>
+              {item.phone}
+            </KitText>
+          ) : null}
+        </View>
+        <StatusPill status={item.status} size="sm" />
+
+        <TouchableOpacity
+          onPress={async () => {
+            const ok = await addContactToGroup(item.id);
+            if (ok) showToast("Ajouté au groupe");
+            else showToast("Impossible d'ajouter");
+          }}
+          style={{
+            padding: 8,
+            borderRadius: 12,
+            backgroundColor: `${theme.primaryBg}`,
+            borderWidth: 1,
+            borderColor: theme.primaryBorder,
+          }}
+          accessibilityLabel="Ajouter au groupe"
+        >
+          <Feather name="plus" size={16} color={theme.primary} />
+        </TouchableOpacity>
+      </View>
+    ),
+    [theme, addContactToGroup, showToast]
+  );
 
   const loading = groupsLoading || membersLoading || contactsLoading;
 
@@ -494,52 +544,12 @@ export default function GroupMembersScreen() {
                 keyExtractor={(c) => c.id}
                 style={{ flex: 1 }}
                 contentContainerStyle={{ gap: 10, paddingBottom: 36 }}
-                renderItem={({ item }) => (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      gap: 12,
-                      paddingVertical: 11,
-                      paddingHorizontal: 12,
-                      borderRadius: 14,
-                      backgroundColor: theme.surface,
-                      borderWidth: 1,
-                      borderColor: theme.border,
-                    }}
-                  >
-                    <Avatar name={item.full_name} status={item.status} size="sm" />
-                    <View style={{ flex: 1 }}>
-                      <KitText style={{ fontSize: 14, fontWeight: "600", color: theme.textPrimary }}>
-                        {item.full_name}
-                      </KitText>
-                      {item.phone ? (
-                        <KitText variant="muted" className="mt-1" style={{ fontSize: 12 }}>
-                          {item.phone}
-                        </KitText>
-                      ) : null}
-                    </View>
-                    <StatusPill status={item.status} size="sm" />
-
-                    <TouchableOpacity
-                      onPress={async () => {
-                        const ok = await addContactToGroup(item.id);
-                        if (ok) showToast("Ajouté au groupe");
-                        else showToast("Impossible d'ajouter");
-                      }}
-                      style={{
-                        padding: 8,
-                        borderRadius: 12,
-                        backgroundColor: `${theme.primaryBg}`,
-                        borderWidth: 1,
-                        borderColor: theme.primaryBorder,
-                      }}
-                      accessibilityLabel="Ajouter au groupe"
-                    >
-                      <Feather name="plus" size={16} color={theme.primary} />
-                    </TouchableOpacity>
-                  </View>
-                )}
+                renderItem={renderAddContact}
+                windowSize={10}
+                initialNumToRender={15}
+                maxToRenderPerBatch={10}
+                removeClippedSubviews={true}
+                keyboardShouldPersistTaps="handled"
               />
             )}
           </View>

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { View, ScrollView, TouchableOpacity, Text, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
@@ -63,10 +63,10 @@ export default function DashboardScreen() {
   const todayContacts = toFollowUp.slice(0, 3);
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
-  const overdueCount = toFollowUp.filter((c) => {
-    if (!c.next_follow_up) return false;
-    return new Date(c.next_follow_up) < todayStart;
-  }).length;
+  const overdueCount = useMemo(
+    () => toFollowUp.filter((c) => c.next_follow_up && new Date(c.next_follow_up) < new Date()).length,
+    [toFollowUp]
+  );
 
   if (loading) {
     return (

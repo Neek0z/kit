@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -170,6 +170,70 @@ export default function GroupsScreen() {
 
   const suggestions = useMemo(() => MLM_GROUP_PRESETS, []);
 
+  const renderGroupItem = useCallback(
+    ({ item }: { item: Group }) => (
+      <Card>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+          <TouchableOpacity
+            onPress={() => router.push(`/(app)/groups/${item.id}`)}
+            activeOpacity={0.7}
+            style={{ flex: 1 }}
+            accessibilityLabel={`Ouvrir le groupe ${item.name}`}
+          >
+            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+              <View style={{ flex: 1, gap: 6 }}>
+                <GroupBadge group={item} />
+                {item.description ? (
+                  <KitText variant="muted" className="mt-1">
+                    {item.description}
+                  </KitText>
+                ) : null}
+                {typeof item.member_count === "number" ? (
+                  <KitText variant="muted" className="mt-1">
+                    {item.member_count} membre{item.member_count > 1 ? "s" : ""}
+                  </KitText>
+                ) : null}
+              </View>
+              <View style={{ paddingTop: 8 }}>
+                <Feather name="chevron-right" size={18} color={theme.textHint} />
+              </View>
+            </View>
+          </TouchableOpacity>
+
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <TouchableOpacity
+              onPress={() => openEdit(item)}
+              style={{
+                padding: 10,
+                borderRadius: 14,
+                backgroundColor: `${theme.primaryBg}66`,
+                borderWidth: 1,
+                borderColor: theme.primaryBorder,
+              }}
+              accessibilityLabel="Modifier le groupe"
+            >
+              <Feather name="edit-2" size={16} color={theme.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => handleDelete(item)}
+              style={{
+                padding: 10,
+                borderRadius: 14,
+                backgroundColor: `${theme.bg}`,
+                borderWidth: 1,
+                borderColor: theme.border,
+              }}
+              accessibilityLabel="Supprimer le groupe"
+            >
+              <Feather name="trash-2" size={16} color={theme.textHint} />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Card>
+    ),
+    [theme, openEdit, handleDelete]
+  );
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.bg }}>
       <View
@@ -274,67 +338,13 @@ export default function GroupsScreen() {
               ) : null}
             </View>
           }
-          renderItem={({ item }) => (
-            <Card>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-                <TouchableOpacity
-                  onPress={() => router.push(`/(app)/groups/${item.id}`)}
-                  activeOpacity={0.7}
-                  style={{ flex: 1 }}
-                  accessibilityLabel={`Ouvrir le groupe ${item.name}`}
-                >
-                  <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-                    <View style={{ flex: 1, gap: 6 }}>
-                      <GroupBadge group={item} />
-                      {item.description ? (
-                        <KitText variant="muted" className="mt-1">
-                          {item.description}
-                        </KitText>
-                      ) : null}
-                      {typeof item.member_count === "number" ? (
-                        <KitText variant="muted" className="mt-1">
-                          {item.member_count} membre{item.member_count > 1 ? "s" : ""}
-                        </KitText>
-                      ) : null}
-                    </View>
-                    <View style={{ paddingTop: 8 }}>
-                      <Feather name="chevron-right" size={18} color={theme.textHint} />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                  <TouchableOpacity
-                    onPress={() => openEdit(item)}
-                    style={{
-                      padding: 10,
-                      borderRadius: 14,
-                      backgroundColor: `${theme.primaryBg}66`,
-                      borderWidth: 1,
-                      borderColor: theme.primaryBorder,
-                    }}
-                    accessibilityLabel="Modifier le groupe"
-                  >
-                    <Feather name="edit-2" size={16} color={theme.primary} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleDelete(item)}
-                    style={{
-                      padding: 10,
-                      borderRadius: 14,
-                      backgroundColor: `${theme.bg}`,
-                      borderWidth: 1,
-                      borderColor: theme.border,
-                    }}
-                    accessibilityLabel="Supprimer le groupe"
-                  >
-                    <Feather name="trash-2" size={16} color={theme.textHint} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </Card>
-          )}
+          renderItem={renderGroupItem}
           ListEmptyComponent={null}
+          windowSize={10}
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          removeClippedSubviews={true}
+          keyboardShouldPersistTaps="handled"
         />
       )}
 

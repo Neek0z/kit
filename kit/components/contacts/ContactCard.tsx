@@ -1,9 +1,9 @@
+import React from "react";
 import { View, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Text, Avatar, StatusPill } from "../ui";
 import { Contact, PipelineStatus } from "../../types";
-import { usePendingRelancesCount } from "../../hooks/useContactRelances";
 import { useTheme, STATUS_COLORS, StatusKey } from "../../lib/theme";
 
 const STATUS_PROGRESS: Record<PipelineStatus, number> = {
@@ -19,10 +19,10 @@ const TOTAL_STEPS = 4;
 
 interface ContactCardProps {
   contact: Contact;
+  pendingCount?: number;
 }
 
-export function ContactCard({ contact }: ContactCardProps) {
-  const { pendingCount } = usePendingRelancesCount(contact.id);
+const ContactCard = React.memo(function ContactCard({ contact, pendingCount = 0 }: ContactCardProps) {
   const theme = useTheme();
   const progress = STATUS_PROGRESS[contact.status as PipelineStatus] ?? 0;
   const progressPercent = (progress / TOTAL_STEPS) * 100;
@@ -145,4 +145,6 @@ export function ContactCard({ contact }: ContactCardProps) {
       />
     </View>
   );
-}
+});
+
+export { ContactCard };

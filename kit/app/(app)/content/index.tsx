@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   FlatList,
@@ -261,6 +261,13 @@ export default function ContentScreen() {
     return displayedCategory ? getPromptsByCategory(displayedCategory) : [];
   }, [displayedCategory, getPromptsByCategory]);
 
+  const promptCountByCategory = useMemo(
+    () => Object.fromEntries(
+      categories.map((cat) => [cat.id, getPromptsByCategory(cat.id).length])
+    ),
+    [categories, getPromptsByCategory]
+  );
+
   useEffect(() => {
     if (!activeCategory && categories.length > 0) {
       setActiveCategory(categories[0].id);
@@ -281,6 +288,15 @@ export default function ContentScreen() {
       mounted = false;
     };
   }, []);
+
+  const renderPromptItem = useCallback(
+    ({ item }: { item: Prompt }) => (
+      <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
+        <PromptCard prompt={item} theme={theme} />
+      </View>
+    ),
+    [theme]
+  );
 
   const dismissTutorial = async () => {
     try {
@@ -402,6 +418,11 @@ export default function ContentScreen() {
         contentContainerStyle={{
           paddingBottom: 32,
         }}
+        windowSize={10}
+        initialNumToRender={15}
+        maxToRenderPerBatch={10}
+        removeClippedSubviews={true}
+        keyboardShouldPersistTaps="handled"
         ListHeaderComponent={
           <View>
             <View
@@ -514,7 +535,7 @@ export default function ContentScreen() {
             >
               {categories.map((cat) => {
                 const isActive = displayedCategory === cat.id;
-                const promptsCount = getPromptsByCategory(cat.id).length;
+                const promptsCount = promptCountByCategory[cat.id] ?? 0;
                 const color: string = (cat as unknown as { color?: string }).color ?? theme.primary;
 
                 return (
@@ -581,11 +602,7 @@ export default function ContentScreen() {
             </View>
           </View>
         }
-        renderItem={({ item }) => (
-          <View style={{ paddingHorizontal: 20, marginBottom: 10 }}>
-            <PromptCard prompt={item} theme={theme} />
-          </View>
-        )}
+        renderItem={renderPromptItem}
       />
     </SafeAreaView>
   );

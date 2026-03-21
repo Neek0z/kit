@@ -17,7 +17,7 @@ import { Feather } from "@expo/vector-icons";
 import { Text, EmptyState } from "../../../components/ui";
 import { Header } from "../../../components/layout";
 import { ConversationListItem } from "../../../components/messages";
-import { useConversations } from "../../../hooks/useConversations";
+import { useConversations, type ConversationWithDetails } from "../../../hooks/useConversations";
 import { useTheme } from "../../../lib/theme";
 
 export default function MessagesScreen() {
@@ -67,6 +67,26 @@ export default function MessagesScreen() {
     useCallback(() => {
       refetch();
     }, [refetch])
+  );
+
+  const renderConversation = useCallback(
+    ({ item }: { item: ConversationWithDetails }) => (
+      <ConversationListItem conversation={item} />
+    ),
+    []
+  );
+
+  const ListHeader = useCallback(
+    () => (
+      <View className="px-5 py-2">
+        <Text variant="muted" className="text-sm">
+          {filtered.length} conversation
+          {filtered.length > 1 ? "s" : ""}
+          {search ? " (recherche)" : ""}
+        </Text>
+      </View>
+    ),
+    [filtered.length, search]
   );
 
   const showFullScreenLoading = loading && conversations.length === 0;
@@ -147,7 +167,7 @@ export default function MessagesScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ConversationListItem conversation={item} />}
+          renderItem={renderConversation}
           refreshControl={
             <RefreshControl
               refreshing={loading}
@@ -157,15 +177,12 @@ export default function MessagesScreen() {
             />
           }
           contentContainerStyle={{ paddingBottom: 24 }}
-          ListHeaderComponent={
-            <View className="px-5 py-2">
-              <Text variant="muted" className="text-sm">
-                {filtered.length} conversation
-                {filtered.length > 1 ? "s" : ""}
-                {search ? " (recherche)" : ""}
-              </Text>
-            </View>
-          }
+          ListHeaderComponent={ListHeader}
+          windowSize={10}
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          removeClippedSubviews={true}
+          keyboardShouldPersistTaps="handled"
         />
       )}
     </SafeAreaView>

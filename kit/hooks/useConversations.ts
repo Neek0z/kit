@@ -34,113 +34,105 @@ export function useConversations() {
     setError(null);
 
     try {
-      const { data: myParticipation, error: err1 } = await supabase
-        .from("conversation_participants")
-        .select("conversation_id")
-        .eq("user_id", user.id);
-
-      if (err1 || !myParticipation?.length) {
-        setConversations([]);
-        setLoading(false);
-        return;
-      }
-
-      const convoIds = myParticipation.map((p) => p.conversation_id);
-
-      const { data: convos, error: err2 } = await supabase
+      // Single query: conversations + participants via join (replaces 2 sequential queries)
+      const { data: convosWithParticipants, error: err1 } = await supabase
         .from("conversations")
-        .select("id, created_at, updated_at, kind, source_group_id")
-        .in("id", convoIds)
+        .select(`
+          id, created_at, updated_at, kind, source_group_id,
+          conversation_participants!inner (user_id)
+        `)
+        .eq("conversation_participants.user_id", user.id)
         .order("updated_at", { ascending: false });
 
-      if (err2) {
-        setError(err2.message);
-        setLoading(false);
-        return;
-      }
-
-      if (!convos?.length) {
+      if (err1 || !convosWithParticipants?.length) {
+        if (err1) setError(err1.message);
         setConversations([]);
         setLoading(false);
         return;
       }
 
-      const { data: allParticipants } = await supabase
-        .from("conversation_participants")
-        .select("conversation_id, user_id")
-        .in("conversation_id", convoIds);
+      const convoIds = convosWithParticipants.map((c: { id: string }) => c.id);
 
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, email, full_name, avatar_url, created_at, updated_at")
-        .in(
-          "id",
-          [...new Set((allParticipants || []).map((p) => p.user_id))]
-        );
+      // Fire all remaining queries in parallel (was 4-5 sequential queries)
+      const [participantsRes, messagesRes, unreadRes] = await Promise.all([
+        supabase
+          .from("conversation_participants")
+          .select("conversation_id, user_id")
+          .in("conversation_id", convoIds),
+        supabase
+          .from("messages")
+          .select("id, conversation_id, sender_id, content, created_at, read_at")
+          .in("conversation_id", convoIds)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("messages")
+          .select("conversation_id")
+          .in("conversation_id", convoIds)
+          .neq("sender_id", user.id)
+          .is("read_at", null),
+      ]);
 
-      const profileMap = new Map<string, UserProfile>(
-        (profiles || []).map((p) => [p.id, p as UserProfile])
-      );
+      const allParticipants = participantsRes.data || [];
 
-      const groupIds = [
-        ...new Set(
-          (convos || [])
-            .filter(
-              (c: { kind?: string; source_group_id?: string | null }) =>
-                c.kind === "group" && c.source_group_id
-            )
-            .map(
-              (c: { source_group_id: string }) => c.source_group_id as string
-            )
-        ),
-      ];
-
-      const groupMap = new Map<string, GroupChatPreview>();
-      if (groupIds.length > 0) {
-        const { data: groupRows } = await supabase
-          .from("groups")
-          .select("id, name, emoji, color")
-          .in("id", groupIds);
-        (groupRows || []).forEach((g: GroupChatPreview) =>
-          groupMap.set(g.id, g)
-        );
-      }
-
-      const { data: recentMessages } = await supabase
-        .from("messages")
-        .select("id, conversation_id, sender_id, content, created_at, read_at")
-        .in("conversation_id", convoIds)
-        .order("created_at", { ascending: false });
-
-      const lastByConvo = new Map<string, Message>();
-      (recentMessages || []).forEach((m) => {
-        if (!lastByConvo.has(m.conversation_id))
-          lastByConvo.set(m.conversation_id, m as Message);
-      });
-
+      // Build participant maps
       const participantsByConvo = new Map<string, { user_id: string }[]>();
-      (allParticipants || []).forEach((p) => {
+      allParticipants.forEach((p) => {
         const list = participantsByConvo.get(p.conversation_id) || [];
         list.push(p);
         participantsByConvo.set(p.conversation_id, list);
       });
 
-      const { data: unreadRows } = await supabase
-        .from("messages")
-        .select("conversation_id")
-        .in("conversation_id", convoIds)
-        .neq("sender_id", user.id)
-        .is("read_at", null);
+      // Parallel: profiles + groups (depends on participants/convos data)
+      const uniqueUserIds = [...new Set(allParticipants.map((p) => p.user_id))];
+      const groupIds = [
+        ...new Set(
+          convosWithParticipants
+            .filter(
+              (c: { kind?: string | null; source_group_id?: string | null }) =>
+                c.kind === "group" && c.source_group_id
+            )
+            .map(
+              (c: { source_group_id?: string | null }) => c.source_group_id as string
+            )
+        ),
+      ];
 
+      const [profilesRes, groupsRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, email, full_name, avatar_url, created_at, updated_at")
+          .in("id", uniqueUserIds),
+        groupIds.length > 0
+          ? supabase.from("groups").select("id, name, emoji, color").in("id", groupIds)
+          : Promise.resolve({ data: [] as GroupChatPreview[] }),
+      ]);
+
+      const profileMap = new Map<string, UserProfile>(
+        (profilesRes.data || []).map((p) => [p.id, p as UserProfile])
+      );
+
+      const groupMap = new Map<string, GroupChatPreview>();
+      ((groupsRes.data || []) as GroupChatPreview[]).forEach((g) =>
+        groupMap.set(g.id, g)
+      );
+
+      // Build last-message map
+      const lastByConvo = new Map<string, Message>();
+      (messagesRes.data || []).forEach((m) => {
+        if (!lastByConvo.has(m.conversation_id))
+          lastByConvo.set(m.conversation_id, m as Message);
+      });
+
+      // Build unread map
       const unreadByConvo = new Map<string, number>();
-      (unreadRows || []).forEach((r: { conversation_id: string }) => {
+      (unreadRes.data || []).forEach((r: { conversation_id: string }) => {
         unreadByConvo.set(
           r.conversation_id,
           (unreadByConvo.get(r.conversation_id) ?? 0) + 1
         );
       });
 
-      const result: ConversationWithDetails[] = convos.map((c) => {
+      const result: ConversationWithDetails[] = convosWithParticipants.map((c) => {
         const row = c as {
           id: string;
           created_at: string;

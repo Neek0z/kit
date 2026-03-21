@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   View,
   ScrollView,
@@ -149,8 +149,11 @@ export default function ContactDetailScreen() {
     }
   };
 
-  const upcomingAppointments = (contactAppointments as Appointment[]).filter(
-    (a) => new Date(a.scheduled_at) >= new Date()
+  const upcomingAppointments = useMemo(
+    () => (contactAppointments as Appointment[]).filter(
+      (a) => new Date(a.scheduled_at) >= new Date()
+    ),
+    [contactAppointments]
   );
 
   return (

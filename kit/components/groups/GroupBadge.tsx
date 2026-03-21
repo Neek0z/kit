@@ -1,3 +1,4 @@
+import React from "react";
 import { View, Text, TouchableOpacity, ViewProps } from "react-native";
 import type { Group } from "../../types";
 
@@ -9,7 +10,7 @@ interface GroupBadgeProps extends ViewProps {
   size?: "sm" | "md";
 }
 
-export function GroupBadge({
+const GroupBadge = React.memo(function GroupBadge({
   group,
   onRemove,
   size = "md",
@@ -56,5 +57,7 @@ export function GroupBadge({
       )}
     </View>
   );
-}
+});
+
+export { GroupBadge };
 
