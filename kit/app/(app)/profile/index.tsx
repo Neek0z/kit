@@ -22,6 +22,7 @@ import {
 import { useProfile } from "../../../hooks/useProfile";
 import { useSubscription } from "../../../hooks/useSubscription";
 import { useDashboard } from "../../../hooks/useDashboard";
+import { FeedbackSheet } from "../../../components/feedback/FeedbackSheet";
 
 type FeatherName = React.ComponentProps<typeof Feather>["name"];
 
@@ -95,6 +96,7 @@ export default function ProfileScreen() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   // Changé à chaque succès upload+update → force le rechargement de l’image (évite le cache)
   const [avatarRefreshKey, setAvatarRefreshKey] = useState(0);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const handlePickAvatar = () => {
     Alert.alert("Photo de profil", "Choisir une source", [
@@ -436,15 +438,10 @@ export default function ProfileScreen() {
             <Divider />
             {/* TODO: supprimer avant publication */}
             <ProfileRow
-              icon="external-link"
+              icon="message-square"
               label="📋 Feedback & Tests"
               color={designTheme.accent}
-              onPress={() =>
-                Linking.openURL(
-                  "https://like-capybara-ebb.notion.site/Points-revoir-KIT-32a0aab0941280718508ec562cfeef43?source=copy_link"
-                )
-              }
-              rightElement={<Feather name="external-link" size={14} color={designTheme.accent} />}
+              onPress={() => setShowFeedback(true)}
             />
           </Card>
 
@@ -466,6 +463,10 @@ export default function ProfileScreen() {
           </Card>
         </View>
       </ScrollView>
+      <FeedbackSheet
+        visible={showFeedback}
+        onClose={() => setShowFeedback(false)}
+      />
     </SafeAreaView>
   );
 }
